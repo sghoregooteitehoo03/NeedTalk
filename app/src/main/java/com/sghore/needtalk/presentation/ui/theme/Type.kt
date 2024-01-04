@@ -17,8 +17,8 @@ val Typography = Typography(
         fontSize = 24.sp
     ),
     h3 = TextStyle(
-        fontWeight = FontWeight.Medium,
-        fontSize = 22.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 40.sp
     ),
     h4 = TextStyle(
         fontWeight = FontWeight.ExtraBold,
@@ -30,7 +30,7 @@ val Typography = Typography(
     ),
     body1 = TextStyle(
         fontFamily = FontFamily.Default,
-        fontWeight = FontWeight.Normal,
+        fontWeight = FontWeight.Medium,
         fontSize = 14.sp
     ),
     body2 = TextStyle(
@@ -38,6 +38,10 @@ val Typography = Typography(
         fontSize = 14.sp
     ),
     subtitle1 = TextStyle(
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp
+    ),
+    subtitle2 = TextStyle(
         fontWeight = FontWeight.Normal,
         fontSize = 12.sp
     )
