@@ -30,9 +30,12 @@ import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.TopBar
 import com.sghore.needtalk.presentation.ui.theme.Purple80
 
+// TODO:
+//  . 액션 기능
+
 @Composable
 fun HomeScreen(
-
+    uiState: HomeUiState
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         Column {
@@ -42,16 +45,15 @@ fun HomeScreen(
                     .height(54.dp)
                     .padding(start = 14.dp, end = 14.dp),
                 content = { modifier ->
+                    val user = uiState.user
                     NameTag(
                         modifier = modifier,
-                        name = "테스트에요",
-                        color = Purple80,
+                        name = user?.name ?: "",
+                        color = Color(user?.color ?: 0),
                         interval = 6.dp,
                         colorSize = 16.dp,
-                        textStyle = MaterialTheme.typography.h5.copy(
-                            fontWeight = FontWeight.Bold,
-                            textDecoration = TextDecoration.Underline
-                        ),
+                        textStyle = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
+                        isBorder = true
                     )
                 },
                 actions = { modifier ->

@@ -1,0 +1,13 @@
+package com.sghore.needtalk.data.model
+
+import androidx.room.Entity
+import androidx.room.PrimaryKey
+
+@Entity
+data class TalkEntity(
+    @PrimaryKey(autoGenerate = true)
+    val id: Int? = null,
+    val talkTime: Long,
+    val userId: List<String>,
+    val createTimeStamp: Long
+)
