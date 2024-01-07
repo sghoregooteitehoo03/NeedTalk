@@ -20,7 +20,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val initUserUseCase: InitUserEntityUseCase,
     private val insertUserUseCase: InsertUserEntityUseCase,
-    private val getPagingTalkHistoryUseCase: GetPagingTalkHistoryUseCase
+    getPagingTalkHistoryUseCase: GetPagingTalkHistoryUseCase
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow(
@@ -54,6 +54,12 @@ class HomeViewModel @Inject constructor(
     fun openDialog(isOpen: Boolean) = viewModelScope.launch {
         _uiState.update {
             it.copy(isDialogOpen = isOpen)
+        }
+    }
+
+    fun clickStartAndClose() {
+        _uiState.update {
+            it.copy(isStart = !it.isStart)
         }
     }
 

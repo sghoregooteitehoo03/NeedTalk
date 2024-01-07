@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.home_screen
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -17,13 +18,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
-import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.ModalBottomSheetLayout
-import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -37,16 +35,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.paging.PagingData
+import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.paging.compose.LazyPagingItems
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.UserEntity
 import com.sghore.needtalk.domain.model.TalkHistory
@@ -56,14 +53,10 @@ import com.sghore.needtalk.presentation.ui.TopBar
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Orange
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Purple
 import java.text.SimpleDateFormat
 import java.util.Locale
-
-// TODO:
-//  . 액션 기능
 
 @Composable
 fun HomeScreen(
@@ -71,8 +64,15 @@ fun HomeScreen(
     pagingItems: LazyPagingItems<TalkHistory>?,
     onEvent: (HomeUiEvent) -> Unit
 ) {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+        val (layoutRef, subLayoutRef, startCloseBtnRef, createBtnRef,
+            joinBtnRef, createExplainRef, joinExplainRef) = createRefs()
+        Column(modifier = Modifier.constrainAs(layoutRef) {
+            top.linkTo(parent.top)
+            start.linkTo(parent.start)
+            end.linkTo(parent.end)
+            bottom.linkTo(parent.bottom)
+        }) {
             val user = uiState.user ?: UserEntity("", "", 0)
 
             TopBar(
@@ -96,7 +96,10 @@ fun HomeScreen(
                 },
                 actions = { modifier ->
                     Icon(
-                        modifier = modifier.size(24.dp),
+                        modifier = modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .clickable { },
                         painter = painterResource(id = R.drawable.ic_graph),
                         contentDescription = "Graph",
                         tint = MaterialTheme.colors.onPrimary
@@ -117,26 +120,129 @@ fun HomeScreen(
                 }
             }
         }
-        ExtendedFloatingActionButton(
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(14.dp),
-            text = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+        Box(
+            modifier = if (uiState.isStart) {
+                Modifier
+                    .constrainAs(subLayoutRef) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .fillMaxSize()
+                    .background(color = Color.Black.copy(alpha = 0.4f))
+                    .pointerInput(Unit) {
+                        onEvent(HomeUiEvent.ClickStartAndClose)
+                    }
+            } else {
+                Modifier.size(0.dp)
+            }
+        )
+
+        if (uiState.isStart) {
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(40.dp)
+                    .constrainAs(createBtnRef) {
+                        start.linkTo(startCloseBtnRef.start)
+                        end.linkTo(parent.end, margin = 14.dp)
+                        bottom.linkTo(startCloseBtnRef.top, margin = 12.dp)
+                    },
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_add_timer),
+                    contentDescription = "AddTimer"
+                )
+            }
+            RoundedButton(
+                modifier = Modifier.constrainAs(createExplainRef) {
+                    top.linkTo(createBtnRef.top)
+                    end.linkTo(createBtnRef.start, margin = 8.dp)
+                    bottom.linkTo(createBtnRef.bottom)
+                },
+                text = "생성하기",
+                color = MaterialTheme.colors.secondary,
+                textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
+                paddingValues = PaddingValues(
+                    start = 14.dp,
+                    end = 14.dp,
+                    top = 6.dp,
+                    bottom = 6.dp
+                ),
+                onClick = {})
+            FloatingActionButton(
+                modifier = Modifier
+                    .size(40.dp)
+                    .constrainAs(joinBtnRef) {
+                        start.linkTo(startCloseBtnRef.start)
+                        end.linkTo(parent.end, margin = 14.dp)
+                        bottom.linkTo(createBtnRef.top, margin = 12.dp)
+                    },
+                onClick = { /*TODO*/ }
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_join),
+                    contentDescription = "Join"
+                )
+            }
+            RoundedButton(
+                modifier = Modifier.constrainAs(joinExplainRef) {
+                    top.linkTo(joinBtnRef.top)
+                    end.linkTo(joinBtnRef.start, margin = 8.dp)
+                    bottom.linkTo(joinBtnRef.bottom)
+                },
+                text = "참가하기",
+                color = MaterialTheme.colors.secondary,
+                textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
+                paddingValues = PaddingValues(
+                    start = 14.dp,
+                    end = 14.dp,
+                    top = 6.dp,
+                    bottom = 6.dp
+                ),
+                onClick = {})
+
+            FloatingActionButton(
+                modifier = Modifier
+                    .constrainAs(startCloseBtnRef) {
+                        end.linkTo(parent.end, margin = 14.dp)
+                        bottom.linkTo(parent.bottom, margin = 14.dp)
+                    }
+                    .size(48.dp),
+                onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
+            ) {
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+        } else {
+            ExtendedFloatingActionButton(
+                modifier = Modifier
+                    .constrainAs(startCloseBtnRef) {
+                        end.linkTo(parent.end, margin = 14.dp)
+                        bottom.linkTo(parent.bottom, margin = 14.dp)
+                    },
+                icon = {
                     Icon(
                         modifier = Modifier.size(24.dp),
                         painter = painterResource(id = R.drawable.ic_add),
                         contentDescription = "Add"
                     )
-                    Spacer(modifier = Modifier.width(12.dp))
+                },
+                text = {
                     Text(
                         text = "시작하기",
                         style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary)
                     )
-                }
-            },
-            onClick = { /*TODO*/ }
-        )
+                },
+                onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
+            )
+        }
     }
 }
 

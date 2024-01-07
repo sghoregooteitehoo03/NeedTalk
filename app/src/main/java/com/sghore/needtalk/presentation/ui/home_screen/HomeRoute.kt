@@ -2,7 +2,6 @@ package com.sghore.needtalk.presentation.ui.home_screen
 
 import android.annotation.SuppressLint
 import android.provider.Settings
-import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -37,6 +36,10 @@ fun HomeRoute(
             when (event) {
                 is HomeUiEvent.ClickNameTag -> {
                     viewModel.openDialog(true)
+                }
+
+                is HomeUiEvent.ClickStartAndClose -> {
+                    viewModel.clickStartAndClose()
                 }
 
                 is HomeUiEvent.SuccessUpdateUserName -> {
