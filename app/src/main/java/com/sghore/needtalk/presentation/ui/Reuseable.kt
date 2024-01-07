@@ -1,25 +1,47 @@
 package com.sghore.needtalk.presentation.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CornerSize
+import androidx.compose.material.Button
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.MaterialTheme
+import androidx.compose.material.ModalBottomSheetLayout
+import androidx.compose.material.ModalBottomSheetState
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.RoundRect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalLifecycleOwner
+import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
+import com.sghore.needtalk.R
+import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.presentation.ui.theme.Red
 
 @Composable
 fun DisposableEffectWithLifeCycle(
@@ -77,7 +99,7 @@ fun NameTag(
     color: Color,
     interval: Dp,
     colorSize: Dp,
-    textStyle: androidx.compose.ui.text.TextStyle,
+    textStyle: TextStyle,
     isBorder: Boolean = false
 ) {
     Row(
@@ -96,8 +118,6 @@ fun NameTag(
         Spacer(modifier = Modifier.width(interval))
         Text(
             modifier = if (isBorder) {
-                Modifier
-            } else {
                 Modifier.drawBehind {
                     val strokeWidthPx = 2.dp.toPx()
                     val verticalOffset = size.height - 2.sp.toPx()
@@ -108,9 +128,61 @@ fun NameTag(
                         end = Offset(size.width, verticalOffset)
                     )
                 }
+            } else {
+                Modifier
             },
             text = name,
             style = textStyle
+        )
+    }
+}
+
+@Composable
+fun RoundedButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    color: Color,
+    textStyle: TextStyle,
+    paddingValues: PaddingValues,
+    enable: Boolean = true,
+    onClick: () -> Unit
+) {
+    val enableColor = if (enable) {
+        color
+    } else {
+        colorResource(id = R.color.light_gray)
+    }
+
+    Box(
+        modifier = modifier
+            .background(color = enableColor, shape = MaterialTheme.shapes.large)
+            .clip(MaterialTheme.shapes.large)
+            .clickable {
+                if (enable) {
+                    onClick()
+                }
+            }
+            .padding(paddingValues)
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = text,
+            style = textStyle
+        )
+    }
+}
+
+@Preview
+@Composable
+fun NameTagPreview() {
+    NeedTalkTheme {
+        NameTag(
+            name = "닉네임",
+            color = Red,
+            interval = 6.dp,
+            colorSize = 16.dp,
+            textStyle = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
+            isBorder = true
         )
     }
 }

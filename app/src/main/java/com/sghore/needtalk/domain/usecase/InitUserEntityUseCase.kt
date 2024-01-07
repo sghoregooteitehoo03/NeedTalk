@@ -19,7 +19,7 @@ class InitUserEntityUseCase @Inject constructor(
 ) {
     operator fun invoke(userId: String) = getUserUseCase(userId)
         .onEach { userEntity ->
-            if (userEntity == null) {
+            if (userEntity == null) { // 유저 정보가 없으면 새로 만듬
                 val user = createUser(userId)
                 insertUserUseCase(user)
             }

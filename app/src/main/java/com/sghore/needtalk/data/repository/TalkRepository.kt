@@ -2,6 +2,7 @@ package com.sghore.needtalk.data.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
+import com.sghore.needtalk.data.model.TalkEntity
 import com.sghore.needtalk.data.model.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
 import com.sghore.needtalk.data.repository.datasource.TalkHistoryPagingSource
@@ -13,9 +14,15 @@ class TalkRepository @Inject constructor(
 
     fun getUserEntity(userId: String) = dao.getUserEntity(userId)
 
-    suspend fun insertUserEntity(userEntity: UserEntity) = dao.insertUserEntity(userEntity)
+    suspend fun insertUserEntity(userEntity: UserEntity) {
+        dao.insertUserEntity(userEntity)
+    }
 
     fun getPagingTalkHistory() = Pager(config = PagingConfig(10)) {
         TalkHistoryPagingSource(dao)
+    }.flow
+
+    suspend fun insertTalkEntity(talkEntity: TalkEntity) {
+        dao.insertTalkEntity(talkEntity)
     }
 }

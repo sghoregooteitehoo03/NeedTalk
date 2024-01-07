@@ -14,10 +14,10 @@ class TalkHistoryPagingSource(private val talkDao: TalkDao) : PagingSource<Int, 
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TalkHistory> {
         return try {
             val offset = params.key ?: 0
-            val talkEntity = talkDao.getTalkHistory(offset).first()
+            val talkEntity = talkDao.getTalkEntity(offset).first()
             val talkHistory = talkEntity.map {
-                val users = it.userId.map { userId ->
-                    talkDao.getUserEntity(userId).first()
+                val users = it.usersId.split(",").map { userId ->
+                    talkDao.getUserEntity(userId.trim()).first()
                 }
 
                 TalkHistory(
@@ -30,7 +30,11 @@ class TalkHistoryPagingSource(private val talkDao: TalkDao) : PagingSource<Int, 
             LoadResult.Page(
                 data = talkHistory,
                 prevKey = null,
-                nextKey = offset + 5
+                nextKey = if (talkEntity.isNotEmpty()) {
+                    offset + 5
+                } else {
+                    null
+                }
             )
         } catch (e: Exception) {
             e.printStackTrace()

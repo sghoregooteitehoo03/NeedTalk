@@ -14,4 +14,15 @@ class ExampleUnitTest {
     fun addition_isCorrect() {
         assertEquals(4, 2 + 2)
     }
+
+    @Test
+    fun function_test() {
+        val testArr = listOf("123", "456", "789")
+        val joinStr = testArr.joinToString { it }
+
+        println(joinStr)
+        joinStr.split(",").map {
+            println(it.trim())
+        }
+    }
 }

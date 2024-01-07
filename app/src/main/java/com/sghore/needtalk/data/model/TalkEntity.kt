@@ -8,6 +8,6 @@ data class TalkEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int? = null,
     val talkTime: Long,
-    val userId: List<String>,
+    val usersId: String,
     val createTimeStamp: Long
 )

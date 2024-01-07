@@ -23,5 +23,8 @@ interface TalkDao {
                 "LIMIT :limit " +
                 "OFFSET :offset"
     )
-    fun getTalkHistory(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
+    fun getTalkEntity(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
+
+    @Insert
+    suspend fun insertTalkEntity(talkEntity: TalkEntity)
 }
