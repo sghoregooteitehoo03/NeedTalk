@@ -17,14 +17,8 @@ class MainActivity : ComponentActivity() {
         setContent {
             NeedTalkTheme {
                 val navController = rememberNavController()
-                NavHost(
-                    navController = navController,
-                    startDestination = UiScreen.HomeScreen.route
-                ) {
-                    composable(UiScreen.HomeScreen.route) {
-                        HomeRoute()
-                    }
-                }
+
+                AppNavHost(navController = navController)
             }
         }
     }

@@ -25,7 +25,8 @@ import kotlinx.coroutines.flow.collectLatest
 @SuppressLint("HardwareIds")
 @Composable
 fun HomeRoute(
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    navigateToCreateScreen: () -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -40,6 +41,11 @@ fun HomeRoute(
 
                 is HomeUiEvent.ClickStartAndClose -> {
                     viewModel.clickStartAndClose()
+                }
+
+                is HomeUiEvent.ClickCreate -> {
+                    viewModel.clickStartAndClose()
+                    navigateToCreateScreen()
                 }
 
                 is HomeUiEvent.SuccessUpdateUserName -> {

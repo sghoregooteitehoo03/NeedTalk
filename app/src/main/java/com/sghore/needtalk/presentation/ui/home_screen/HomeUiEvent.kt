@@ -5,4 +5,5 @@ sealed interface HomeUiEvent {
     data object SuccessUpdateUserName : HomeUiEvent
 
     data object ClickStartAndClose : HomeUiEvent
+    data object ClickCreate : HomeUiEvent
 }

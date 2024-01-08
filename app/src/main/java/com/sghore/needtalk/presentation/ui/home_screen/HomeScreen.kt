@@ -148,7 +148,7 @@ fun HomeScreen(
                         end.linkTo(parent.end, margin = 14.dp)
                         bottom.linkTo(startCloseBtnRef.top, margin = 12.dp)
                     },
-                onClick = { /*TODO*/ }
+                onClick = { onEvent(HomeUiEvent.ClickCreate) }
             ) {
                 Icon(
                     modifier = Modifier.size(24.dp),
@@ -171,7 +171,8 @@ fun HomeScreen(
                     top = 6.dp,
                     bottom = 6.dp
                 ),
-                onClick = {})
+                onClick = { onEvent(HomeUiEvent.ClickCreate) }
+            )
             FloatingActionButton(
                 modifier = Modifier
                     .size(40.dp)
