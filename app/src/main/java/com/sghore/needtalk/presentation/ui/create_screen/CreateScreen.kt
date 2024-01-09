@@ -1,13 +1,10 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
-import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -24,13 +21,14 @@ import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
@@ -41,8 +39,7 @@ import androidx.compose.ui.unit.dp
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
-import kotlin.math.max
-import kotlin.math.roundToInt
+import java.text.DecimalFormat
 
 @Composable
 fun CreateScreen(
@@ -185,21 +182,46 @@ fun OptionItemWithSwitch(
 
 @Composable
 fun SetTimer(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentTime: Long,
+    maxTime: Long = 7200000L,
+    stepTime: Long = 300000,
+    onTimeChange: (Long) -> Unit
 ) {
-    var time by remember {
-        mutableStateOf(0L)
-    }
-    var currentProgress by remember {
-        mutableStateOf(0f)
+    val maxWidth = LocalConfiguration.current.screenWidthDp
+    var progress by remember {
+        mutableFloatStateOf(
+            if ((currentTime / maxTime.toFloat()) < 0.025f) {
+                (currentTime / maxTime.toFloat()) + 0.025f
+            } else {
+                (currentTime / maxTime.toFloat())
+            }
+        )
     }
     var thumbPos by remember {
-        mutableStateOf(0f)
+        mutableFloatStateOf(progress * maxWidth)
     }
-    val maxWidth = LocalConfiguration.current.screenWidthDp
 
     Column {
-        Text(text = "progress: ${currentProgress}")
+        val decimalFormat = DecimalFormat("#0")
+        Box(
+            modifier = Modifier
+                .width(54.dp)
+                .height(32.dp)
+                .graphicsLayer {
+                    translationX = thumbPos * 2.4.dp.value
+                }
+                .background(
+                    color = MaterialTheme.colors.secondary,
+                    shape = CircleShape
+                ),
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.Center),
+                text = "${decimalFormat.format(currentTime)}분",
+                style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary)
+            )
+        }
         Row(
             modifier = modifier
                 .fillMaxWidth()
@@ -208,19 +230,32 @@ fun SetTimer(
                         thumbPos += (dragAmount.x / 2.5.dp.value)
                         thumbPos = thumbPos.coerceIn(0f, maxWidth.toFloat())
 
-                        currentProgress = thumbPos / maxWidth
+                        progress = if (progress <= 0.025f) {
+                            (thumbPos / maxWidth) + 0.025f
+                        } else {
+                            (thumbPos / maxWidth)
+                        }
+
+                        val time = (progress * maxTime).toLong()
+                        onTimeChange(
+                            getTimerTimeByStep(
+                                time = time,
+                                stepTime = stepTime
+                            ) / 60000
+                        )
                     }
                 },
             verticalAlignment = Alignment.CenterVertically
         ) {
             val repeatTime = maxWidth / 8
+
             repeat(repeatTime + 1) { index ->
+                val randomDp = remember(index) { (30..52).random().dp }
                 Box(
                     modifier = modifier
                         .width(4.dp)
                             then (
                             if ((8.dp.value) * (index + 1) <= thumbPos) {
-                                val randomDp = remember { (30..52).random().dp }
                                 Modifier
                                     .height(randomDp)
                                     .background(color = Orange50, shape = CircleShape)
@@ -240,11 +275,38 @@ fun SetTimer(
 
 }
 
+private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
+    if (stepTime == 0L) {
+        return time
+    }
+
+    val decimal = time % stepTime
+    val necessaryValue = stepTime - decimal
+
+    return if (decimal == 0L) {
+        time
+    } else {
+        if (decimal > stepTime / 2000) {
+            time + necessaryValue
+        } else {
+            time - decimal
+        }
+    }
+}
+
 @Preview
 @Composable
 fun SetTimerPreview() {
     NeedTalkTheme {
-        SetTimer()
+        var time by remember {
+            mutableStateOf(3600000L)
+        }
+        SetTimer(
+            currentTime = time,
+            onTimeChange = {
+                time = it
+            }
+        )
     }
 }
 
@@ -299,77 +361,6 @@ fun SetTimerPreview() {
 //        }
 //    }
 //}
-//
-//@Composable
-//private fun DrawScope.drawLinearSlider(
-//    size: Size,
-//    range: ClosedFloatingPointRange<Float>,
-//    activeTrackColor: Color,
-//    inactiveTrackColor: Color
-//) {
-//    val trackHeight = size.height / 4
-//    val trackY = size.height / 2 - trackHeight / 2
-//    val trackRect = Rect(0f, trackY, size.width, trackY + trackHeight)
-//
-//    drawRoundRect(
-//        color = inactiveTrackColor,
-//        size = trackRect.size,
-//        cornerRadius = CornerRadius.Zero
-//    )
-//
-//    val activeTrackWidth = calculateThumbPosition(range.endInclusive, size.width, range)
-//    val activeTrackRect = Rect(0f, trackY, activeTrackWidth, trackY + trackHeight)
-//
-//    drawRoundRect(
-//        color = activeTrackColor,
-//        size = activeTrackRect.size,
-//        cornerRadius = CornerRadius.Zero
-//    )
-//}
-//
-//@Composable
-//private fun DrawScope.drawThumb(thumbPosition: Float, thumbColor: Color) {
-//    val thumbRadius = 12.dp.toPx()
-//    val thumbY = size.height / 2
-//
-//    drawCircle(
-//        color = thumbColor,
-//        center = Offset(thumbPosition, thumbY),
-//        radius = thumbRadius,
-//    )
-//}
-//
-//@Composable
-//private fun DrawScope.drawValueText(currentValue: Float, width: Float, range: ClosedFloatingPointRange<Float>) {
-//    val textPadding = 8.dp.toPx()
-//    val valueText = "%.2f".format(currentValue)
-//    val textWidth = with(LocalDensity.current) {
-//        Paint().apply {
-//            this.textSize = 16.sp.toPx()
-//        }.measureText(valueText)
-//    }
-//    val textX = calculateThumbPosition(currentValue, width, range) - textWidth / 2
-//
-//    drawRoundRect(
-//        color = MaterialTheme.colorScheme.surface,
-//        size = Size(textWidth + textPadding * 2, 28.dp.toPx()),
-//        topLeft = Offset(textX - textPadding, size.height / 4 - 28.dp.toPx()),
-//        cornerRadius = CornerRadius.Zero
-//    )
-//
-//    drawIntoCanvas {
-//        it.nativeCanvas.drawText(
-//            text = valueText,
-//            x = textX + textPadding,
-//            y = size.height / 4,
-//            Paint().apply {
-//                this.color = MaterialTheme.colorScheme.onSurface
-//                this.textSize = 16.sp.toPx()
-//            }
-//        )
-//    }
-//}
-//
 //@Composable
 //fun calculateThumbPosition(value: Float, width: Float, range: ClosedFloatingPointRange<Float>): Float {
 //    return (value - range.start) / (range.endInclusive - range.start) * width
@@ -379,18 +370,4 @@ fun SetTimerPreview() {
 //fun calculateValue(thumbPosition: Float, width: Float, range: ClosedFloatingPointRange<Float>): Float {
 //    val progress = thumbPosition / width
 //    return range.start + progress * (range.endInclusive - range.start)
-//}
-//
-//@Preview(showBackground = true)
-//@Composable
-//fun LinearSliderPreview() {
-//    FeatherAndroidTasksTheme {
-//        LinearSlider(
-//            value = 0.5f,
-//            onValueChange = {},
-//            modifier = Modifier
-//                .fillMaxWidth()
-//                .padding(16.dp)
-//        )
-//    }
 //}

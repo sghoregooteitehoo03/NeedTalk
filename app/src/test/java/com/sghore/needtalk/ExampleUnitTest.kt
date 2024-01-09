@@ -17,12 +17,27 @@ class ExampleUnitTest {
 
     @Test
     fun function_test() {
-        val testArr = listOf("123", "456", "789")
-        val joinStr = testArr.joinToString { it }
+        println(getTimerTimeByStep(256000, 600000))
+    }
 
-        println(joinStr)
-        joinStr.split(",").map {
-            println(it.trim())
+    private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
+        if (stepTime == 0L) {
+            return time
+        }
+
+        val decimal = time % stepTime
+        val necessaryValue = stepTime - decimal
+
+        println(decimal)
+        println(necessaryValue)
+        return if (decimal == 0L) {
+            time
+        } else {
+            if (decimal > stepTime / 2) {
+                time + necessaryValue
+            } else {
+                time - decimal
+            }
         }
     }
 }
