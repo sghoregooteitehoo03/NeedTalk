@@ -1,7 +1,7 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,8 +27,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
@@ -71,6 +71,11 @@ fun CreateScreen(
             modifier = Modifier.fillMaxWidth(),
             optionTitle = "대화시간 설정"
         ) {
+            SetTimer(
+                currentTime = 3600000L,
+                onTimeChange = {}
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             OptionItemWithSwitch(
                 text = "스톱워치 모드",
                 isChecked = false,
@@ -186,31 +191,50 @@ fun SetTimer(
     currentTime: Long,
     maxTime: Long = 7200000L,
     stepTime: Long = 300000,
+    isStopwatch: Boolean = false,
     onTimeChange: (Long) -> Unit
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp
-    var progress by remember {
-        mutableFloatStateOf(
+    var progress = remember {
+        if (isStopwatch) {
+            maxTime.toFloat()
+        } else {
             if ((currentTime / maxTime.toFloat()) < 0.025f) {
                 (currentTime / maxTime.toFloat()) + 0.025f
             } else {
                 (currentTime / maxTime.toFloat())
             }
-        )
+        }
     }
     var thumbPos by remember {
         mutableFloatStateOf(progress * maxWidth)
     }
 
-    Column {
+    Column(
+        modifier = modifier
+            .padding(start = 14.dp, end = 14.dp)
+            .alpha(
+                if (isStopwatch) {
+                    0.4f
+                } else {
+                    1f
+                }
+            )
+    ) {
         val decimalFormat = DecimalFormat("#0")
         Box(
             modifier = Modifier
+                .padding(
+                    start = if (thumbPos.dp - 35.dp <= 0.dp) {
+                        0.dp
+                    } else if (thumbPos.dp - 35.dp >= maxWidth.dp - (54 + 28).dp) {
+                        maxWidth.dp - (54 + 28).dp
+                    } else {
+                        thumbPos.dp - 35.dp
+                    }
+                )
                 .width(54.dp)
                 .height(32.dp)
-                .graphicsLayer {
-                    translationX = thumbPos * 2.4.dp.value
-                }
                 .background(
                     color = MaterialTheme.colors.secondary,
                     shape = CircleShape
@@ -218,31 +242,39 @@ fun SetTimer(
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
-                text = "${decimalFormat.format(currentTime)}분",
+                text = if (isStopwatch) {
+                    "∞"
+                } else {
+                    "${decimalFormat.format(currentTime)}분"
+                },
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary)
             )
         }
+        Spacer(modifier = Modifier.height(8.dp))
         Row(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
+                .height(52.dp)
                 .pointerInput(Unit) {
-                    detectDragGestures { change, dragAmount ->
-                        thumbPos += (dragAmount.x / 2.5.dp.value)
-                        thumbPos = thumbPos.coerceIn(0f, maxWidth.toFloat())
+                    if (!isStopwatch) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            thumbPos += dragAmount / 2.6f
+                            thumbPos = thumbPos.coerceIn(0f, maxWidth.toFloat())
 
-                        progress = if (progress <= 0.025f) {
-                            (thumbPos / maxWidth) + 0.025f
-                        } else {
-                            (thumbPos / maxWidth)
+                            progress = if (progress <= 0.025f) {
+                                (thumbPos / maxWidth) + 0.025f
+                            } else {
+                                (thumbPos / maxWidth)
+                            }
+
+                            val time = (progress * maxTime).toLong()
+                            onTimeChange(
+                                getTimerTimeByStep(
+                                    time = time,
+                                    stepTime = stepTime
+                                ) / 60000
+                            )
                         }
-
-                        val time = (progress * maxTime).toLong()
-                        onTimeChange(
-                            getTimerTimeByStep(
-                                time = time,
-                                stepTime = stepTime
-                            ) / 60000
-                        )
                     }
                 },
             verticalAlignment = Alignment.CenterVertically
@@ -252,7 +284,7 @@ fun SetTimer(
             repeat(repeatTime + 1) { index ->
                 val randomDp = remember(index) { (30..52).random().dp }
                 Box(
-                    modifier = modifier
+                    modifier = Modifier
                         .width(4.dp)
                             then (
                             if ((8.dp.value) * (index + 1) <= thumbPos) {
@@ -305,69 +337,8 @@ fun SetTimerPreview() {
             currentTime = time,
             onTimeChange = {
                 time = it
-            }
+            },
+            isStopwatch = false
         )
     }
 }
-
-
-//@Composable
-//fun LinearSlider(
-//    value: Float,
-//    onValueChange: (Float) -> Unit,
-//    modifier: Modifier = Modifier,
-//    range: ClosedFloatingPointRange<Float> = 0f..1f,
-//    steps: Int = 100,
-//    activeTrackColor: Color = Color(0xFF6200EE),
-//    inactiveTrackColor: Color = Color(0xFFBDBDBD),
-//    thumbColor: Color = Color(0xFF6200EE),
-//    showValue: Boolean = true,
-//) {
-//    var currentValue by remember { mutableStateOf(value) }
-//    var thumbPosition by remember { mutableStateOf(0f) }
-//
-//    Box(
-//        modifier = modifier
-//            .fillMaxWidth()
-//            .height(48.dp)
-//            .padding(horizontal = 16.dp)
-//            .background(MaterialTheme.colorScheme.surface)
-//            .pointerInput(Unit) {
-//                detectTransformGestures { _, panGesture ->
-//                    thumbPosition += panGesture.x
-//                    thumbPosition = thumbPosition.coerceIn(0f, size.width)
-//                    currentValue = calculateValue(thumbPosition, size.width, range)
-//                    onValueChange(currentValue)
-//                }
-//            }
-//    ) {
-//        Canvas(
-//            modifier = Modifier
-//                .fillMaxSize()
-//        ) {
-//            drawLinearSlider(
-//                size = size,
-//                range = range,
-//                activeTrackColor = activeTrackColor,
-//                inactiveTrackColor = inactiveTrackColor
-//            )
-//
-//            thumbPosition = calculateThumbPosition(currentValue, size.width, range)
-//            drawThumb(thumbPosition, thumbColor)
-//
-//            if (showValue) {
-//                drawValueText(currentValue, size.width, range)
-//            }
-//        }
-//    }
-//}
-//@Composable
-//fun calculateThumbPosition(value: Float, width: Float, range: ClosedFloatingPointRange<Float>): Float {
-//    return (value - range.start) / (range.endInclusive - range.start) * width
-//}
-//
-//@Composable
-//fun calculateValue(thumbPosition: Float, width: Float, range: ClosedFloatingPointRange<Float>): Float {
-//    val progress = thumbPosition / width
-//    return range.start + progress * (range.endInclusive - range.start)
-//}
