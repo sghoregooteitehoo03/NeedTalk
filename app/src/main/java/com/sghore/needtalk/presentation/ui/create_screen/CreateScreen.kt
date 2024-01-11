@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui.create_screen
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -23,11 +24,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.RadioButton
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -36,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
@@ -130,7 +134,11 @@ fun CreateScreen(
             modifier = Modifier.fillMaxWidth(),
             optionTitle = "인원 수"
         ) {
-
+            SelectNumberOfPeople(
+                modifier = Modifier.fillMaxWidth(),
+                numberOfPeople = 2,
+                onClickNumber = {}
+            )
         }
     }
 }
@@ -414,6 +422,76 @@ fun MusicItem(
     }
 }
 
+@Composable
+fun SelectNumberOfPeople(
+    modifier: Modifier = Modifier,
+    numberOfPeople: Int,
+    onClickNumber: (Int) -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        SelectNumberOfPeopleItem(
+            modifier = Modifier.size(80.dp),
+            iconPainter = painterResource(id = R.drawable.ic_people_two),
+            isSelected = numberOfPeople == 2,
+            onClick = { onClickNumber(2) }
+        )
+        Spacer(modifier = Modifier.width(32.dp))
+        SelectNumberOfPeopleItem(
+            modifier = Modifier.size(80.dp),
+            iconPainter = painterResource(id = R.drawable.ic_people_three),
+            isSelected = numberOfPeople == 3,
+            onClick = { onClickNumber(3) }
+        )
+        Spacer(modifier = Modifier.width(32.dp))
+        SelectNumberOfPeopleItem(
+            modifier = Modifier.size(80.dp),
+            iconPainter = painterResource(id = R.drawable.ic_people_four),
+            isSelected = numberOfPeople == 4,
+            onClick = { onClickNumber(4) }
+        )
+    }
+}
+
+@Composable
+fun SelectNumberOfPeopleItem(
+    modifier: Modifier = Modifier,
+    iconPainter: Painter,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = Modifier.clickable {
+            if (!isSelected) {
+                onClick()
+            }
+        },
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            modifier = modifier,
+            painter = iconPainter,
+            contentDescription = "",
+            tint = if (isSelected) {
+                MaterialTheme.colors.secondary
+            } else {
+                MaterialTheme.colors.onPrimary
+            }
+        )
+        RadioButton(
+            selected = isSelected,
+            onClick = {
+                if (!isSelected) {
+                    onClick()
+                }
+            }
+        )
+    }
+}
+
 // time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
 private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
     if (stepTime == 0L) {
@@ -477,7 +555,20 @@ fun MusicSelectPagerPreview() {
         )
         MusicSelectPager(
             musics = testList,
-            initialMusicId = "3"
+            initialMusicId = "2"
+        )
+    }
+}
+
+@Preview
+@Composable
+fun SelectNumberOfPeoplePreview() {
+    var number by remember { mutableIntStateOf(2) }
+    NeedTalkTheme {
+        SelectNumberOfPeople(
+            modifier = Modifier.fillMaxWidth(),
+            numberOfPeople = number,
+            onClickNumber = { number = it }
         )
     }
 }
