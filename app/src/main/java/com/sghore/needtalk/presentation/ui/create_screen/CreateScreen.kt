@@ -1,10 +1,13 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +16,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -22,13 +28,14 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
@@ -36,7 +43,9 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.MusicEntity
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.text.DecimalFormat
@@ -91,6 +100,17 @@ fun CreateScreen(
             modifier = Modifier.fillMaxWidth(),
             optionTitle = "음악"
         ) {
+            MusicSelectPager(
+                musics = listOf(
+                    MusicEntity(
+                        id = "",
+                        thumbnailImage = "",
+                        title = "음악 없음",
+                        timestamp = System.currentTimeMillis()
+                    )
+                ), initialMusicId = ""
+            )
+            Spacer(modifier = Modifier.height(8.dp))
             OptionItem(
                 text = "음악 추가하기"
             )
@@ -225,12 +245,12 @@ fun SetTimer(
         Box(
             modifier = Modifier
                 .padding(
-                    start = if (thumbPos.dp - 35.dp <= 0.dp) {
+                    start = if (thumbPos.dp - 36.dp <= 0.dp) {
                         0.dp
-                    } else if (thumbPos.dp - 35.dp >= maxWidth.dp - (54 + 28).dp) {
+                    } else if (thumbPos.dp - 36.dp >= maxWidth.dp - (54 + 28).dp) {
                         maxWidth.dp - (54 + 28).dp
                     } else {
-                        thumbPos.dp - 35.dp
+                        thumbPos.dp - 36.dp
                     }
                 )
                 .width(54.dp)
@@ -257,8 +277,8 @@ fun SetTimer(
                 .height(52.dp)
                 .pointerInput(Unit) {
                     if (!isStopwatch) {
-                        detectHorizontalDragGestures { change, dragAmount ->
-                            thumbPos += dragAmount / 2.6f
+                        detectHorizontalDragGestures { _, dragAmount ->
+                            thumbPos += dragAmount / 2.5f
                             thumbPos = thumbPos.coerceIn(0f, maxWidth.toFloat())
 
                             progress = if (progress <= 0.025f) {
@@ -307,6 +327,94 @@ fun SetTimer(
 
 }
 
+// TODO: 사이즈 커지고 작아지는 애니메이션 추가
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun MusicSelectPager(
+    modifier: Modifier = Modifier,
+    musics: List<MusicEntity>,
+    initialMusicId: String
+) {
+    val initialIndex = remember { musics.map { it.id }.indexOf(initialMusicId) }
+    val pagerState = rememberPagerState(
+        initialPage = if (initialIndex < 0) 0 else initialIndex,
+        pageCount = { musics.size }
+    )
+    val currentPage = pagerState.currentPage
+    val maxWidth = LocalConfiguration.current.screenWidthDp
+
+    HorizontalPager(
+        modifier = modifier,
+        state = pagerState,
+        contentPadding = PaddingValues(
+            start = (maxWidth.dp - 140.dp) / 2,
+            end = (maxWidth.dp - 140.dp) / 2
+        ),
+        verticalAlignment = Alignment.Bottom
+    ) { index ->
+        MusicItem(
+            modifier = Modifier.width(140.dp),
+            thumbnailImage = musics[index].thumbnailImage,
+            musicTitle = musics[index].title,
+            isSelected = index == currentPage
+        )
+    }
+}
+
+@Composable
+fun MusicItem(
+    modifier: Modifier = Modifier,
+    thumbnailImage: String,
+    musicTitle: String,
+    isSelected: Boolean
+) {
+    Column(
+        modifier = modifier
+            .alpha(if (isSelected) 1f else 0.4f),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (thumbnailImage.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .size(if (isSelected) 140.dp else 110.dp)
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(
+                        color = colorResource(id = R.color.light_gray),
+                        shape = RoundedCornerShape(20.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(80.dp),
+                    painter = painterResource(id = R.drawable.ic_no_music),
+                    contentDescription = "NoMusic",
+                    tint = Color.White
+                )
+            }
+        } else {
+            Image(
+                modifier = Modifier
+                    .size(if (isSelected) 140.dp else 110.dp)
+                    .clip(RoundedCornerShape(20.dp)),
+                painter = rememberAsyncImagePainter(model = thumbnailImage),
+                contentDescription = thumbnailImage
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = musicTitle,
+            style = if (isSelected) {
+                MaterialTheme.typography.body1
+                    .copy(color = MaterialTheme.colors.onPrimary)
+            } else {
+                MaterialTheme.typography.body2
+                    .copy(color = MaterialTheme.colors.onPrimary)
+            }
+        )
+    }
+}
+
+// time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
 private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
     if (stepTime == 0L) {
         return time
@@ -331,7 +439,7 @@ private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
 fun SetTimerPreview() {
     NeedTalkTheme {
         var time by remember {
-            mutableStateOf(3600000L)
+            mutableLongStateOf(3600000L)
         }
         SetTimer(
             currentTime = time,
@@ -339,6 +447,37 @@ fun SetTimerPreview() {
                 time = it
             },
             isStopwatch = false
+        )
+    }
+}
+
+@Preview
+@Composable
+fun MusicSelectPagerPreview() {
+    NeedTalkTheme {
+        val testList = listOf(
+            MusicEntity(
+                id = "1",
+                thumbnailImage = "",
+                "음악 1",
+                timestamp = System.currentTimeMillis()
+            ),
+            MusicEntity(
+                id = "2",
+                thumbnailImage = "",
+                "음악 2",
+                timestamp = System.currentTimeMillis()
+            ),
+            MusicEntity(
+                id = "3",
+                thumbnailImage = "",
+                "음악 3",
+                timestamp = System.currentTimeMillis()
+            )
+        )
+        MusicSelectPager(
+            musics = testList,
+            initialMusicId = "3"
         )
     }
 }
