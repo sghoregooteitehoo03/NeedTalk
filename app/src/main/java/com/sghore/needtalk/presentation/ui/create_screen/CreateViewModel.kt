@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.create_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sghore.needtalk.domain.usecase.GetTimerSettingUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,7 +14,9 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateViewModel @Inject constructor() : ViewModel() {
+class CreateViewModel @Inject constructor(
+    private val getTimerSettingUseCase: GetTimerSettingUseCase
+) : ViewModel() {
     private val _uiState = MutableStateFlow(CreateUiState())
     private val _uiEvent = MutableSharedFlow<CreateUiEvent>()
 
@@ -26,6 +29,14 @@ class CreateViewModel @Inject constructor() : ViewModel() {
         viewModelScope,
         SharingStarted.Eagerly
     )
+
+    init {
+        initState()
+    }
+
+    private fun initState() = viewModelScope.launch {
+        _uiState.value = getTimerSettingUseCase()
+    }
 
     // 시간 변경 이벤트
     fun changeTalkTime(talkTime: Long) {

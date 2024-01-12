@@ -67,12 +67,16 @@ fun HomeScreen(
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (layoutRef, subLayoutRef, startCloseBtnRef, createBtnRef,
             joinBtnRef, createExplainRef, joinExplainRef) = createRefs()
-        Column(modifier = Modifier.constrainAs(layoutRef) {
-            top.linkTo(parent.top)
-            start.linkTo(parent.start)
-            end.linkTo(parent.end)
-            bottom.linkTo(parent.bottom)
-        }) {
+        Column(modifier = Modifier
+            .fillMaxSize()
+            .constrainAs(
+                layoutRef
+            ) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+            }) {
             val user = uiState.user ?: UserEntity("", "", 0)
 
             TopBar(
