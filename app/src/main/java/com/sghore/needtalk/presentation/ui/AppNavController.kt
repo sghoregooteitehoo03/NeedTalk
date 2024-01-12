@@ -22,7 +22,9 @@ fun AppNavHost(
             )
         }
         composable(UiScreen.CreateScreen.route) {
-            CreateRoute()
+            CreateRoute(
+                navigateUp = navController::navigateUp
+            )
         }
     }
 }

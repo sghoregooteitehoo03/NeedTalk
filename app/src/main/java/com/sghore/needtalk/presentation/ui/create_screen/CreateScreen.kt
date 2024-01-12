@@ -52,11 +52,12 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.MusicEntity
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
-import java.text.DecimalFormat
+import com.sghore.needtalk.presentation.ui.theme.Orange80
 
 @Composable
 fun CreateScreen(
-
+    uiState: CreateUiState,
+    onEvent: (CreateUiEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -69,7 +70,8 @@ fun CreateScreen(
             Icon(
                 modifier = Modifier
                     .clip(CircleShape)
-                    .size(24.dp),
+                    .size(24.dp)
+                    .clickable { onEvent(CreateUiEvent.ClickBackArrow) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
                 tint = MaterialTheme.colors.onPrimary
@@ -85,14 +87,15 @@ fun CreateScreen(
             optionTitle = "대화시간 설정"
         ) {
             SetTimer(
-                currentTime = 3600000L,
-                onTimeChange = {}
+                currentTime = uiState.talkTime,
+                onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                isStopwatch = uiState.isStopwatch
             )
             Spacer(modifier = Modifier.height(8.dp))
             OptionItemWithSwitch(
                 text = "스톱워치 모드",
-                isChecked = false,
-                onCheckedChange = {}
+                isChecked = uiState.isStopwatch,
+                onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickStopWatchMode(isAllow)) }
             )
         }
         Divider(
@@ -105,14 +108,8 @@ fun CreateScreen(
             optionTitle = "음악"
         ) {
             MusicSelectPager(
-                musics = listOf(
-                    MusicEntity(
-                        id = "",
-                        thumbnailImage = "",
-                        title = "음악 없음",
-                        timestamp = System.currentTimeMillis()
-                    )
-                ), initialMusicId = ""
+                musics = uiState.musics,
+                initialMusicId = uiState.initialMusicId
             )
             Spacer(modifier = Modifier.height(8.dp))
             OptionItem(
@@ -121,8 +118,8 @@ fun CreateScreen(
             OptionItemWithSwitch(
                 text = "음악 반복",
                 subText = "음악이 끝나도 계속해서 반복됩니다.",
-                isChecked = false,
-                onCheckedChange = {}
+                isChecked = uiState.allowRepeatMusic,
+                onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickAllowRepeatMusic(isAllow)) }
             )
         }
         Divider(
@@ -136,8 +133,8 @@ fun CreateScreen(
         ) {
             SelectNumberOfPeople(
                 modifier = Modifier.fillMaxWidth(),
-                numberOfPeople = 2,
-                onClickNumber = {}
+                numberOfPeople = uiState.numberOfPeople,
+                onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
             )
         }
     }
@@ -191,6 +188,7 @@ fun OptionItem(
     }
 }
 
+// TODO: 레이아웃만 클릭 되게 끔
 @Composable
 fun OptionItemWithSwitch(
     modifier: Modifier = Modifier,
@@ -199,7 +197,11 @@ fun OptionItemWithSwitch(
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Box(modifier = modifier) {
+    Box(
+        modifier = modifier.clickable {
+            onCheckedChange(!isChecked)
+        }
+    ) {
         OptionItem(
             modifier = Modifier.align(Alignment.CenterStart),
             text = text,
@@ -223,7 +225,7 @@ fun SetTimer(
     onTimeChange: (Long) -> Unit
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp
-    var progress = remember {
+    var progress = remember(isStopwatch) {
         if (isStopwatch) {
             maxTime.toFloat()
         } else {
@@ -234,22 +236,14 @@ fun SetTimer(
             }
         }
     }
-    var thumbPos by remember {
+    var thumbPos by remember(isStopwatch) {
         mutableFloatStateOf(progress * maxWidth)
     }
 
     Column(
         modifier = modifier
             .padding(start = 14.dp, end = 14.dp)
-            .alpha(
-                if (isStopwatch) {
-                    0.4f
-                } else {
-                    1f
-                }
-            )
     ) {
-        val decimalFormat = DecimalFormat("#0")
         Box(
             modifier = Modifier
                 .padding(
@@ -273,7 +267,7 @@ fun SetTimer(
                 text = if (isStopwatch) {
                     "∞"
                 } else {
-                    "${decimalFormat.format(currentTime)}분"
+                    "${currentTime / 60000}분"
                 },
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary)
             )
@@ -283,7 +277,7 @@ fun SetTimer(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(52.dp)
-                .pointerInput(Unit) {
+                .pointerInput(isStopwatch) {
                     if (!isStopwatch) {
                         detectHorizontalDragGestures { _, dragAmount ->
                             thumbPos += dragAmount / 2.5f
@@ -300,7 +294,7 @@ fun SetTimer(
                                 getTimerTimeByStep(
                                     time = time,
                                     stepTime = stepTime
-                                ) / 60000
+                                )
                             )
                         }
                     }
@@ -314,11 +308,18 @@ fun SetTimer(
                 Box(
                     modifier = Modifier
                         .width(4.dp)
-                            then (
-                            if ((8.dp.value) * (index + 1) <= thumbPos) {
+                        .then(
+                            if ((8.5.dp.value) * (index + 1) <= thumbPos) {
                                 Modifier
                                     .height(randomDp)
-                                    .background(color = Orange50, shape = CircleShape)
+                                    .background(
+                                        color = if (isStopwatch) {
+                                            Orange80
+                                        } else {
+                                            Orange50
+                                        },
+                                        shape = CircleShape
+                                    )
                             } else {
                                 Modifier
                                     .height(26.dp)
@@ -326,7 +327,8 @@ fun SetTimer(
                                         color = colorResource(id = R.color.light_gray),
                                         shape = CircleShape
                                     )
-                            })
+                            }
+                        )
                 )
                 Spacer(modifier = Modifier.width(4.dp))
             }
@@ -422,6 +424,7 @@ fun MusicItem(
     }
 }
 
+// TODO: 클릭 효과 없애기, 레이아웃만 클릭 되게 끔
 @Composable
 fun SelectNumberOfPeople(
     modifier: Modifier = Modifier,
@@ -438,14 +441,14 @@ fun SelectNumberOfPeople(
             isSelected = numberOfPeople == 2,
             onClick = { onClickNumber(2) }
         )
-        Spacer(modifier = Modifier.width(32.dp))
+        Spacer(modifier = Modifier.width(48.dp))
         SelectNumberOfPeopleItem(
             modifier = Modifier.size(80.dp),
             iconPainter = painterResource(id = R.drawable.ic_people_three),
             isSelected = numberOfPeople == 3,
             onClick = { onClickNumber(3) }
         )
-        Spacer(modifier = Modifier.width(32.dp))
+        Spacer(modifier = Modifier.width(48.dp))
         SelectNumberOfPeopleItem(
             modifier = Modifier.size(80.dp),
             iconPainter = painterResource(id = R.drawable.ic_people_four),
@@ -524,7 +527,7 @@ fun SetTimerPreview() {
             onTimeChange = {
                 time = it
             },
-            isStopwatch = false
+            isStopwatch = true
         )
     }
 }
