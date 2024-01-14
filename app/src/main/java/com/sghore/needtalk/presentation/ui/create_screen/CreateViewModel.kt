@@ -135,7 +135,11 @@ class CreateViewModel @Inject constructor(
 
     // 음악 삭제
     fun removeMusic(id: String) = viewModelScope.launch {
+        _uiState.update { it.copy(isLoading = true) }
+
         removeYoutubeMusicUseCase(id)
+        handelEvent(CreateUiEvent.SuccessRemoveMusic)
+        _uiState.update { it.copy(isLoading = false) }
     }
 
     fun handelEvent(event: CreateUiEvent) = viewModelScope.launch {

@@ -112,8 +112,8 @@ fun CreateScreen(
             MusicSelectPager(
                 musics = uiState.musics,
                 initialMusicId = uiState.initialMusicId,
-                onRemoveClick = { id ->
-                    onEvent(CreateUiEvent.ClickRemoveMusic(id))
+                onRemoveClick = { music ->
+                    onEvent(CreateUiEvent.ClickRemoveMusic(music))
                 }
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -351,7 +351,7 @@ fun MusicSelectPager(
     modifier: Modifier = Modifier,
     musics: List<MusicEntity>,
     initialMusicId: String,
-    onRemoveClick: (String) -> Unit
+    onRemoveClick: (MusicEntity) -> Unit
 ) {
     val initialIndex = remember { musics.map { it.id }.indexOf(initialMusicId) }
     val pagerState = rememberPagerState(
@@ -376,7 +376,7 @@ fun MusicSelectPager(
             musicTitle = musics[index].title,
             isSelected = index == currentPage,
             onRemoveClick = {
-                onRemoveClick(musics[index].id)
+                onRemoveClick(musics[index])
             }
         )
     }

@@ -1,5 +1,7 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import com.sghore.needtalk.data.model.entity.MusicEntity
+
 sealed interface CreateUiEvent {
     data object ClickBackArrow : CreateUiEvent
     data class ChangeTime(val talkTime: Long) : CreateUiEvent
@@ -7,7 +9,7 @@ sealed interface CreateUiEvent {
 
     data object ClickAddMusic : CreateUiEvent
 
-    data class ClickRemoveMusic(val id: String) : CreateUiEvent
+    data class ClickRemoveMusic(val musicEntity: MusicEntity) : CreateUiEvent
 
     data class ClickAllowRepeatMusic(val isAllow: Boolean) : CreateUiEvent
 
@@ -15,5 +17,7 @@ sealed interface CreateUiEvent {
 
     data object SuccessInsertMusic : CreateUiEvent
     data class FailInsertMusic(val message: String) : CreateUiEvent
+
+    data object SuccessRemoveMusic : CreateUiEvent
 
 }

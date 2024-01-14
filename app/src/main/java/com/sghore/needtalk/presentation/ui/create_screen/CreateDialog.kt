@@ -1,5 +1,7 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,13 +29,17 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.presentation.ui.RoundedButton
 
 @Composable
@@ -134,6 +140,81 @@ fun AddMusicDialog(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+fun RemoveMusicDialog(
+    modifier: Modifier = Modifier,
+    musicEntity: MusicEntity,
+    onDismiss: () -> Unit,
+    isLoading: Boolean,
+    onClick: (id: String) -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                modifier = Modifier
+                    .size(120.dp)
+                    .clip(RoundedCornerShape(20.dp)),
+                painter = rememberAsyncImagePainter(musicEntity.thumbnailImage),
+                contentDescription = musicEntity.thumbnailImage,
+                contentScale = ContentScale.Crop
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "(${musicEntity.title})\n삭제하시겠습니까?",
+                style = MaterialTheme.typography.h5.copy(
+                    color = MaterialTheme.colors.onPrimary,
+                    fontWeight = FontWeight.Bold
+                ),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            Box {
+                RoundedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    text = "삭제하기",
+                    color = MaterialTheme.colors.secondary,
+                    textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
+                    paddingValues = PaddingValues(14.dp),
+                    onClick = {
+                        if (!isLoading) {
+                            onClick(musicEntity.id)
+                        }
+                    }
+                )
+
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .padding(top = 7.dp, end = 14.dp, bottom = 7.dp)
+                            .align(Alignment.CenterEnd)
+                    )
+                }
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            RoundedButton(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .border(
+                        width = 2.dp,
+                        color = colorResource(id = R.color.light_gray),
+                        shape = MaterialTheme.shapes.large
+                    ),
+                text = "취소",
+                color = Color.Transparent,
+                textStyle = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray)),
+                paddingValues = PaddingValues(14.dp),
+                onClick = {
+                    onDismiss()
+                }
+            )
         }
     }
 }

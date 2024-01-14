@@ -45,7 +45,7 @@ fun CreateRoute(
                 }
 
                 is CreateUiEvent.ClickRemoveMusic -> {
-                    viewModel.removeMusic(event.id)
+                    viewModel.setDialogScreen(DialogScreen.DialogRemoveMusic(event.musicEntity))
                 }
 
                 is CreateUiEvent.ClickAllowRepeatMusic -> {
@@ -56,7 +56,7 @@ fun CreateRoute(
                     viewModel.changeNumberOfPeople(event.number)
                 }
 
-                is CreateUiEvent.SuccessInsertMusic -> {
+                is CreateUiEvent.SuccessInsertMusic, CreateUiEvent.SuccessRemoveMusic -> {
                     viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                 }
 
@@ -91,6 +91,27 @@ fun CreateRoute(
                 },
                 onClick = viewModel::addYoutubeMusic,
                 isLoading = isLoading
+            )
+        }
+
+        is DialogScreen.DialogRemoveMusic -> {
+            val isLoading = uiState.isLoading
+
+            RemoveMusicDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                musicEntity = (uiState.dialogScreen as DialogScreen.DialogRemoveMusic).musicEntity,
+                onDismiss = {
+                    if (!isLoading)
+                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                },
+                isLoading = isLoading,
+                onClick = viewModel::removeMusic
             )
         }
 
