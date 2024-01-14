@@ -1,6 +1,6 @@
 package com.sghore.needtalk.domain.model
 
-import com.sghore.needtalk.data.model.UserEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 
 data class TalkHistory(
     val talkTime: Long,

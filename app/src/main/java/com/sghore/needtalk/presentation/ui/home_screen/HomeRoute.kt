@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
 
@@ -36,7 +37,7 @@ fun HomeRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is HomeUiEvent.ClickNameTag -> {
-                    viewModel.openDialog(true)
+                    viewModel.setDialogScreen(DialogScreen.DialogSetName)
                 }
 
                 is HomeUiEvent.ClickStartAndClose -> {
@@ -50,7 +51,7 @@ fun HomeRoute(
 
                 is HomeUiEvent.SuccessUpdateUserName -> {
                     pagingItems?.refresh()
-                    viewModel.openDialog(false)
+                    viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                 }
             }
         }
@@ -71,24 +72,28 @@ fun HomeRoute(
             onEvent = viewModel::handelEvent
         )
 
-        if (uiState.isDialogOpen) {
-            BottomSheetDialog(
-                onDismissRequest = { viewModel.openDialog(false) },
-            ) {
-                SetName(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(
-                            color = MaterialTheme.colors.background,
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        )
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .padding(14.dp),
-                    userName = uiState.user?.name ?: "",
-                    onCloseClick = { viewModel.openDialog(false) },
-                    onEditClick = viewModel::updateUserName
-                )
+        when (uiState.dialogScreen) {
+            is DialogScreen.DialogSetName -> {
+                BottomSheetDialog(
+                    onDismissRequest = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                ) {
+                    SetName(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                            .padding(14.dp),
+                        userName = uiState.user?.name ?: "",
+                        onCloseClick = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                        onEditClick = viewModel::updateUserName
+                    )
+                }
             }
+
+            else -> {}
         }
     }
 }

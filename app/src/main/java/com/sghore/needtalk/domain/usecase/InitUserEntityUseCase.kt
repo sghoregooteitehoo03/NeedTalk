@@ -1,7 +1,7 @@
 package com.sghore.needtalk.domain.usecase
 
 import androidx.compose.ui.graphics.toArgb
-import com.sghore.needtalk.data.model.UserEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.Orange

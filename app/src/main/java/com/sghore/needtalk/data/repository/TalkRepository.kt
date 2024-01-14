@@ -2,10 +2,9 @@ package com.sghore.needtalk.data.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import com.sghore.needtalk.data.model.MusicEntity
-import com.sghore.needtalk.data.model.TalkEntity
-import com.sghore.needtalk.data.model.TimerSettingEntity
-import com.sghore.needtalk.data.model.UserEntity
+import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TimerSettingEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
 import com.sghore.needtalk.data.repository.datasource.TalkHistoryPagingSource
 import javax.inject.Inject
@@ -39,12 +38,4 @@ class TalkRepository @Inject constructor(
     // 타이머 설정 삽입
     suspend fun insertTimerSettingEntity(timerSettingEntity: TimerSettingEntity) =
         dao.insertTimerSettingEntity(timerSettingEntity)
-
-    // 저장된 음악정보 리스트 반환
-    fun getAllMusicEntity() =
-        dao.getAllMusicEntity()
-
-    // 음악정보 삽입
-    suspend fun insertMusicEntity(musicEntity: MusicEntity) =
-        dao.insertMusicEntity(musicEntity)
 }

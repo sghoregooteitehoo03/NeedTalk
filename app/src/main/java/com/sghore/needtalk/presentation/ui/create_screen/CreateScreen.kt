@@ -41,15 +41,17 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import coil.compose.rememberAsyncImagePainter
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.MusicEntity
+import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Orange80
@@ -109,11 +111,15 @@ fun CreateScreen(
         ) {
             MusicSelectPager(
                 musics = uiState.musics,
-                initialMusicId = uiState.initialMusicId
+                initialMusicId = uiState.initialMusicId,
+                onRemoveClick = { id ->
+                    onEvent(CreateUiEvent.ClickRemoveMusic(id))
+                }
             )
             Spacer(modifier = Modifier.height(8.dp))
             OptionItem(
-                text = "음악 추가하기"
+                text = "음악 추가하기",
+                onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
             )
             OptionItemWithSwitch(
                 text = "음악 반복",
@@ -163,11 +169,15 @@ fun OptionLayout(
 fun OptionItem(
     modifier: Modifier = Modifier,
     text: String,
-    subText: String = ""
+    subText: String = "",
+    onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
             .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
             .height(54.dp)
             .padding(start = 14.dp, end = 14.dp),
         verticalArrangement = Arrangement.Center
@@ -197,15 +207,12 @@ fun OptionItemWithSwitch(
     isChecked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
-    Box(
-        modifier = modifier.clickable {
-            onCheckedChange(!isChecked)
-        }
-    ) {
+    Box(modifier = modifier) {
         OptionItem(
             modifier = Modifier.align(Alignment.CenterStart),
             text = text,
-            subText = subText
+            subText = subText,
+            onClick = { onCheckedChange(!isChecked) }
         )
         Switch(
             modifier = Modifier.align(Alignment.CenterEnd),
@@ -343,7 +350,8 @@ fun SetTimer(
 fun MusicSelectPager(
     modifier: Modifier = Modifier,
     musics: List<MusicEntity>,
-    initialMusicId: String
+    initialMusicId: String,
+    onRemoveClick: (String) -> Unit
 ) {
     val initialIndex = remember { musics.map { it.id }.indexOf(initialMusicId) }
     val pagerState = rememberPagerState(
@@ -366,7 +374,10 @@ fun MusicSelectPager(
             modifier = Modifier.width(140.dp),
             thumbnailImage = musics[index].thumbnailImage,
             musicTitle = musics[index].title,
-            isSelected = index == currentPage
+            isSelected = index == currentPage,
+            onRemoveClick = {
+                onRemoveClick(musics[index].id)
+            }
         )
     }
 }
@@ -376,7 +387,8 @@ fun MusicItem(
     modifier: Modifier = Modifier,
     thumbnailImage: String,
     musicTitle: String,
-    isSelected: Boolean
+    isSelected: Boolean,
+    onRemoveClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -402,13 +414,42 @@ fun MusicItem(
                 )
             }
         } else {
-            Image(
-                modifier = Modifier
-                    .size(if (isSelected) 140.dp else 110.dp)
-                    .clip(RoundedCornerShape(20.dp)),
-                painter = rememberAsyncImagePainter(model = thumbnailImage),
-                contentDescription = thumbnailImage
-            )
+            Box {
+                Image(
+                    modifier = Modifier
+                        .size(if (isSelected) 140.dp else 110.dp)
+                        .clip(RoundedCornerShape(20.dp)),
+                    painter = rememberAsyncImagePainter(
+                        model = thumbnailImage
+                    ),
+                    contentDescription = thumbnailImage,
+                    contentScale = ContentScale.Crop
+                )
+                if (isSelected) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(top = 10.dp, end = 10.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = Color.White.copy(alpha = 0.6f),
+                                shape = CircleShape
+                            )
+                            .size(20.dp)
+                            .clickable {
+                                onRemoveClick()
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            modifier = Modifier.size(16.dp),
+                            painter = painterResource(id = R.drawable.ic_close),
+                            contentDescription = "RemoveMusic",
+                            tint = Color.Red
+                        )
+                    }
+                }
+            }
         }
         Spacer(modifier = Modifier.height(8.dp))
         Text(
@@ -419,7 +460,9 @@ fun MusicItem(
             } else {
                 MaterialTheme.typography.body2
                     .copy(color = MaterialTheme.colors.onPrimary)
-            }
+            },
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
@@ -558,7 +601,8 @@ fun MusicSelectPagerPreview() {
         )
         MusicSelectPager(
             musics = testList,
-            initialMusicId = "2"
+            initialMusicId = "2",
+            onRemoveClick = {}
         )
     }
 }

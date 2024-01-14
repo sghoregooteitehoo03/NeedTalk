@@ -7,8 +7,13 @@ sealed interface CreateUiEvent {
 
     data object ClickAddMusic : CreateUiEvent
 
+    data class ClickRemoveMusic(val id: String) : CreateUiEvent
+
     data class ClickAllowRepeatMusic(val isAllow: Boolean) : CreateUiEvent
 
     data class ClickNumberOfPeople(val number: Int) : CreateUiEvent
+
+    data object SuccessInsertMusic : CreateUiEvent
+    data class FailInsertMusic(val message: String) : CreateUiEvent
 
 }

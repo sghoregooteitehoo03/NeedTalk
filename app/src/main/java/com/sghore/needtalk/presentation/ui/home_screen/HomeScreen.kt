@@ -45,7 +45,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.paging.compose.LazyPagingItems
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.UserEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton

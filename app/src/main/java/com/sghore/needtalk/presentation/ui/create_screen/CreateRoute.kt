@@ -1,10 +1,20 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import android.widget.Toast
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -13,6 +23,7 @@ fun CreateRoute(
     navigateUp: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(key1 = viewModel.uiEvent, block = {
         viewModel.uiEvent.collectLatest { event ->
@@ -30,7 +41,11 @@ fun CreateRoute(
                 }
 
                 is CreateUiEvent.ClickAddMusic -> {
+                    viewModel.setDialogScreen(DialogScreen.DialogCreateMusic)
+                }
 
+                is CreateUiEvent.ClickRemoveMusic -> {
+                    viewModel.removeMusic(event.id)
                 }
 
                 is CreateUiEvent.ClickAllowRepeatMusic -> {
@@ -40,6 +55,15 @@ fun CreateRoute(
                 is CreateUiEvent.ClickNumberOfPeople -> {
                     viewModel.changeNumberOfPeople(event.number)
                 }
+
+                is CreateUiEvent.SuccessInsertMusic -> {
+                    viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                }
+
+                is CreateUiEvent.FailInsertMusic -> {
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT)
+                        .show()
+                }
             }
         }
     })
@@ -48,4 +72,28 @@ fun CreateRoute(
         uiState = uiState,
         onEvent = viewModel::handelEvent
     )
+
+    when (uiState.dialogScreen) {
+        is DialogScreen.DialogCreateMusic -> {
+            val isLoading = uiState.isLoading
+
+            AddMusicDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                onDismiss = {
+                    if (!isLoading)
+                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                },
+                onClick = viewModel::addYoutubeMusic,
+                isLoading = isLoading
+            )
+        }
+
+        else -> {}
+    }
 }

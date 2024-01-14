@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.usecase.GetPagingTalkHistoryUseCase
 import com.sghore.needtalk.domain.usecase.InitUserEntityUseCase
 import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -50,10 +51,10 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    // 다이얼로그 오픈 설정
-    fun openDialog(isOpen: Boolean) = viewModelScope.launch {
+    // 보여줄 다이얼로그 화면 설정
+    fun setDialogScreen(dialogScreen: DialogScreen) = viewModelScope.launch {
         _uiState.update {
-            it.copy(isDialogOpen = isOpen)
+            it.copy(dialogScreen = dialogScreen)
         }
     }
 

@@ -1,6 +1,6 @@
 package com.sghore.needtalk.domain.usecase
 
-import com.sghore.needtalk.data.model.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.repository.TalkRepository
 import com.sghore.needtalk.domain.model.TalkHistory
 import javax.inject.Inject

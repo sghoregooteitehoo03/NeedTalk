@@ -4,10 +4,10 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.sghore.needtalk.data.model.MusicEntity
-import com.sghore.needtalk.data.model.TalkEntity
-import com.sghore.needtalk.data.model.TimerSettingEntity
-import com.sghore.needtalk.data.model.UserEntity
+import com.sghore.needtalk.data.model.entity.MusicEntity
+import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TimerSettingEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
