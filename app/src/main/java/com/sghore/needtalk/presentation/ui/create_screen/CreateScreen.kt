@@ -79,69 +79,84 @@ fun CreateScreen(
                 tint = MaterialTheme.colors.onPrimary
             )
             Text(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable {
+                        onEvent(CreateUiEvent.ClickComplete)
+                    },
                 text = "완료",
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
-        OptionLayout(
-            modifier = Modifier.fillMaxWidth(),
-            optionTitle = "대화시간 설정"
-        ) {
-            SetTimer(
-                currentTime = uiState.talkTime,
-                onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
-                isStopwatch = uiState.isStopwatch
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OptionItemWithSwitch(
-                text = "스톱워치 모드",
-                isChecked = uiState.isStopwatch,
-                onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickStopWatchMode(isAllow)) }
-            )
-        }
-        Divider(
-            modifier = Modifier.fillMaxWidth(),
-            color = colorResource(id = R.color.light_gray),
-            thickness = 8.dp
-        )
-        OptionLayout(
-            modifier = Modifier.fillMaxWidth(),
-            optionTitle = "음악"
-        ) {
-            MusicSelectPager(
-                musics = uiState.musics,
-                initialMusicId = uiState.initialMusicId,
-                onRemoveClick = { music ->
-                    onEvent(CreateUiEvent.ClickRemoveMusic(music))
-                }
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            OptionItem(
-                text = "음악 추가하기",
-                onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
-            )
-            OptionItemWithSwitch(
-                text = "음악 반복",
-                subText = "음악이 끝나도 계속해서 반복됩니다.",
-                isChecked = uiState.allowRepeatMusic,
-                onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickAllowRepeatMusic(isAllow)) }
-            )
-        }
-        Divider(
-            modifier = Modifier.fillMaxWidth(),
-            color = colorResource(id = R.color.light_gray),
-            thickness = 8.dp
-        )
-        OptionLayout(
-            modifier = Modifier.fillMaxWidth(),
-            optionTitle = "인원 수"
-        ) {
-            SelectNumberOfPeople(
+        if (uiState.userEntity != null) {
+            OptionLayout(
                 modifier = Modifier.fillMaxWidth(),
-                numberOfPeople = uiState.numberOfPeople,
-                onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
+                optionTitle = "대화시간 설정"
+            ) {
+                SetTimer(
+                    currentTime = uiState.talkTime,
+                    onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                    isStopwatch = uiState.isStopwatch
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OptionItemWithSwitch(
+                    text = "스톱워치 모드",
+                    isChecked = uiState.isStopwatch,
+                    onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickStopWatchMode(isAllow)) }
+                )
+            }
+            Divider(
+                modifier = Modifier.fillMaxWidth(),
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
             )
+            OptionLayout(
+                modifier = Modifier.fillMaxWidth(),
+                optionTitle = "음악"
+            ) {
+                MusicSelectPager(
+                    musics = uiState.musics,
+                    initialMusicId = uiState.initialMusicId,
+                    changeInitialMusicId = { musicId ->
+                        onEvent(CreateUiEvent.ChangeInitialMusicId(musicId))
+                    },
+                    onRemoveClick = { music ->
+                        onEvent(CreateUiEvent.ClickRemoveMusic(music))
+                    }
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                OptionItem(
+                    text = "음악 추가하기",
+                    onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
+                )
+                OptionItemWithSwitch(
+                    text = "음악 반복",
+                    subText = "음악이 끝나도 계속해서 반복됩니다.",
+                    isChecked = uiState.allowRepeatMusic,
+                    onCheckedChange = { isAllow ->
+                        onEvent(
+                            CreateUiEvent.ClickAllowRepeatMusic(
+                                isAllow
+                            )
+                        )
+                    }
+                )
+            }
+            Divider(
+                modifier = Modifier.fillMaxWidth(),
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
+            )
+            OptionLayout(
+                modifier = Modifier.fillMaxWidth(),
+                optionTitle = "인원 수"
+            ) {
+                SelectNumberOfPeople(
+                    modifier = Modifier.fillMaxWidth(),
+                    numberOfPeople = uiState.numberOfPeople,
+                    onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
+                )
+            }
         }
     }
 }
@@ -351,6 +366,7 @@ fun MusicSelectPager(
     modifier: Modifier = Modifier,
     musics: List<MusicEntity>,
     initialMusicId: String,
+    changeInitialMusicId: (String) -> Unit,
     onRemoveClick: (MusicEntity) -> Unit
 ) {
     val initialIndex = remember { musics.map { it.id }.indexOf(initialMusicId) }
@@ -361,6 +377,9 @@ fun MusicSelectPager(
     val currentPage = pagerState.currentPage
     val maxWidth = LocalConfiguration.current.screenWidthDp
 
+    if (musics.isNotEmpty()) {
+        changeInitialMusicId(musics[currentPage].id)
+    }
     HorizontalPager(
         modifier = modifier,
         state = pagerState,
@@ -602,6 +621,7 @@ fun MusicSelectPagerPreview() {
         MusicSelectPager(
             musics = testList,
             initialMusicId = "2",
+            changeInitialMusicId = {},
             onRemoveClick = {}
         )
     }

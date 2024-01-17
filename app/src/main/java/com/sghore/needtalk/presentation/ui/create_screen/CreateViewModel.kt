@@ -1,10 +1,14 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.MusicEntity
+import com.sghore.needtalk.data.model.entity.TimerSettingEntity
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.usecase.AddYoutubeMusicUseCase
 import com.sghore.needtalk.domain.usecase.GetTimerSettingUseCase
+import com.sghore.needtalk.domain.usecase.InsertTimerSettingUseCase
 import com.sghore.needtalk.domain.usecase.RemoveYoutubeMusicUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.util.Constants
@@ -17,13 +21,16 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
 class CreateViewModel @Inject constructor(
     private val getTimerSettingUseCase: GetTimerSettingUseCase,
+    private val insertTimerSettingUseCase: InsertTimerSettingUseCase,
     private val addYoutubeMusicUseCase: AddYoutubeMusicUseCase,
-    private val removeYoutubeMusicUseCase: RemoveYoutubeMusicUseCase
+    private val removeYoutubeMusicUseCase: RemoveYoutubeMusicUseCase,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(CreateUiState())
     private val _uiEvent = MutableSharedFlow<CreateUiEvent>()
@@ -39,10 +46,16 @@ class CreateViewModel @Inject constructor(
     )
 
     init {
-        initState()
+        val userEntityJson = savedStateHandle.get<String>("userEntity")
+        if (userEntityJson != null) {
+            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+            initState(userEntity)
+        } else {
+            handelEvent(CreateUiEvent.ErrorMessage("오류가 발생하였습니다."))
+        }
     }
 
-    private fun initState() = viewModelScope.launch {
+    private fun initState(userEntity: UserEntity) = viewModelScope.launch {
         getTimerSettingUseCase(
             transform = { timerSettingEntity, musicEntities ->
                 val defaultMusics = listOf(
@@ -54,9 +67,10 @@ class CreateViewModel @Inject constructor(
                     )
                 )
 
-                if (timerSettingEntity != null) {
+                if (timerSettingEntity != null) { // 저장된 데이터가 있다면
                     _uiState.update {
                         it.copy(
+                            userEntity = userEntity,
                             isLoading = false,
                             talkTime = timerSettingEntity.talkTime,
                             isStopwatch = timerSettingEntity.isStopwatch,
@@ -69,6 +83,7 @@ class CreateViewModel @Inject constructor(
                 } else {
                     _uiState.update {
                         it.copy(
+                            userEntity = userEntity,
                             isLoading = false,
                             musics = defaultMusics + musicEntities
                         )
@@ -78,10 +93,34 @@ class CreateViewModel @Inject constructor(
         ).collect()
     }
 
+    // 타이머 정보 저장
+    fun insertTimerSetting(
+        navigateToTimer: (TimerSettingEntity) -> Unit
+    ) = viewModelScope.launch {
+        val stateValue = _uiState.value
+        val timerSetting = TimerSettingEntity(
+            userId = stateValue.userEntity?.userId ?: "",
+            talkTime = stateValue.talkTime,
+            isStopwatch = stateValue.isStopwatch,
+            selectMusicId = stateValue.initialMusicId,
+            allowRepeatMusic = stateValue.allowRepeatMusic,
+            numberOfPeople = stateValue.numberOfPeople
+        )
+
+        insertTimerSettingUseCase(timerSetting)
+        navigateToTimer(timerSetting)
+    }
+
     // 시간 변경 이벤트
     fun changeTalkTime(talkTime: Long) {
         _uiState.update {
             it.copy(talkTime = talkTime)
+        }
+    }
+
+    fun changeInitialMusicId(initialMusicId: String) {
+        _uiState.update {
+            it.copy(initialMusicId = initialMusicId)
         }
     }
 
@@ -124,10 +163,10 @@ class CreateViewModel @Inject constructor(
                 addYoutubeMusicUseCase(videoId = id, title = title)
                 handelEvent(CreateUiEvent.SuccessInsertMusic)
             } else {
-                handelEvent(CreateUiEvent.FailInsertMusic("유효한 유튜브 URL을 입력해주세요."))
+                handelEvent(CreateUiEvent.ErrorMessage("유효한 유튜브 URL을 입력해주세요."))
             }
         } catch (e: Exception) {
-            handelEvent(CreateUiEvent.FailInsertMusic("음악 추가간의 오류가 발생하였습니다."))
+            handelEvent(CreateUiEvent.ErrorMessage("음악 추가간의 오류가 발생하였습니다."))
         }
 
         _uiState.update { it.copy(isLoading = false) }

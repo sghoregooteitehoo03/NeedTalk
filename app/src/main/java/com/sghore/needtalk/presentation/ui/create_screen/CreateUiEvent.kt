@@ -4,7 +4,9 @@ import com.sghore.needtalk.data.model.entity.MusicEntity
 
 sealed interface CreateUiEvent {
     data object ClickBackArrow : CreateUiEvent
+    data object ClickComplete : CreateUiEvent
     data class ChangeTime(val talkTime: Long) : CreateUiEvent
+    data class ChangeInitialMusicId(val musicId: String) : CreateUiEvent
     data class ClickStopWatchMode(val isAllow: Boolean) : CreateUiEvent
 
     data object ClickAddMusic : CreateUiEvent
@@ -16,8 +18,9 @@ sealed interface CreateUiEvent {
     data class ClickNumberOfPeople(val number: Int) : CreateUiEvent
 
     data object SuccessInsertMusic : CreateUiEvent
-    data class FailInsertMusic(val message: String) : CreateUiEvent
 
     data object SuccessRemoveMusic : CreateUiEvent
+
+    data class ErrorMessage(val message: String) : CreateUiEvent
 
 }

@@ -47,6 +47,7 @@ class HomeViewModel @Inject constructor(
                     _uiState.update {
                         it.copy(user = userEntity)
                     }
+                    handelEvent(HomeUiEvent.UpdateUserEntity(userEntity))
                 }
         }
     }

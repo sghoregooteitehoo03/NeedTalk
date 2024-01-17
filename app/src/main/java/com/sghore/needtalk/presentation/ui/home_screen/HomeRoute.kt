@@ -19,6 +19,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
@@ -27,7 +28,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
-    navigateToCreateScreen: () -> Unit
+    navigateToCreateScreen: () -> Unit,
+    updateUserEntity: (UserEntity?) -> Unit
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -36,6 +38,10 @@ fun HomeRoute(
     LaunchedEffect(key1 = viewModel.uiEvent) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
+                is HomeUiEvent.UpdateUserEntity -> {
+                    updateUserEntity(event.userEntity)
+                }
+
                 is HomeUiEvent.ClickNameTag -> {
                     viewModel.setDialogScreen(DialogScreen.DialogSetName)
                 }

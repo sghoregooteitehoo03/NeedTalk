@@ -5,6 +5,8 @@ import com.sghore.needtalk.data.model.entity.MusicEntity
 sealed class UiScreen(val route: String) {
     data object HomeScreen : UiScreen(route = "Home")
     data object CreateScreen : UiScreen(route = "Create")
+
+    data object TimerScreen : UiScreen(route = "Timer")
 }
 
 sealed interface DialogScreen {
