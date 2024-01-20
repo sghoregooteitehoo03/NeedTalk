@@ -5,6 +5,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,8 +20,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -61,7 +64,10 @@ fun CreateScreen(
     uiState: CreateUiState,
     onEvent: (CreateUiEvent) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -88,74 +94,86 @@ fun CreateScreen(
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
-        if (uiState.userEntity != null) {
-            OptionLayout(
-                modifier = Modifier.fillMaxWidth(),
-                optionTitle = "대화시간 설정"
-            ) {
-                SetTimer(
-                    currentTime = uiState.talkTime,
-                    onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
-                    isStopwatch = uiState.isStopwatch
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OptionItemWithSwitch(
-                    text = "스톱워치 모드",
-                    isChecked = uiState.isStopwatch,
-                    onCheckedChange = { isAllow -> onEvent(CreateUiEvent.ClickStopWatchMode(isAllow)) }
-                )
-            }
-            Divider(
-                modifier = Modifier.fillMaxWidth(),
-                color = colorResource(id = R.color.light_gray),
-                thickness = 8.dp
-            )
-            OptionLayout(
-                modifier = Modifier.fillMaxWidth(),
-                optionTitle = "음악"
-            ) {
-                MusicSelectPager(
-                    musics = uiState.musics,
-                    initialMusicId = uiState.initialMusicId,
-                    changeInitialMusicId = { musicId ->
-                        onEvent(CreateUiEvent.ChangeInitialMusicId(musicId))
-                    },
-                    onRemoveClick = { music ->
-                        onEvent(CreateUiEvent.ClickRemoveMusic(music))
-                    }
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                OptionItem(
-                    text = "음악 추가하기",
-                    onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
-                )
-                OptionItemWithSwitch(
-                    text = "음악 반복",
-                    subText = "음악이 끝나도 계속해서 반복됩니다.",
-                    isChecked = uiState.allowRepeatMusic,
-                    onCheckedChange = { isAllow ->
-                        onEvent(
-                            CreateUiEvent.ClickAllowRepeatMusic(
-                                isAllow
-                            )
-                        )
-                    }
-                )
-            }
-            Divider(
-                modifier = Modifier.fillMaxWidth(),
-                color = colorResource(id = R.color.light_gray),
-                thickness = 8.dp
-            )
-            OptionLayout(
-                modifier = Modifier.fillMaxWidth(),
-                optionTitle = "인원 수"
-            ) {
-                SelectNumberOfPeople(
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+        ) {
+            if (uiState.userEntity != null) {
+                OptionLayout(
                     modifier = Modifier.fillMaxWidth(),
-                    numberOfPeople = uiState.numberOfPeople,
-                    onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
+                    optionTitle = "대화시간 설정"
+                ) {
+                    SetTimer(
+                        currentTime = uiState.talkTime,
+                        onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                        isStopwatch = uiState.isStopwatch
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OptionItemWithSwitch(
+                        text = "스톱워치 모드",
+                        isChecked = uiState.isStopwatch,
+                        onCheckedChange = { isAllow ->
+                            onEvent(
+                                CreateUiEvent.ClickStopWatchMode(
+                                    isAllow
+                                )
+                            )
+                        }
+                    )
+                }
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colorResource(id = R.color.light_gray),
+                    thickness = 8.dp
                 )
+                OptionLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    optionTitle = "음악"
+                ) {
+                    MusicSelectPager(
+                        musics = uiState.musics,
+                        initialMusicId = uiState.initialMusicId,
+                        changeInitialMusicId = { musicId ->
+                            onEvent(CreateUiEvent.ChangeInitialMusicId(musicId))
+                        },
+                        onRemoveClick = { music ->
+                            onEvent(CreateUiEvent.ClickRemoveMusic(music))
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OptionItem(
+                        text = "음악 추가하기",
+                        onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
+                    )
+                    OptionItemWithSwitch(
+                        text = "음악 반복",
+                        subText = "음악이 끝나도 계속해서 반복됩니다.",
+                        isChecked = uiState.allowRepeatMusic,
+                        onCheckedChange = { isAllow ->
+                            onEvent(
+                                CreateUiEvent.ClickAllowRepeatMusic(
+                                    isAllow
+                                )
+                            )
+                        }
+                    )
+                }
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colorResource(id = R.color.light_gray),
+                    thickness = 8.dp
+                )
+                OptionLayout(
+                    modifier = Modifier.fillMaxWidth(),
+                    optionTitle = "인원 수"
+                ) {
+                    SelectNumberOfPeople(
+                        modifier = Modifier.fillMaxWidth(),
+                        numberOfPeople = uiState.numberOfPeople,
+                        onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
+                    )
+                }
             }
         }
     }

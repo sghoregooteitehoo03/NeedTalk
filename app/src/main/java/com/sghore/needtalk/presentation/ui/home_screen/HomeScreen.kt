@@ -69,9 +69,7 @@ fun HomeScreen(
             joinBtnRef, createExplainRef, joinExplainRef) = createRefs()
         Column(modifier = Modifier
             .fillMaxSize()
-            .constrainAs(
-                layoutRef
-            ) {
+            .constrainAs(layoutRef) {
                 top.linkTo(parent.top)
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
@@ -185,7 +183,7 @@ fun HomeScreen(
                         end.linkTo(parent.end, margin = 14.dp)
                         bottom.linkTo(createBtnRef.top, margin = 12.dp)
                     },
-                onClick = { /*TODO*/ }
+                onClick = { onEvent(HomeUiEvent.ClickJoin) }
             ) {
                 Icon(
                     modifier = Modifier.size(24.dp),

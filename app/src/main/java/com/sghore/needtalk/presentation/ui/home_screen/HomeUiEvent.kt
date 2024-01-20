@@ -9,5 +9,7 @@ sealed interface HomeUiEvent {
     data object ClickStartAndClose : HomeUiEvent
     data object ClickCreate : HomeUiEvent
 
+    data object ClickJoin : HomeUiEvent
+
     data class UpdateUserEntity(val userEntity: UserEntity?) : HomeUiEvent
 }

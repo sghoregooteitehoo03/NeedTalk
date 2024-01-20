@@ -1,7 +1,10 @@
 package com.sghore.needtalk.presentation.ui.home_screen
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -11,6 +14,9 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
@@ -29,6 +35,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
     navigateToCreateScreen: () -> Unit,
+    navigateToJoinScreen: () -> Unit,
     updateUserEntity: (UserEntity?) -> Unit
 ) {
     val context = LocalContext.current
@@ -55,6 +62,11 @@ fun HomeRoute(
                     navigateToCreateScreen()
                 }
 
+                is HomeUiEvent.ClickJoin -> {
+                    viewModel.clickStartAndClose()
+                    navigateToJoinScreen()
+                }
+
                 is HomeUiEvent.SuccessUpdateUserName -> {
                     pagingItems?.refresh()
                     viewModel.setDialogScreen(DialogScreen.DialogDismiss)
@@ -66,6 +78,7 @@ fun HomeRoute(
     DisposableEffectWithLifeCycle(
         onCreate = {
             val id = Settings.Secure.getString(context.contentResolver, Settings.Secure.ANDROID_ID)
+
             viewModel.initUser(id)
         },
         onDispose = {}

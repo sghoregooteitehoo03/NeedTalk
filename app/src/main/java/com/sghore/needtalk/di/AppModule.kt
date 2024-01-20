@@ -2,6 +2,7 @@ package com.sghore.needtalk.di
 
 import android.content.Context
 import androidx.room.Room
+import com.google.android.gms.nearby.Nearby
 import com.sghore.needtalk.data.repository.database.TalkDatabase
 import dagger.Module
 import dagger.Provides
@@ -40,4 +41,9 @@ object AppModule {
                 readTimeout(2, TimeUnit.MINUTES)
             }.build())
             .addConverterFactory(GsonConverterFactory.create())
+
+    @Singleton
+    @Provides
+    fun provideConnectionsClient(@ApplicationContext context: Context) =
+        Nearby.getConnectionsClient(context)
 }

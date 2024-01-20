@@ -1,7 +1,7 @@
 package com.sghore.needtalk.presentation.ui
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -11,7 +11,8 @@ import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
-import com.sghore.needtalk.presentation.ui.timer_screen.TimerRoute
+import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
+import com.sghore.needtalk.presentation.ui.host_timer_screen.TimerRoute
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -19,6 +20,8 @@ fun AppNavHost(
     gViewModel: GlobalViewModel,
     navController: NavHostController
 ) {
+    val context = LocalContext.current
+
     NavHost(
         navController = navController,
         startDestination = UiScreen.HomeScreen.route
@@ -27,6 +30,13 @@ fun AppNavHost(
             HomeRoute(
                 navigateToCreateScreen = {
                     navigateToCreateScreen(navController, gViewModel.getUserEntity())
+                },
+                navigateToJoinScreen = {
+                    navigateToJoinScreen(
+                        navController,
+                        gViewModel.getUserEntity(),
+                        context.packageName
+                    )
                 },
                 updateUserEntity = { userEntity -> gViewModel.setUserEntity(userEntity) }
             )
@@ -40,11 +50,32 @@ fun AppNavHost(
             CreateRoute(
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerSettingEntity ->
-                    navigateToTimer(navController, timerSettingEntity)
+                    navigateToHostTimerScreen(
+                        navController = navController,
+                        userEntity = gViewModel.getUserEntity(),
+                        packageName = context.packageName,
+                        timerSettingEntity = timerSettingEntity
+                    )
                 }
             )
         }
-        composable(route = UiScreen.TimerScreen.route) {
+        composable(
+            route = UiScreen.JoinScreen.route +
+                    "?userEntity={userEntity}&packageName={packageName}",
+            arguments = listOf(
+                navArgument("userEntity") { type = NavType.StringType },
+                navArgument("packageName") { type = NavType.StringType }
+            )
+        ) {
+            JoinRoute()
+        }
+        composable(
+            route = UiScreen.HostTimerScreen.route + "?userEntity={userEntity}&packageName={packageName}",
+            arguments = listOf(
+                navArgument("userEntity") { type = NavType.StringType },
+                navArgument("packageName") { type = NavType.StringType }
+            )
+        ) {
             TimerRoute()
         }
     }
@@ -60,9 +91,31 @@ private fun navigateToCreateScreen(
     }
 }
 
-private fun navigateToTimer(
+private fun navigateToJoinScreen(
     navController: NavHostController,
+    userEntity: UserEntity?,
+    packageName: String
+) {
+    if (userEntity != null) {
+        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
+        navController.navigate(
+            UiScreen.JoinScreen.route +
+                    "?&userEntity=${userEntityJson}&packageName=${packageName}"
+        )
+    }
+}
+
+private fun navigateToHostTimerScreen(
+    navController: NavHostController,
+    userEntity: UserEntity?,
+    packageName: String,
     timerSettingEntity: TimerSettingEntity
 ) {
-    navController.navigate(UiScreen.TimerScreen.route)
+    if (userEntity != null) {
+        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
+        navController.navigate(
+            UiScreen.HostTimerScreen.route +
+                    "?&userEntity=${userEntityJson}&packageName=${packageName}"
+        )
+    }
 }
