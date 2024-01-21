@@ -273,7 +273,7 @@ fun TalkHistoryItem(
                     "H시간 m분",
                     Locale.KOREA
                 ).format(talkHistory?.talkTime ?: 0L),
-                style = MaterialTheme.typography.h3
+                style = MaterialTheme.typography.h2
             )
             Text(
                 text = "대화에 집중 한 시간",

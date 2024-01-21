@@ -12,11 +12,6 @@ fun JoinRoute(
     viewModel: JoinViewModel = hiltViewModel()
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        val text = if (viewModel.isFound) {
-            "Client: Found it!!"
-        } else {
-            "Client: Founding..."
-        }
-        Text(text = text)
+        JoinScreen()
     }
 }

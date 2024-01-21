@@ -13,16 +13,16 @@ val Typography = Typography(
         fontSize = 28.sp,
     ),
     h2 = TextStyle(
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 24.sp
+        fontWeight = FontWeight.Bold,
+        fontSize = 40.sp
     ),
     h3 = TextStyle(
         fontWeight = FontWeight.Bold,
         fontSize = 40.sp
     ),
     h4 = TextStyle(
-        fontWeight = FontWeight.ExtraBold,
-        fontSize = 18.sp
+        fontWeight = FontWeight.Medium,
+        fontSize = 20.sp
     ),
     h5 = TextStyle(
         fontWeight = FontWeight.Medium,

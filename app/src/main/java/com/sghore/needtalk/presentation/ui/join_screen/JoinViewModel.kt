@@ -24,13 +24,13 @@ class JoinViewModel @Inject constructor(
     var isFound by mutableStateOf(false)
 
     init {
-        val userEntityJson = savedStateHandle.get<String>("userEntity")
-        val packageName = savedStateHandle.get<String>("packageName") ?: ""
-
-        if (userEntityJson != null && packageName.isNotEmpty()) {
-            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
-            startDiscovery(userEntity.userId, packageName)
-        }
+//        val userEntityJson = savedStateHandle.get<String>("userEntity")
+//        val packageName = savedStateHandle.get<String>("packageName") ?: ""
+//
+//        if (userEntityJson != null && packageName.isNotEmpty()) {
+//            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+//            startDiscovery(userEntity.userId, packageName)
+//        }
     }
 
     private fun startDiscovery(userId: String, packageName: String) = viewModelScope.launch {
