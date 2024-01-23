@@ -64,6 +64,7 @@ class JoinViewModel @Inject constructor(
     @OptIn(FlowPreview::class)
     private fun startDiscovery(packageName: String) = viewModelScope.launch {
         val endpointList = mutableListOf<String>()
+        var isError = false
 
         startDiscoveryUseCase(packageName)
             .onEach { event ->
@@ -78,8 +79,8 @@ class JoinViewModel @Inject constructor(
 
                     }
 
-                    is ClientEvent.ClientFailure -> {
-
+                    is ClientEvent.DiscoveryFailure -> {
+                        isError = true
                     }
 
                     else -> {}
@@ -87,33 +88,39 @@ class JoinViewModel @Inject constructor(
             }
             .debounce(3000)
             .onEach { _ ->
-                stopAllConnectionUseCase(StopCase.StopDiscovery) // 찾는 과정을 멈춤
-                _uiState.update {
-                    it.copy(
-                        endpointIdList = endpointList,
-                        searchNearDevice = SearchNearDevice.Searching(true)
-                    )
-                }
-
-                Log.i("Check", "endpointList: $endpointList")
-                delay(1000)
-
-                _uiState.update {
-                    it.copy(
-                        searchNearDevice = SearchNearDevice.Load(
-                            endpointIdList = endpointList,
-                            timerInfoList = endpointList.map { null }
+                if (!isError) {
+                    stopAllConnectionUseCase(StopCase.StopDiscovery) // 찾는 과정을 멈춤
+                    _uiState.update {
+                        it.copy(
+                            searchNearDevice = SearchNearDevice.Searching(true)
                         )
-                    )
-                }
+                    }
 
+                    Log.i("Check", "endpointList: $endpointList")
+                    delay(1000)
+
+                    _uiState.update {
+                        it.copy(
+                            searchNearDevice = SearchNearDevice.Load(
+                                endpointIdList = endpointList,
+                                timerInfoList = endpointList.map { null }
+                            )
+                        )
+                    }
+                }
             }
             .collect()
     }
 
     // 생성한 호스트가 만든 타이머의 정보를 가져옴
     fun loadTimerInfo(index: Int) = viewModelScope.launch {
-        val endpointId = _uiState.value.endpointIdList[index]
+        _uiState.update {
+            it.copy(isLoadInfo = true)
+        }
+
+        val previousLoadData =
+            _uiState.value.searchNearDevice as SearchNearDevice.Load
+        val endpointId = previousLoadData.endpointIdList[index]
         val userId = _uiState.value.userEntity?.userId ?: ""
 
         connectToHostUseCase(userId, endpointId)
@@ -126,8 +133,6 @@ class JoinViewModel @Inject constructor(
                         if (timerInfoJson != null) {
                             val timerInfo =
                                 Json.decodeFromString(TimerInfo.serializer(), timerInfoJson)
-                            val previousLoadData =
-                                _uiState.value.searchNearDevice as SearchNearDevice.Load
                             val updateList = previousLoadData.timerInfoList
                                 .toMutableList()
                                 .apply {
@@ -137,6 +142,7 @@ class JoinViewModel @Inject constructor(
                             stopAllConnectionUseCase(StopCase.StopConnections) // 연결을 없앰
                             _uiState.update {
                                 it.copy(
+                                    isLoadInfo = false,
                                     searchNearDevice = SearchNearDevice.Load(
                                         endpointIdList = previousLoadData.endpointIdList,
                                         timerInfoList = updateList
@@ -146,8 +152,11 @@ class JoinViewModel @Inject constructor(
                         }
                     }
 
-                    is ClientEvent.ClientFailure -> {
-
+                    is ClientEvent.ClientConnectionFailure -> {
+                        _uiState.update {
+                            it.copy(isLoadInfo = false)
+                        }
+                        handelEvent(JoinUiEvent.ShowSnackBar(event.errorMessage))
                     }
 
                     else -> {}

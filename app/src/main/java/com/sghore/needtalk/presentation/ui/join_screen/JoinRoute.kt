@@ -1,12 +1,9 @@
 package com.sghore.needtalk.presentation.ui.join_screen
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.flow.collectLatest
@@ -14,7 +11,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun JoinRoute(
     viewModel: JoinViewModel = hiltViewModel(),
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    showSnackBar: suspend (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -29,6 +27,10 @@ fun JoinRoute(
 
                     is JoinUiEvent.LoadTimerInfo -> {
                         viewModel.loadTimerInfo(event.index)
+                    }
+
+                    is JoinUiEvent.ShowSnackBar -> {
+                        showSnackBar(event.message)
                     }
                 }
             }

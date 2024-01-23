@@ -131,7 +131,11 @@ class NearByRepository @Inject constructor(
             options
         ).addOnFailureListener {
             it.printStackTrace()
-            trySend(ClientEvent.ClientFailure)
+            trySend(
+                ClientEvent.DiscoveryFailure(
+                    "기기를 찾는 과정에서 오류가 발생하였습니다."
+                )
+            )
         }
 
         awaitClose { // 모든 동작을 취소함
@@ -162,7 +166,11 @@ class NearByRepository @Inject constructor(
                     payloadCallback
                 ).addOnFailureListener {
                     it.printStackTrace()
-                    trySend(ClientEvent.ClientFailure)
+                    trySend(
+                        ClientEvent.ClientConnectionFailure(
+                            "연결 과정에서 오류가 발생하였습니다."
+                        )
+                    )
                 }
             }
 
@@ -195,7 +203,7 @@ class NearByRepository @Inject constructor(
             connectionCallback
         ).addOnFailureListener {
             it.printStackTrace()
-            trySend(ClientEvent.ClientFailure)
+            trySend(ClientEvent.ClientConnectionFailure("연결 과정에서 오류가 발생하였습니다."))
         }
 
         awaitClose { // 모든 동작을 취소함
@@ -253,5 +261,7 @@ sealed interface ClientEvent {
         val endpointId: String
     ) : ClientEvent
 
-    data object ClientFailure : ClientEvent
+    data class DiscoveryFailure(val errorMessage: String) : ClientEvent
+
+    data class ClientConnectionFailure(val errorMessage: String) : ClientEvent
 }

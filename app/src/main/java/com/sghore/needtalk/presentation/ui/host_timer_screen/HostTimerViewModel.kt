@@ -52,8 +52,12 @@ class HostTimerViewModel @Inject constructor(
                         if (timerSettingEntity != null) {
                             val timerInfo = TimerInfo(
                                 userList = listOf(userEntity!!),
-                                timerTime = timerSettingEntity?.talkTime ?: 0L,
-                                maxMember = timerSettingEntity?.numberOfPeople ?: 0
+                                timerTime = if (timerSettingEntity!!.isStopwatch) {
+                                    -1L
+                                } else {
+                                    timerSettingEntity!!.talkTime
+                                },
+                                maxMember = timerSettingEntity!!.numberOfPeople
                             )
                             val timerInfoJson =
                                 Json.encodeToString(TimerInfo.serializer(), timerInfo)

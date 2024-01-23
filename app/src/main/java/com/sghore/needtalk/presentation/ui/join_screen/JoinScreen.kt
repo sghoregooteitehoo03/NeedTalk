@@ -48,8 +48,7 @@ import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.parseMinuteSecond
 
 // TODO:
-//  . 오류 처리
-//  . 스톱워치 인 경우 처리
+//  . 재연결 UI 구현
 
 @Composable
 fun JoinScreen(

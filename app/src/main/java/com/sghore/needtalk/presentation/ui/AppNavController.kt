@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -17,12 +18,15 @@ import kotlinx.serialization.json.Json
 
 @Composable
 fun AppNavHost(
+    modifier: Modifier,
     gViewModel: GlobalViewModel,
-    navController: NavHostController
+    navController: NavHostController,
+    showSnackBar: suspend (String) -> Unit
 ) {
     val context = LocalContext.current
 
     NavHost(
+        modifier = modifier,
         navController = navController,
         startDestination = UiScreen.HomeScreen.route
     ) {
@@ -67,7 +71,10 @@ fun AppNavHost(
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
-            JoinRoute(navigateUp = navController::navigateUp)
+            JoinRoute(
+                navigateUp = navController::navigateUp,
+                showSnackBar = showSnackBar
+            )
         }
         composable(
             route = UiScreen.HostTimerScreen.route +
