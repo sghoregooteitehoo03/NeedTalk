@@ -76,7 +76,9 @@ class JoinViewModel @Inject constructor(
                     }
 
                     is ClientEvent.DiscoveryEndpointLost -> {
-
+                        // TODO: 이 부분 처리
+                        endpointList.remove(event.endpointId)
+                        Log.i("Check", "EndpointLost")
                     }
 
                     is ClientEvent.DiscoveryFailure -> {
@@ -88,7 +90,7 @@ class JoinViewModel @Inject constructor(
             }
             .debounce(3000)
             .onEach { _ ->
-                if (!isError) {
+                if (!isError && endpointList.isNotEmpty()) {
                     stopAllConnectionUseCase(StopCase.StopDiscovery) // 찾는 과정을 멈춤
                     _uiState.update {
                         it.copy(
@@ -123,9 +125,11 @@ class JoinViewModel @Inject constructor(
         val endpointId = previousLoadData.endpointIdList[index]
         val userId = _uiState.value.userEntity?.userId ?: ""
 
+        // 상대에게 연결 요청
         connectToHostUseCase(userId, endpointId)
             .collectLatest { event ->
                 when (event) {
+                    // 상대에게 타이머의 정보가 넘어올 때
                     is ClientEvent.PayloadReceived -> {
                         val timerInfoJson =
                             event.payload.asBytes()?.toString(Charset.defaultCharset())
