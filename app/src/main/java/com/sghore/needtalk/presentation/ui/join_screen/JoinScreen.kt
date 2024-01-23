@@ -24,6 +24,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -44,9 +45,17 @@ import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.util.parseMinuteSecond
+
+// TODO:
+//  . 오류 처리
+//  . 스톱워치 인 경우 처리
 
 @Composable
-fun JoinScreen() {
+fun JoinScreen(
+    uiState: JoinUiState,
+    onEvent: (JoinUiEvent) -> Unit
+) {
     ConstraintLayout(
         modifier = Modifier.fillMaxSize()
     ) {
@@ -66,7 +75,7 @@ fun JoinScreen() {
                     .clip(CircleShape)
                     .size(24.dp)
                     .clickable {
-
+                        onEvent(JoinUiEvent.ClickBackArrow)
                     },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
@@ -77,7 +86,7 @@ fun JoinScreen() {
         Column(
             modifier = Modifier
                 .constrainAs(layout) {
-                    top.linkTo(toolbar.bottom)
+                    top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
@@ -85,15 +94,31 @@ fun JoinScreen() {
             horizontalAlignment = Alignment.CenterHorizontally
         )
         {
-            FoundingNearDevice(
-                modifier = Modifier.padding(14.dp),
-                isFound = false
-            )
-            Spacer(modifier = Modifier.height(28.dp))
-            Text(
-                text = "근처에 있는 사용자를 찾고있어요...",
-                style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
-            )
+            when (uiState.searchNearDevice) {
+                is SearchNearDevice.Searching -> {
+                    FoundingNearDevice(
+                        modifier = Modifier.padding(14.dp),
+                        isFound = uiState.searchNearDevice.isFound
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                    Text(
+                        text = "근처에 있는 사용자를 찾고있어요...",
+                        style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
+                    )
+                }
+
+                is SearchNearDevice.Load -> {
+                    TimerInfoPager(
+                        timerInfoList = uiState.searchNearDevice.timerInfoList,
+                        loadTimerInfo = { onEvent(JoinUiEvent.LoadTimerInfo(it)) }
+                    )
+                    Spacer(modifier = Modifier.height(28.dp))
+                    Text(
+                        text = "근처에 있는 사용자를 발견했어요!",
+                        style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
+                    )
+                }
+            }
         }
     }
 }
@@ -152,11 +177,21 @@ fun FoundingNearDevice(
 @Composable
 fun TimerInfoPager(
     modifier: Modifier = Modifier,
-    timerInfoList: List<TimerInfo?>
+    timerInfoList: List<TimerInfo?>,
+    loadTimerInfo: (index: Int) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { timerInfoList.size })
     val currentPage = pagerState.currentPage
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp - 56.dp
+
+    LaunchedEffect(
+        key1 = currentPage,
+        block = {
+            if (timerInfoList[currentPage] == null) {
+                loadTimerInfo(currentPage)
+            }
+        }
+    )
 
     Box(
         modifier = Modifier
@@ -242,15 +277,15 @@ fun TimerInfoItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NameTag(
-                name = timerInfo?.userEntity?.name ?: "",
-                color = Color(timerInfo?.userEntity?.color ?: 0),
+                name = timerInfo?.userList?.get(0)?.name ?: "",
+                color = Color(timerInfo?.userList?.get(0)?.color ?: 0),
                 interval = 6.dp,
                 colorSize = 16.dp,
                 textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "${((timerInfo?.timerTime ?: 0L) / 60000).toInt()}:${((timerInfo?.timerTime ?: 0L) % 60).toInt()}",
+                text = parseMinuteSecond(timerInfo?.timerTime ?: 0L),
                 style = MaterialTheme.typography.h3.copy(
                     color = MaterialTheme.colors.onPrimary
                 )
@@ -274,7 +309,7 @@ fun TimerInfoItem(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "${timerInfo?.member ?: 0}/${timerInfo?.maxMember ?: 0}",
+                    text = "${timerInfo?.userList?.size ?: 0}/${timerInfo?.maxMember ?: 0}",
                     style = MaterialTheme.typography.body1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -290,7 +325,7 @@ fun TimerInfoItem(
                     fontWeight = FontWeight.Medium
                 ),
                 paddingValues = PaddingValues(14.dp),
-                enable = (timerInfo?.member ?: 0) != (timerInfo?.maxMember ?: 0),
+                enable = (timerInfo?.userList?.size ?: 0) != (timerInfo?.maxMember ?: 0),
                 onClick = { onJoinClick() }
             )
         }
@@ -314,20 +349,22 @@ fun TimerInfoPagerPreview() {
     NeedTalkTheme {
         val timerInfoList = listOf(
             TimerInfo(
-                UserEntity(
-                    userId = "asdfasdf",
-                    name = "방가방",
-                    color = Color.Blue.toArgb()
+                listOf(
+                    UserEntity(
+                        userId = "asdfasdf",
+                        name = "방가방",
+                        color = Color.Blue.toArgb()
+                    )
                 ),
                 timerTime = 3520000,
-                member = 2,
                 maxMember = 4
             ),
             null,
             null
         )
         TimerInfoPager(
-            timerInfoList = timerInfoList
+            timerInfoList = timerInfoList,
+            loadTimerInfo = {}
         )
     }
 }

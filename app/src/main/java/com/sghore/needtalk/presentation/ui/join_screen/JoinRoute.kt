@@ -4,14 +4,41 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun JoinRoute(
-    viewModel: JoinViewModel = hiltViewModel()
+    viewModel: JoinViewModel = hiltViewModel(),
+    navigateUp: () -> Unit
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        JoinScreen()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(
+        key1 = viewModel.uiEvent,
+        block = {
+            viewModel.uiEvent.collectLatest { event ->
+                when (event) {
+                    is JoinUiEvent.ClickBackArrow -> {
+                        navigateUp()
+                    }
+
+                    is JoinUiEvent.LoadTimerInfo -> {
+                        viewModel.loadTimerInfo(event.index)
+                    }
+                }
+            }
+        }
+    )
+
+    Surface {
+        JoinScreen(
+            uiState = uiState,
+            onEvent = viewModel::handelEvent
+        )
     }
 }

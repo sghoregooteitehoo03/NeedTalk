@@ -3,9 +3,9 @@ package com.sghore.needtalk.domain.usecase
 import com.sghore.needtalk.data.repository.NearByRepository
 import javax.inject.Inject
 
-class StartDiscoveryUseCase @Inject constructor(
+class ConnectToHostUseCase @Inject constructor(
     private val nearByRepository: NearByRepository
 ) {
-    operator fun invoke(packageName: String) =
-        nearByRepository.startDiscovery(packageName)
+    operator fun invoke(userId: String, endpointId: String) =
+        nearByRepository.connectToHost(userId, endpointId)
 }

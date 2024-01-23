@@ -12,11 +12,6 @@ fun TimerRoute(
     viewModel: HostTimerViewModel = hiltViewModel()
 ) {
     Surface(modifier = Modifier.fillMaxSize()) {
-        val text = if (viewModel.isFound) {
-            "Host: Found it!!"
-        } else {
-            "Host: Founding..."
-        }
-        Text(text = text)
+        Text(text = "TimerRoute")
     }
 }

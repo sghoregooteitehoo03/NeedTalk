@@ -21,17 +21,20 @@ import javax.inject.Inject
 class NearByRepository @Inject constructor(
     private val connectionClient: ConnectionsClient
 ) {
-    // Host가 다른 기기가 찾을 수 있도록 광고를 시작 함
+    // 다른 기기가 Host를 찾을 수 있도록 광고 및 데이터 송 수신 담당
     fun startAdvertising(userId: String, serviceId: String) = callbackFlow {
         val options = AdvertisingOptions.Builder()
             .setStrategy(Strategy.P2P_STAR)
             .build()
         val payloadCallback = object : PayloadCallback() {
-            override fun onPayloadReceived(p0: String, p1: Payload) {
+            override fun onPayloadReceived(endpointId: String, payload: Payload) {
 
             }
 
-            override fun onPayloadTransferUpdate(p0: String, p1: PayloadTransferUpdate) {
+            override fun onPayloadTransferUpdate(
+                endpointId: String,
+                update: PayloadTransferUpdate
+            ) {
 
             }
         }
@@ -44,12 +47,10 @@ class NearByRepository @Inject constructor(
                 connectionClient.acceptConnection(
                     endPointId,
                     payloadCallback
-                ).addOnSuccessListener {
-                    Log.i("Check", "Host: AcceptSuccess!")
-                }.addOnFailureListener {
+                ).addOnFailureListener {
                     it.printStackTrace()
+                    trySend(ConnectionEvent.AdvertisingFailure)
                 }
-                trySend(ConnectionEvent.ConnectionInitiated(endPointId, connectionInfo))
                 // TODO: 해당 콜백이 동작이 시작되고 나가거나하면 오류가 발생함
             }
 
@@ -57,14 +58,24 @@ class NearByRepository @Inject constructor(
                 endPointId: String,
                 result: ConnectionResolution
             ) {
-                trySend(ConnectionEvent.ConnectionResult(endPointId, result))
-
                 when (result.status.statusCode) {
-                    ConnectionsStatusCodes.STATUS_OK -> {
+                    ConnectionsStatusCodes.STATUS_OK -> { // 기기 간의 연결이 되었으며 문제가 없는 경우
+                        trySend(
+                            ConnectionEvent.ConnectionResultSuccess(
+                                endPointId,
+                                result
+                            )
+                        )
                         Log.i("Check", "Host: Is Connected!")
                     }
 
-                    ConnectionsStatusCodes.STATUS_ERROR -> {
+                    ConnectionsStatusCodes.STATUS_ERROR -> { // 기기 간의 연결이 되었으며 문제가 발생한 경우
+                        trySend(
+                            ConnectionEvent.ConnectionResultError(
+                                endPointId,
+                                result
+                            )
+                        )
                         Log.i("Check", "Host: Is Connect Error")
                     }
 
@@ -97,17 +108,48 @@ class NearByRepository @Inject constructor(
     }
 
     // 사용자가 호스트가 뿌린 광고를 찾음
-    fun startDiscovery(userId: String, serviceId: String) = callbackFlow {
+    fun startDiscovery(serviceId: String) = callbackFlow {
         val options = DiscoveryOptions.Builder()
             .setStrategy(Strategy.P2P_STAR)
             .build()
-        val payloadCallback = object : PayloadCallback() {
-            override fun onPayloadReceived(p0: String, p1: Payload) {
-
+        val discoveryCallback = object : EndpointDiscoveryCallback() {
+            // 근처 기기를 발견하였을 경우
+            override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
+                trySend(ClientEvent.DiscoveryEndpointFound(endpointId, info))
             }
 
-            override fun onPayloadTransferUpdate(p0: String, p1: PayloadTransferUpdate) {
+            override fun onEndpointLost(endPointId: String) {
+                trySend(ClientEvent.DiscoveryEndpointLost(endPointId))
+            }
 
+        }
+
+        // 찾기 시작
+        connectionClient.startDiscovery(
+            serviceId,
+            discoveryCallback,
+            options
+        ).addOnFailureListener {
+            it.printStackTrace()
+            trySend(ClientEvent.ClientFailure)
+        }
+
+        awaitClose { // 모든 동작을 취소함
+            stopDiscovery()
+        }
+    }
+
+    // 상대 기기와의 연결 및 데이터 송 수신을 담당함
+    fun connectToHost(userId: String, endpointId: String) = callbackFlow<ClientEvent> {
+        val payloadCallback = object : PayloadCallback() {
+            override fun onPayloadReceived(endpointId: String, payload: Payload) {
+                trySend(ClientEvent.PayloadReceived(endpointId, payload))
+            }
+
+            override fun onPayloadTransferUpdate(
+                endpointId: String,
+                result: PayloadTransferUpdate
+            ) {
             }
         }
         val connectionCallback = object : ConnectionLifecycleCallback() {
@@ -115,14 +157,12 @@ class NearByRepository @Inject constructor(
                 endPointId: String,
                 connectionInfo: ConnectionInfo
             ) {
-                Log.i("Check", "Client: Requested!")
                 connectionClient.acceptConnection(
                     endPointId,
                     payloadCallback
-                ).addOnSuccessListener {
-                    Log.i("Check", "Client: AcceptSuccess!")
-                }.addOnFailureListener {
+                ).addOnFailureListener {
                     it.printStackTrace()
+                    trySend(ClientEvent.ClientFailure)
                 }
             }
 
@@ -147,75 +187,71 @@ class NearByRepository @Inject constructor(
                 Log.i("Check", "Client: Disconnected")
             }
         }
-        val discoveryCallback = object : EndpointDiscoveryCallback() {
-            override fun onEndpointFound(endpointId: String, info: DiscoveredEndpointInfo) {
-                connectionClient.requestConnection(
-                    userId,
-                    endpointId,
-                    connectionCallback
-                ).addOnSuccessListener {
-                    Log.i("Check", "Client: Request Success!")
-                }.addOnFailureListener {
-                    it.printStackTrace()
-                }
-                Log.i("Check", "Client: Is Found")
-                // TODO: 해당 request 동작이 시작되고 나가거나하면 오류가 발생함
-                trySend(DiscoveryEvent.EndpointFound(endpointId, info))
-            }
 
-            override fun onEndpointLost(endPointId: String) {
-                trySend(DiscoveryEvent.EndpointLost(endPointId))
-            }
-
-        }
-
-        connectionClient.startDiscovery(
-            serviceId,
-            discoveryCallback,
-            options
-        ).addOnSuccessListener {
-            trySend(DiscoveryEvent.DiscoverySuccess)
-        }.addOnFailureListener {
+        // 상대에게 연결 요청
+        connectionClient.requestConnection(
+            userId,
+            endpointId,
+            connectionCallback
+        ).addOnFailureListener {
             it.printStackTrace()
-            trySend(DiscoveryEvent.DiscoveryFailure)
+            trySend(ClientEvent.ClientFailure)
         }
 
-        awaitClose {
+        awaitClose { // 모든 동작을 취소함
             connectionClient.stopAllEndpoints()
-            connectionClient.stopDiscovery()
         }
+    }
+
+    fun sendPayload(
+        payload: Payload,
+        endpointId: String,
+        onFailure: (Exception) -> Unit
+    ) {
+        connectionClient.sendPayload(endpointId, payload)
+            .addOnFailureListener {
+                it.printStackTrace()
+                onFailure(it)
+            }
+    }
+
+    fun stopDiscovery() {
+        connectionClient.stopDiscovery()
+    }
+
+    fun stopConnection() {
+        connectionClient.stopAllEndpoints()
     }
 }
 
 sealed interface ConnectionEvent {
-    data class ConnectionInitiated(
-        val endPointId: String,
-        val connectionInfo: ConnectionInfo
+    data class ConnectionResultSuccess(
+        val endpointId: String,
+        val connectionInfo: ConnectionResolution
     ) : ConnectionEvent
 
-    data class ConnectionResult(
-        val endPointId: String,
+    data class ConnectionResultError(
+        val endpointId: String,
         val connectionInfo: ConnectionResolution
     ) : ConnectionEvent
 
     data class Disconnected(
-        val endPointId: String
+        val endpointId: String
     ) : ConnectionEvent
 
-    data object AdvertisingSuccess : ConnectionEvent
     data object AdvertisingFailure : ConnectionEvent
 }
 
-sealed interface DiscoveryEvent {
-    data class EndpointFound(
+sealed interface ClientEvent {
+    data class PayloadReceived(val endpointId: String, val payload: Payload) : ClientEvent
+    data class DiscoveryEndpointFound(
         val endpointId: String,
         val info: DiscoveredEndpointInfo
-    ) : DiscoveryEvent
+    ) : ClientEvent
 
-    data class EndpointLost(
-        val endPointId: String
-    ) : DiscoveryEvent
+    data class DiscoveryEndpointLost(
+        val endpointId: String
+    ) : ClientEvent
 
-    data object DiscoverySuccess : DiscoveryEvent
-    data object DiscoveryFailure : DiscoveryEvent
+    data object ClientFailure : ClientEvent
 }

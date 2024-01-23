@@ -67,12 +67,14 @@ fun AppNavHost(
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
-            JoinRoute()
+            JoinRoute(navigateUp = navController::navigateUp)
         }
         composable(
-            route = UiScreen.HostTimerScreen.route + "?userEntity={userEntity}&packageName={packageName}",
+            route = UiScreen.HostTimerScreen.route +
+                    "?userEntity={userEntity}&timerSetting={timerSetting}&packageName={packageName}",
             arguments = listOf(
                 navArgument("userEntity") { type = NavType.StringType },
+                navArgument("timerSetting") { type = NavType.StringType },
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
@@ -113,9 +115,12 @@ private fun navigateToHostTimerScreen(
 ) {
     if (userEntity != null) {
         val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
+        val timerSettingJson =
+            Json.encodeToString(TimerSettingEntity.serializer(), timerSettingEntity)
+
         navController.navigate(
             UiScreen.HostTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&packageName=${packageName}"
+                    "?&userEntity=${userEntityJson}&timerSetting=${timerSettingJson}&packageName=${packageName}"
         )
     }
 }

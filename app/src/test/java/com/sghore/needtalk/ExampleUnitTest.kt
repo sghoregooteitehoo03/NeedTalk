@@ -1,14 +1,21 @@
 package com.sghore.needtalk
 
+import android.graphics.Color
+import androidx.compose.ui.graphics.toArgb
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.retrofit.RetrofitService
+import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.decodeFromString
+import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import org.junit.Test
 
 import org.junit.Assert.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.nio.charset.Charset
 import java.util.concurrent.TimeUnit
 
 /**
@@ -77,5 +84,25 @@ class ExampleUnitTest {
 //            println(result1)
 //            println(result2)
         }
+    }
+
+    @Test
+    fun translateTest() {
+        val userEntity = UserEntity(
+            userId = "abc",
+            name = "Nickname",
+            color = Blue.toArgb()
+        )
+        val test = Json.encodeToString(UserEntity.serializer(), userEntity)
+        val byteArr = test.toByteArray()
+
+        println(byteArr)
+        println(byteArr.toString(Charset.defaultCharset()))
+        println(
+            Json.decodeFromString(
+                UserEntity.serializer(),
+                byteArr.toString(Charset.defaultCharset())
+            )
+        )
     }
 }
