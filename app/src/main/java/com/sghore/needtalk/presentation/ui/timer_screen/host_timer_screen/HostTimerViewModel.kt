@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui.host_timer_screen
+package com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen
 
 import android.util.Log
 import androidx.compose.runtime.getValue
@@ -39,7 +39,7 @@ class HostTimerViewModel @Inject constructor(
             timerSettingEntity =
                 Json.decodeFromString(TimerSettingEntity.serializer(), timerSettingJson)
 
-            startAdvertising(userEntity?.userId ?: "", packageName)
+//            startAdvertising(userEntity?.userId ?: "", packageName)
         }
     }
 

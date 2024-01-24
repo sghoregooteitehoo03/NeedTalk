@@ -20,6 +20,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.text.TextStyle
@@ -112,12 +113,13 @@ fun NameTag(
             modifier = if (isBorder) {
                 Modifier.drawBehind {
                     val strokeWidthPx = 2.dp.toPx()
-                    val verticalOffset = size.height - 2.sp.toPx()
+                    val verticalOffset = size.height
                     drawLine(
                         color = Color.Black,
                         strokeWidth = strokeWidthPx,
+                        cap = StrokeCap.Round,
                         start = Offset(0f, verticalOffset),
-                        end = Offset(size.width, verticalOffset)
+                        end = Offset(size.width - 3, verticalOffset)
                     )
                 }
             } else {

@@ -1,17 +1,16 @@
-package com.sghore.needtalk.presentation.ui.host_timer_screen
+package com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen
 
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 
 @Composable
-fun TimerRoute(
+fun HostTimerRoute(
     viewModel: HostTimerViewModel = hiltViewModel()
 ) {
-    Surface(modifier = Modifier.fillMaxSize()) {
-        Text(text = "TimerRoute")
+    Surface {
+        TimerScreen()
     }
 }

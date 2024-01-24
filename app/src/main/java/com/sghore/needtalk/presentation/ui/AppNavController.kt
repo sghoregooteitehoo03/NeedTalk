@@ -13,7 +13,8 @@ import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
-import com.sghore.needtalk.presentation.ui.host_timer_screen.TimerRoute
+import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
+import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -85,7 +86,12 @@ fun AppNavHost(
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
-            TimerRoute()
+            HostTimerRoute()
+        }
+        composable(
+            route = UiScreen.ClientTimerScreen.route
+        ) {
+            ClientTimerRoute()
         }
     }
 }

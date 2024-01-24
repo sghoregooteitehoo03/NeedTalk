@@ -7,6 +7,7 @@ sealed class UiScreen(val route: String) {
     data object CreateScreen : UiScreen(route = "Create")
 
     data object HostTimerScreen : UiScreen(route = "HostTimer")
+    data object ClientTimerScreen : UiScreen(route = "ClientTimer")
     data object JoinScreen : UiScreen(route = "Join")
 }
 
