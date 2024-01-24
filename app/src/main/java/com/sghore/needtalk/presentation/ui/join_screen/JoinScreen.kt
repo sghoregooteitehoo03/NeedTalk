@@ -40,6 +40,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.presentation.ui.NameTag
@@ -109,7 +110,8 @@ fun JoinScreen(
                 is SearchNearDevice.Load -> {
                     TimerInfoPager(
                         timerInfoList = uiState.searchNearDevice.timerInfoList,
-                        loadTimerInfo = { onEvent(JoinUiEvent.LoadTimerInfo(it)) }
+                        loadTimerInfo = { onEvent(JoinUiEvent.LoadTimerInfo(it)) },
+                        onJoinClick = { onEvent(JoinUiEvent.ClickJoin(it)) }
                     )
                     Spacer(modifier = Modifier.height(28.dp))
                     Text(
@@ -177,7 +179,8 @@ fun FoundingNearDevice(
 fun TimerInfoPager(
     modifier: Modifier = Modifier,
     timerInfoList: List<TimerInfo?>,
-    loadTimerInfo: (index: Int) -> Unit
+    loadTimerInfo: (index: Int) -> Unit,
+    onJoinClick: (TimerInfo) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { timerInfoList.size })
     val currentPage = pagerState.currentPage
@@ -238,7 +241,7 @@ fun TimerInfoPager(
                     TimerInfoItem(
                         modifier = Modifier.padding(14.dp),
                         timerInfo = timerInfoList[index],
-                        onJoinClick = {}
+                        onJoinClick = onJoinClick
                     )
                 }
             }
@@ -250,7 +253,7 @@ fun TimerInfoPager(
 fun TimerInfoItem(
     modifier: Modifier = Modifier,
     timerInfo: TimerInfo?,
-    onJoinClick: () -> Unit
+    onJoinClick: (TimerInfo) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -325,7 +328,7 @@ fun TimerInfoItem(
                 ),
                 paddingValues = PaddingValues(14.dp),
                 enable = (timerInfo?.userList?.size ?: 0) != (timerInfo?.maxMember ?: 0),
-                onClick = { onJoinClick() }
+                onClick = { onJoinClick(timerInfo!!) }
             )
         }
     }
@@ -355,6 +358,7 @@ fun TimerInfoPagerPreview() {
                         color = Color.Blue.toArgb()
                     )
                 ),
+                musicInfo = MusicEntity(id = "", thumbnailImage = "", title = "", timestamp = 0),
                 timerTime = 3520000,
                 maxMember = 4
             ),
@@ -363,7 +367,8 @@ fun TimerInfoPagerPreview() {
         )
         TimerInfoPager(
             timerInfoList = timerInfoList,
-            loadTimerInfo = {}
+            loadTimerInfo = {},
+            onJoinClick = {}
         )
     }
 }

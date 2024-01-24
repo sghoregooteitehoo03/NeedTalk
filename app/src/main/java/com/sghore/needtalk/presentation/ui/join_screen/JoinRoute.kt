@@ -6,12 +6,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.TimerInfo
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun JoinRoute(
     viewModel: JoinViewModel = hiltViewModel(),
     navigateUp: () -> Unit,
+    navigateToTimerScreen: (TimerInfo) -> Unit,
     showSnackBar: suspend (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -23,6 +25,10 @@ fun JoinRoute(
                 when (event) {
                     is JoinUiEvent.ClickBackArrow -> {
                         navigateUp()
+                    }
+
+                    is JoinUiEvent.ClickJoin -> {
+                        navigateToTimerScreen(event.timerInfo)
                     }
 
                     is JoinUiEvent.LoadTimerInfo -> {

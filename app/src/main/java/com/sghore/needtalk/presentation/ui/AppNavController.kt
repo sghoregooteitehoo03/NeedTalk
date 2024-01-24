@@ -8,8 +8,8 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
@@ -54,12 +54,12 @@ fun AppNavHost(
         ) {
             CreateRoute(
                 navigateUp = navController::navigateUp,
-                navigateToTimer = { timerSettingEntity ->
+                navigateToTimer = { timerInfo ->
                     navigateToHostTimerScreen(
                         navController = navController,
                         userEntity = gViewModel.getUserEntity(),
                         packageName = context.packageName,
-                        timerSettingEntity = timerSettingEntity
+                        timerInfo = timerInfo
                     )
                 }
             )
@@ -74,22 +74,36 @@ fun AppNavHost(
         ) {
             JoinRoute(
                 navigateUp = navController::navigateUp,
+                navigateToTimerScreen = { timerInfo ->
+                    navigateToClientTimerScreen(
+                        navController = navController,
+                        userEntity = gViewModel.getUserEntity(),
+                        packageName = context.packageName,
+                        timerInfo = timerInfo
+                    )
+                },
                 showSnackBar = showSnackBar
             )
         }
         composable(
             route = UiScreen.HostTimerScreen.route +
-                    "?userEntity={userEntity}&timerSetting={timerSetting}&packageName={packageName}",
+                    "?userEntity={userEntity}&timerInfo={timerInfo}&packageName={packageName}",
             arguments = listOf(
                 navArgument("userEntity") { type = NavType.StringType },
-                navArgument("timerSetting") { type = NavType.StringType },
+                navArgument("timerInfo") { type = NavType.StringType },
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
             HostTimerRoute()
         }
         composable(
-            route = UiScreen.ClientTimerScreen.route
+            route = UiScreen.ClientTimerScreen.route +
+                    "?userEntity={userEntity}&timerInfo={timerInfo}&packageName={packageName}",
+            arguments = listOf(
+                navArgument("userEntity") { type = NavType.StringType },
+                navArgument("timerInfo") { type = NavType.StringType },
+                navArgument("packageName") { type = NavType.StringType }
+            )
         ) {
             ClientTimerRoute()
         }
@@ -124,16 +138,34 @@ private fun navigateToHostTimerScreen(
     navController: NavHostController,
     userEntity: UserEntity?,
     packageName: String,
-    timerSettingEntity: TimerSettingEntity
+    timerInfo: TimerInfo
 ) {
     if (userEntity != null) {
         val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        val timerSettingJson =
-            Json.encodeToString(TimerSettingEntity.serializer(), timerSettingEntity)
+        val timerInfoJson = Json.encodeToString(TimerInfo.serializer(), timerInfo)
+            .replace("&", "%26")
 
         navController.navigate(
             UiScreen.HostTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&timerSetting=${timerSettingJson}&packageName=${packageName}"
+                    "?&userEntity=${userEntityJson}&timerInfo=${timerInfoJson}&packageName=${packageName}"
+        )
+    }
+}
+
+private fun navigateToClientTimerScreen(
+    navController: NavHostController,
+    userEntity: UserEntity?,
+    packageName: String,
+    timerInfo: TimerInfo
+) {
+    if (userEntity != null) {
+        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
+        val timerInfoJson = Json.encodeToString(TimerInfo.serializer(), timerInfo)
+            .replace("&", "%26")
+
+        navController.navigate(
+            UiScreen.ClientTimerScreen.route +
+                    "?&userEntity=${userEntityJson}&timerInfo=${timerInfoJson}&packageName=${packageName}"
         )
     }
 }
