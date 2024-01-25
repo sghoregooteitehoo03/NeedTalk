@@ -1,8 +1,5 @@
 package com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -12,8 +9,13 @@ import com.sghore.needtalk.data.repository.ConnectionEvent
 import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import javax.inject.Inject
@@ -24,8 +26,12 @@ class HostTimerViewModel @Inject constructor(
     private val sendPayloadUseCase: SendPayloadUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    var userEntity by mutableStateOf<UserEntity?>(null)
-    var timerInfo by mutableStateOf<TimerInfo?>(null)
+    private val _uiState = MutableStateFlow(TimerUiState())
+    val uiState = _uiState.stateIn(
+        viewModelScope,
+        SharingStarted.Eagerly,
+        TimerUiState()
+    )
 
     init {
         val userEntityJson = savedStateHandle.get<String>("userEntity")
@@ -33,12 +39,22 @@ class HostTimerViewModel @Inject constructor(
         val packageName = savedStateHandle.get<String>("packageName") ?: ""
 
         if (userEntityJson != null && timerInfoJson != null && packageName.isNotEmpty()) {
-            userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
-            timerInfo =
-                Json.decodeFromString(TimerInfo.serializer(), timerInfoJson)
+            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+            val timerInfo = Json.decodeFromString(TimerInfo.serializer(), timerInfoJson)
 
+            _uiState.update {
+                it.copy(
+                    userEntity = userEntity,
+                    timerInfo = timerInfo,
+                    currentTime = if (timerInfo.timerTime != -1L) {
+                        timerInfo.timerTime
+                    } else {
+                        0L
+                    }
+                )
+            }
             startAdvertising(
-                userId = userEntity?.userId ?: "",
+                userId = userEntity.userId,
                 packageName = packageName,
                 sendData = timerInfoJson
             )

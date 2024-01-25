@@ -358,7 +358,12 @@ fun TimerInfoPagerPreview() {
                         color = Color.Blue.toArgb()
                     )
                 ),
-                musicInfo = MusicEntity(id = "", thumbnailImage = "", title = "", timestamp = 0),
+                musicInfo = MusicEntity(
+                    id = "",
+                    thumbnailImage = "",
+                    title = "",
+                    timestamp = 0
+                ),
                 timerTime = 3520000,
                 maxMember = 4
             ),

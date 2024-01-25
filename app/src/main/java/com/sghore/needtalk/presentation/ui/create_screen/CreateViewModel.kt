@@ -113,7 +113,11 @@ class CreateViewModel @Inject constructor(
             TimerInfo(
                 userList = listOf(stateValue.userEntity!!),
                 musicInfo = stateValue.musics.filter { it.id == timerSetting.selectMusicId }[0],
-                timerTime = timerSetting.talkTime,
+                timerTime = if (timerSetting.isStopwatch) {
+                    -1L
+                } else {
+                    timerSetting.talkTime
+                },
                 maxMember = timerSetting.numberOfPeople
             )
         )

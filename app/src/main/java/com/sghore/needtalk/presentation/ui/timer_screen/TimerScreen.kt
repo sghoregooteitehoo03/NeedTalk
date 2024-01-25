@@ -2,7 +2,6 @@ package com.sghore.needtalk.presentation.ui.timer_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -16,10 +15,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -31,7 +33,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -43,14 +44,16 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
-import com.sghore.needtalk.presentation.ui.create_screen.CreateUiEvent
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Orange80
+import com.sghore.needtalk.util.calcDominantColor
 import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
-fun TimerScreen() {
+fun TimerScreen(
+    uiState: TimerUiState
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -58,24 +61,13 @@ fun TimerScreen() {
                 .height(54.dp),
             contentAlignment = Alignment.Center
         ) {
+            val musicInfo = uiState.timerInfo?.musicInfo
             MusicInfo(
-                thumbnailImage = "https://i.ytimg.com/vi/jfKfPfyJRdk/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBAP74LKwgeVlcaO8dzN4FJFRwTVw",
-                title = "로파이 뮤직"
+                thumbnailImage = musicInfo?.thumbnailImage ?: "",
+                title = musicInfo?.title ?: ""
             )
         }
 
-        val testUserList = listOf(
-            UserEntity(
-                userId = "abc",
-                name = "아령하세요",
-                color = Color.Blue.toArgb()
-            ),
-            UserEntity(
-                userId = "idna",
-                name = "하이하이",
-                color = Color.Magenta.toArgb()
-            )
-        )
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -89,9 +81,9 @@ fun TimerScreen() {
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                 },
-                currentUser = testUserList[1],
-                userList = testUserList,
-                maxMember = 4
+                currentUser = uiState.userEntity,
+                userList = uiState.timerInfo?.userList ?: listOf(),
+                maxMember = uiState.timerInfo?.maxMember ?: 0
             )
             TimerContent(
                 modifier = Modifier.constrainAs(timer) {
@@ -100,8 +92,8 @@ fun TimerScreen() {
                     end.linkTo(parent.end)
                     bottom.linkTo(explainText.bottom)
                 },
-                currentTime = 3600000,
-                maxTime = 3600000
+                currentTime = uiState.currentTime,
+                maxTime = uiState.timerInfo?.timerTime ?: 0L,
             )
             Text(
                 modifier = Modifier.constrainAs(explainText) {
@@ -146,8 +138,21 @@ fun TimerScreen() {
 fun MusicInfo(
     modifier: Modifier = Modifier,
     thumbnailImage: String,
-    title: String,
+    title: String
 ) {
+    val defaultColor = MaterialTheme.colors.surface
+    var dominantColor by remember {
+        mutableStateOf(defaultColor)
+    }
+    val painter = rememberAsyncImagePainter(
+        model = thumbnailImage,
+        onSuccess = { result ->
+            calcDominantColor(result.result.drawable) { color ->
+                dominantColor = color
+            }
+        }
+    )
+
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
@@ -156,7 +161,7 @@ fun MusicInfo(
             modifier = Modifier
                 .size(26.dp)
                 .clip(RoundedCornerShape(8.dp)),
-            painter = rememberAsyncImagePainter(model = thumbnailImage),
+            painter = painter,
             contentDescription = thumbnailImage,
             contentScale = ContentScale.Crop
         )
@@ -166,7 +171,7 @@ fun MusicInfo(
                 val strokeWidthPx = 2.dp.toPx()
                 val verticalOffset = size.height
                 drawLine(
-                    color = Color.Black,
+                    color = dominantColor,
                     strokeWidth = strokeWidthPx,
                     cap = StrokeCap.Round,
                     start = Offset(0f, verticalOffset),
@@ -174,7 +179,7 @@ fun MusicInfo(
                 )
             },
             text = title,
-            style = MaterialTheme.typography.h5
+            style = MaterialTheme.typography.h5.copy(color = dominantColor)
         )
     }
 }
@@ -182,7 +187,7 @@ fun MusicInfo(
 @Composable
 fun GroupMember(
     modifier: Modifier = Modifier,
-    currentUser: UserEntity,
+    currentUser: UserEntity?,
     userList: List<UserEntity>,
     maxMember: Int
 ) {
@@ -200,7 +205,7 @@ fun GroupMember(
                     colorSize = 10.dp,
                     textStyle = MaterialTheme.typography.body1.copy(
                         color = MaterialTheme.colors.onPrimary,
-                        fontWeight = if (user.userId == currentUser.userId) {
+                        fontWeight = if (user.userId == (currentUser?.userId ?: "")) {
                             FontWeight.ExtraBold
                         } else {
                             FontWeight.Normal
@@ -242,11 +247,11 @@ fun TimerContent(
     modifier: Modifier = Modifier,
     currentTime: Long,
     maxTime: Long,
-    isStopwatch: Boolean = false
 ) {
+    val isStopwatch = remember { maxTime == -1L }
     val maxWidth = LocalConfiguration.current.screenWidthDp
     val progress = if (isStopwatch) {
-        maxTime.toFloat()
+        1f
     } else {
         if ((currentTime / maxTime.toFloat()) < 0.025f) {
             (currentTime / maxTime.toFloat()) + 0.025f
@@ -262,13 +267,7 @@ fun TimerContent(
     ) {
         Text(
             text = parseMinuteSecond(timeStamp = currentTime),
-            style = MaterialTheme.typography.h1.copy(
-                color = if (isStopwatch) {
-                    Orange80
-                } else {
-                    Orange50
-                }
-            )
+            style = MaterialTheme.typography.h1.copy(Orange50)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(

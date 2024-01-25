@@ -7,6 +7,6 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 @Composable
 fun ClientTimerRoute() {
     Surface {
-        TimerScreen()
+//        TimerScreen()
     }
 }
