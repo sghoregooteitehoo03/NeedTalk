@@ -85,6 +85,38 @@ class HostTimerViewModel @Inject constructor(
                         }
                     }
 
+                    // 어떤 기기와 연결이 끊어진 경우
+                    is ConnectionEvent.Disconnected -> {
+                        val disconnectUser = participantInfoList.filter {
+                            it.endpointId == event.endpointId
+                        }
+
+                        if (disconnectUser.isNotEmpty()) {
+                            // 참가자의 정보를 지움
+                            participantInfoList.remove(disconnectUser[0])
+                            val updateTimerCmInfo = _uiState.value
+                                .timerCommunicateInfo
+                                ?.copy(
+                                    userList = participantInfoList.map { it.userEntity }
+                                )
+
+                            _uiState.update {
+                                it.copy(timerCommunicateInfo = updateTimerCmInfo)
+                            }
+
+                            // 지워진 정보를 업데이트 한 후 다른 기기들 갱신
+                            if (updateTimerCmInfo != null) {
+                                for (i in 1 until participantInfoList.size) {
+                                    sendUpdateTimerCmInfo(
+                                        updateTimerCmInfo,
+                                        endpointId = participantInfoList[i].endpointId,
+                                        onFailure = {}
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     // 다른 기기들로부터 데이터를 전달받음
                     is ConnectionEvent.PayloadReceived -> {
                         val payloadTypeJson =
