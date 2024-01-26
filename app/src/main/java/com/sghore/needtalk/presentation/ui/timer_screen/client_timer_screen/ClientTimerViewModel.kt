@@ -8,11 +8,15 @@ import com.sghore.needtalk.data.repository.ClientEvent
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
+import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -27,10 +31,16 @@ class ClientTimerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
+    private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
+
     val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         TimerUiState()
+    )
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        SharingStarted.Eagerly
     )
 
     init {
@@ -48,6 +58,16 @@ class ClientTimerViewModel @Inject constructor(
                 userEntity = userEntity,
                 hostEndpointId = hostEndpointId
             )
+        }
+    }
+
+    fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
+    }
+
+    fun setDialogScreen(dialogScreen: DialogScreen) {
+        _uiState.update {
+            it.copy(dialogScreen = dialogScreen)
         }
     }
 
@@ -90,6 +110,19 @@ class ClientTimerViewModel @Inject constructor(
 
                             }
                         )
+                    }
+
+                    // host와 연결이 끊어졌을 때
+                    is ClientEvent.Disconnect -> {
+                        _uiState.update {
+                            it.copy(
+                                dialogScreen = DialogScreen.DialogWarning(
+                                    message = "호스트와 연결이 끊어졌습니다.\n" +
+                                            "진행되고 있는 타이머는 중단됩니다.",
+                                    isError = true
+                                ),
+                            )
+                        }
                     }
 
                     is ClientEvent.ClientConnectionFailure -> {

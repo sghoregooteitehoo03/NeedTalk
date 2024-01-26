@@ -103,7 +103,6 @@ class NearByRepository @Inject constructor(
 
         awaitClose {
             connectionClient.stopAllEndpoints()
-            connectionClient.stopAdvertising()
         }
     }
 
@@ -193,6 +192,7 @@ class NearByRepository @Inject constructor(
             }
 
             override fun onDisconnected(endPointId: String) {
+                trySend(ClientEvent.Disconnect)
                 Log.i("Check", "Client: Disconnected")
             }
         }
@@ -271,6 +271,8 @@ sealed interface ClientEvent {
     data class DiscoveryFailure(val errorMessage: String) : ClientEvent
 
     data object SuccessConnect : ClientEvent
+
+    data object Disconnect : ClientEvent
 
     data class ClientConnectionFailure(val errorMessage: String) : ClientEvent
 }

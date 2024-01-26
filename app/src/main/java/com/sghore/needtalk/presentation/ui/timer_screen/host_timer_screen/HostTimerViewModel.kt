@@ -10,11 +10,15 @@ import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
+import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -29,12 +33,17 @@ class HostTimerViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
+    private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
     private val participantInfoList = mutableListOf<ParticipantInfo>()
 
     val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         TimerUiState()
+    )
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        SharingStarted.Eagerly
     )
 
     init {
@@ -170,6 +179,16 @@ class HostTimerViewModel @Inject constructor(
                     else -> {}
                 }
             }
+    }
+
+    fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
+    }
+
+    fun setDialogScreen(dialogScreen: DialogScreen) {
+        _uiState.update {
+            it.copy(dialogScreen = dialogScreen)
+        }
     }
 
     private fun sendUpdateTimerCmInfo(

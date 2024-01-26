@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.timer_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +43,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import coil.compose.rememberAsyncImagePainter
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.NameTag
@@ -54,7 +56,8 @@ import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
 fun TimerScreen(
-    uiState: TimerUiState
+    uiState: TimerUiState,
+    onEvent: (TimerUiEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -121,7 +124,7 @@ fun TimerScreen(
                     color = colorResource(id = R.color.light_gray_200),
                     textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
                     paddingValues = PaddingValues(14.dp),
-                    onClick = {}
+                    onClick = { onEvent(TimerUiEvent.ClickExit) }
                 )
                 Spacer(modifier = Modifier.width(20.dp))
                 RoundedButton(
@@ -337,6 +340,70 @@ fun TimerContent(
         }
     }
 
+}
+
+@Composable
+fun WarningDialog(
+    modifier: Modifier = Modifier,
+    message: String,
+    possibleButtonText: String,
+    negativeButtonText: String = "",
+    onPossibleClick: () -> Unit,
+    onNegativeClick: () -> Unit = {},
+    onDismiss: () -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                modifier = Modifier.size(80.dp),
+                painter = painterResource(id = R.drawable.ic_warning),
+                contentDescription = "Warning",
+                tint = colorResource(id = R.color.gray)
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = message,
+                style = MaterialTheme.typography.h5.copy(
+                    color = colorResource(id = R.color.gray),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            RoundedButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = possibleButtonText,
+                color = MaterialTheme.colors.secondary,
+                textStyle = MaterialTheme.typography.body1.copy(
+                    color = MaterialTheme.colors.onSecondary
+                ),
+                paddingValues = PaddingValues(14.dp),
+                onClick = onPossibleClick
+            )
+            if (negativeButtonText.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(8.dp))
+                RoundedButton(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .border(
+                            width = 2.dp,
+                            color = colorResource(id = R.color.light_gray),
+                            shape = MaterialTheme.shapes.large
+                        ),
+                    text = negativeButtonText,
+                    color = Color.Transparent,
+                    textStyle = MaterialTheme.typography.body1.copy(
+                        color = colorResource(id = R.color.gray)
+                    ),
+                    paddingValues = PaddingValues(14.dp),
+                    onClick = onNegativeClick
+                )
+            }
+        }
+    }
 }
 
 @Preview

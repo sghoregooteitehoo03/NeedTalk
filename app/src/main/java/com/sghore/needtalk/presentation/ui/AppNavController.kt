@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -94,7 +95,11 @@ fun AppNavHost(
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
-            HostTimerRoute()
+            HostTimerRoute(
+                navigateUp = {
+                    navigateToHome(navController)
+                }
+            )
         }
         composable(
             route = UiScreen.ClientTimerScreen.route +
@@ -105,7 +110,11 @@ fun AppNavHost(
                 navArgument("packageName") { type = NavType.StringType }
             )
         ) {
-            ClientTimerRoute()
+            ClientTimerRoute(
+                navigateUp = {
+                    navigateToHome(navController)
+                }
+            )
         }
     }
 }
@@ -166,4 +175,8 @@ private fun navigateToClientTimerScreen(
                     "?&userEntity=${userEntityJson}&hostEndpointId=${hostEndpointId}&packageName=${packageName}"
         )
     }
+}
+
+private fun navigateToHome(navController: NavHostController) {
+    navController.popBackStack(route = UiScreen.HomeScreen.route, inclusive = false)
 }

@@ -17,4 +17,6 @@ sealed interface DialogScreen {
     data object DialogCreateMusic : DialogScreen
 
     data class DialogRemoveMusic(val musicEntity: MusicEntity) : DialogScreen
+
+    data class DialogWarning(val message: String, val isError: Boolean = false) : DialogScreen
 }
