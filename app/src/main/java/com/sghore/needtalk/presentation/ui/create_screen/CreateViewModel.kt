@@ -6,7 +6,8 @@ import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.domain.model.TimerInfo
+import com.sghore.needtalk.domain.model.TimerActionState
+import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.AddYoutubeMusicUseCase
 import com.sghore.needtalk.domain.usecase.GetTimerSettingUseCase
 import com.sghore.needtalk.domain.usecase.InsertTimerSettingUseCase
@@ -96,7 +97,7 @@ class CreateViewModel @Inject constructor(
 
     // 타이머 정보 저장
     fun insertTimerSetting(
-        navigateToTimer: (TimerInfo) -> Unit
+        navigateToTimer: (TimerCommunicateInfo) -> Unit
     ) = viewModelScope.launch {
         val stateValue = _uiState.value
         val timerSetting = TimerSettingEntity(
@@ -110,15 +111,21 @@ class CreateViewModel @Inject constructor(
 
         insertTimerSettingUseCase(timerSetting)
         navigateToTimer(
-            TimerInfo(
+            TimerCommunicateInfo(
                 userList = listOf(stateValue.userEntity!!),
                 musicInfo = stateValue.musics.filter { it.id == timerSetting.selectMusicId }[0],
-                timerTime = if (timerSetting.isStopwatch) {
+                currentTime = if (timerSetting.isStopwatch) {
+                    0L
+                } else {
+                    timerSetting.talkTime
+                },
+                maxTime = if (timerSetting.isStopwatch) {
                     -1L
                 } else {
                     timerSetting.talkTime
                 },
-                maxMember = timerSetting.numberOfPeople
+                maxMember = timerSetting.numberOfPeople,
+                timerActionState = TimerActionState.TimerWaiting
             )
         )
     }

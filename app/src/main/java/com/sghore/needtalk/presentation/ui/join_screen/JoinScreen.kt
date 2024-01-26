@@ -40,7 +40,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.presentation.ui.NameTag
@@ -163,8 +162,8 @@ fun FoundingNearDevice(
 
                 Icon(
                     modifier = Modifier
-                        .width(maxWidth - 240.dp)
-                        .height(maxWidth - 240.dp),
+                        .width(maxWidth - 200.dp)
+                        .height(maxWidth - 200.dp),
                     painter = painterResource(id = iconResource),
                     contentDescription = "Search",
                     tint = Color.White
@@ -279,8 +278,8 @@ fun TimerInfoItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             NameTag(
-                name = timerInfo?.userList?.get(0)?.name ?: "",
-                color = Color(timerInfo?.userList?.get(0)?.color ?: 0),
+                name = timerInfo?.hostUser?.name ?: "",
+                color = Color(timerInfo?.hostUser?.color ?: 0),
                 interval = 6.dp,
                 colorSize = 16.dp,
                 textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
@@ -311,7 +310,7 @@ fun TimerInfoItem(
                 )
                 Spacer(modifier = Modifier.width(6.dp))
                 Text(
-                    text = "${timerInfo?.userList?.size ?: 0}/${timerInfo?.maxMember ?: 0}",
+                    text = "${timerInfo?.currentMember ?: 0}/${timerInfo?.maxMember ?: 0}",
                     style = MaterialTheme.typography.body1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -327,7 +326,7 @@ fun TimerInfoItem(
                     fontWeight = FontWeight.Medium
                 ),
                 paddingValues = PaddingValues(14.dp),
-                enable = (timerInfo?.userList?.size ?: 0) != (timerInfo?.maxMember ?: 0),
+                enable = (timerInfo?.currentMember ?: 0) != (timerInfo?.maxMember ?: 0),
                 onClick = { onJoinClick(timerInfo!!) }
             )
         }
@@ -351,21 +350,14 @@ fun TimerInfoPagerPreview() {
     NeedTalkTheme {
         val timerInfoList = listOf(
             TimerInfo(
-                listOf(
-                    UserEntity(
-                        userId = "asdfasdf",
-                        name = "방가방",
-                        color = Color.Blue.toArgb()
-                    )
-                ),
-                musicInfo = MusicEntity(
-                    id = "",
-                    thumbnailImage = "",
-                    title = "",
-                    timestamp = 0
+                hostUser = UserEntity(
+                    userId = "asdfasdf",
+                    name = "방가방",
+                    color = Color.Blue.toArgb()
                 ),
                 timerTime = 3520000,
-                maxMember = 4
+                currentMember = 2,
+                maxMember = 4,
             ),
             null,
             null

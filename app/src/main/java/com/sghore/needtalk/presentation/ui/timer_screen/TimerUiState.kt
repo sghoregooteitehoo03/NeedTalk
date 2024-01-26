@@ -1,17 +1,9 @@
 package com.sghore.needtalk.presentation.ui.timer_screen
 
 import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.domain.model.TimerInfo
+import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 
 data class TimerUiState(
     val userEntity: UserEntity? = null,
-    val timerInfo: TimerInfo? = null,
-    val currentTime: Long = 0L,
-    val timerActionState: TimerActionState = TimerActionState.TimerWaiting
+    val timerCommunicateInfo: TimerCommunicateInfo? = null
 )
-
-sealed interface TimerActionState {
-    data object TimerWaiting : TimerActionState
-    data object TimerStop : TimerActionState
-    data object TimerRunning : TimerActionState
-}

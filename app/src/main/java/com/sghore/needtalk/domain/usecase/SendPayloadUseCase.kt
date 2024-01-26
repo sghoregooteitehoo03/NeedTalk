@@ -8,8 +8,11 @@ class SendPayloadUseCase @Inject constructor(
     private val nearByRepository: NearByRepository
 ) {
     operator fun invoke(
-        payload: Payload,
+        bytes: ByteArray,
         endpointId: String,
         onFailure: (Exception) -> Unit
-    ) = nearByRepository.sendPayload(payload, endpointId, onFailure)
+    ) {
+        val payload = Payload.fromBytes(bytes)
+        nearByRepository.sendPayload(payload, endpointId, onFailure)
+    }
 }

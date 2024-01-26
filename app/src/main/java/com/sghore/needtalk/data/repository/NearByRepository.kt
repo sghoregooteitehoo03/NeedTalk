@@ -28,7 +28,7 @@ class NearByRepository @Inject constructor(
             .build()
         val payloadCallback = object : PayloadCallback() {
             override fun onPayloadReceived(endpointId: String, payload: Payload) {
-
+                trySend(ConnectionEvent.PayloadReceived(endpointId, payload))
             }
 
             override fun onPayloadTransferUpdate(
@@ -61,7 +61,7 @@ class NearByRepository @Inject constructor(
                 when (result.status.statusCode) {
                     ConnectionsStatusCodes.STATUS_OK -> { // 기기 간의 연결이 되었으며 문제가 없는 경우
                         trySend(
-                            ConnectionEvent.ConnectionResultSuccess(
+                            ConnectionEvent.SuccessConnect(
                                 endPointId,
                                 result
                             )
@@ -144,7 +144,7 @@ class NearByRepository @Inject constructor(
     }
 
     // 상대 기기와의 연결 및 데이터 송 수신을 담당함
-    fun connectToHost(userId: String, endpointId: String) = callbackFlow<ClientEvent> {
+    fun connectToHost(userId: String, endpointId: String) = callbackFlow {
         val payloadCallback = object : PayloadCallback() {
             override fun onPayloadReceived(endpointId: String, payload: Payload) {
                 trySend(ClientEvent.PayloadReceived(endpointId, payload))
@@ -180,6 +180,7 @@ class NearByRepository @Inject constructor(
             ) {
                 when (connectionResolution.status.statusCode) {
                     ConnectionsStatusCodes.STATUS_OK -> {
+                        trySend(ClientEvent.SuccessConnect)
                         Log.i("Check", "Client: Is Connected")
                     }
 
@@ -223,17 +224,23 @@ class NearByRepository @Inject constructor(
             }
     }
 
+    fun disconnectOther(endpointId: String) {
+        connectionClient.disconnectFromEndpoint(endpointId)
+    }
+
     fun stopDiscovery() {
         connectionClient.stopDiscovery()
     }
 
-    fun stopConnection() {
+    fun stopAllEndpoints() {
         connectionClient.stopAllEndpoints()
     }
 }
 
 sealed interface ConnectionEvent {
-    data class ConnectionResultSuccess(
+    data class PayloadReceived(val endpointId: String, val payload: Payload) : ConnectionEvent
+
+    data class SuccessConnect(
         val endpointId: String,
         val connectionInfo: ConnectionResolution
     ) : ConnectionEvent
@@ -262,6 +269,8 @@ sealed interface ClientEvent {
     ) : ClientEvent
 
     data class DiscoveryFailure(val errorMessage: String) : ClientEvent
+
+    data object SuccessConnect : ClientEvent
 
     data class ClientConnectionFailure(val errorMessage: String) : ClientEvent
 }

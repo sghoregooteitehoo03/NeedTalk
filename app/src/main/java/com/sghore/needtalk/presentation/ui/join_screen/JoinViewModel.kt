@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ClientEvent
+import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.StartDiscoveryUseCase
@@ -131,27 +132,39 @@ class JoinViewModel @Inject constructor(
                 when (event) {
                     // 상대에게 타이머의 정보가 넘어올 때
                     is ClientEvent.PayloadReceived -> {
-                        val timerInfoJson =
+                        val payloadTypeJson =
                             event.payload.asBytes()?.toString(Charset.defaultCharset())
 
-                        if (timerInfoJson != null) {
-                            val timerInfo =
-                                Json.decodeFromString(TimerInfo.serializer(), timerInfoJson)
-                            val updateList = previousLoadData.timerInfoList
-                                .toMutableList()
-                                .apply {
-                                    this[index] = timerInfo
-                                }
+                        if (payloadTypeJson != null) {
+                            val payloadType = Json.decodeFromString(
+                                PayloadType.serializer(),
+                                payloadTypeJson
+                            )
 
-                            stopAllConnectionUseCase(StopCase.StopConnections) // 연결을 없앰
-                            _uiState.update {
-                                it.copy(
-                                    isLoadInfo = false,
-                                    searchNearDevice = SearchNearDevice.Load(
-                                        endpointIdList = previousLoadData.endpointIdList,
-                                        timerInfoList = updateList
-                                    )
+                            if (payloadType is PayloadType.UpdateTimerCmInfo) {
+                                val timerInfo = TimerInfo(
+                                    hostUser = payloadType.timerCommunicateInfo.userList[0],
+                                    timerTime = payloadType.timerCommunicateInfo.maxTime,
+                                    currentMember = payloadType.timerCommunicateInfo.userList.size,
+                                    maxMember = payloadType.timerCommunicateInfo.maxMember,
+                                    hostEndpointId = event.endpointId
                                 )
+                                val updateList = previousLoadData.timerInfoList
+                                    .toMutableList()
+                                    .apply {
+                                        this[index] = timerInfo
+                                    }
+
+                                stopAllConnectionUseCase(StopCase.DisconnectOther(endpointId)) // 연결을 없앰
+                                _uiState.update {
+                                    it.copy(
+                                        isLoadInfo = false,
+                                        searchNearDevice = SearchNearDevice.Load(
+                                            endpointIdList = previousLoadData.endpointIdList,
+                                            timerInfoList = updateList
+                                        )
+                                    )
+                                }
                             }
                         }
                     }

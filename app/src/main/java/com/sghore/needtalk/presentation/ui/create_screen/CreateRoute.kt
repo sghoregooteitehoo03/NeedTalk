@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sghore.needtalk.domain.model.TimerInfo
+import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import kotlinx.coroutines.flow.collectLatest
 
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.collectLatest
 fun CreateRoute(
     viewModel: CreateViewModel = hiltViewModel(),
     navigateUp: () -> Unit,
-    navigateToTimer: (TimerInfo) -> Unit
+    navigateToTimer: (TimerCommunicateInfo) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current

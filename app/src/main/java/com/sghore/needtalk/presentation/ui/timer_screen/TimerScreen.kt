@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -33,6 +34,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -61,7 +63,7 @@ fun TimerScreen(
                 .height(54.dp),
             contentAlignment = Alignment.Center
         ) {
-            val musicInfo = uiState.timerInfo?.musicInfo
+            val musicInfo = uiState.timerCommunicateInfo?.musicInfo
             MusicInfo(
                 thumbnailImage = musicInfo?.thumbnailImage ?: "",
                 title = musicInfo?.title ?: ""
@@ -74,6 +76,7 @@ fun TimerScreen(
                 .padding(top = 14.dp, bottom = 14.dp)
         ) {
             val (groupMember, timer, explainText, btnLayout) = createRefs()
+            val timerCmInfo = uiState.timerCommunicateInfo
 
             GroupMember(
                 modifier = Modifier.constrainAs(groupMember) {
@@ -82,8 +85,8 @@ fun TimerScreen(
                     end.linkTo(parent.end)
                 },
                 currentUser = uiState.userEntity,
-                userList = uiState.timerInfo?.userList ?: listOf(),
-                maxMember = uiState.timerInfo?.maxMember ?: 0
+                userList = timerCmInfo?.userList ?: listOf(),
+                maxMember = timerCmInfo?.maxMember ?: 0
             )
             TimerContent(
                 modifier = Modifier.constrainAs(timer) {
@@ -92,8 +95,8 @@ fun TimerScreen(
                     end.linkTo(parent.end)
                     bottom.linkTo(explainText.bottom)
                 },
-                currentTime = uiState.currentTime,
-                maxTime = uiState.timerInfo?.timerTime ?: 0L,
+                currentTime = timerCmInfo?.currentTime ?: 0L,
+                maxTime = timerCmInfo?.maxTime ?: 0L,
             )
             Text(
                 modifier = Modifier.constrainAs(explainText) {
@@ -140,31 +143,56 @@ fun MusicInfo(
     thumbnailImage: String,
     title: String
 ) {
-    val defaultColor = MaterialTheme.colors.surface
+    val defaultColor = MaterialTheme.colors.onPrimary
     var dominantColor by remember {
         mutableStateOf(defaultColor)
     }
-    val painter = rememberAsyncImagePainter(
-        model = thumbnailImage,
-        onSuccess = { result ->
-            calcDominantColor(result.result.drawable) { color ->
-                dominantColor = color
+    val painter = if (thumbnailImage.isEmpty()) {
+        dominantColor = colorResource(id = R.color.light_gray_200)
+        painterResource(id = R.drawable.ic_no_music)
+    } else {
+        rememberAsyncImagePainter(
+            model = thumbnailImage,
+            onSuccess = { result ->
+                calcDominantColor(result.result.drawable) { color ->
+                    dominantColor = color
+                }
             }
-        }
-    )
+        )
+    }
 
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Image(
-            modifier = Modifier
-                .size(26.dp)
-                .clip(RoundedCornerShape(8.dp)),
-            painter = painter,
-            contentDescription = thumbnailImage,
-            contentScale = ContentScale.Crop
-        )
+        if (thumbnailImage.isEmpty()) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(8.dp))
+                    .background(
+                        color = colorResource(id = R.color.light_gray_200),
+                        shape = RoundedCornerShape(8.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    painter = painter,
+                    contentDescription = "NoMusic",
+                    tint = Color.White
+                )
+            }
+        } else {
+            Image(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(RoundedCornerShape(8.dp)),
+                painter = painter,
+                contentDescription = thumbnailImage,
+                contentScale = ContentScale.Crop
+            )
+        }
         Spacer(modifier = Modifier.width(6.dp))
         Text(
             modifier = Modifier.drawBehind {

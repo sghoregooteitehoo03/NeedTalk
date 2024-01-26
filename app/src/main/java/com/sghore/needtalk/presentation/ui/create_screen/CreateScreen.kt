@@ -5,7 +5,6 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -438,7 +437,7 @@ fun MusicItem(
                     .size(if (isSelected) 140.dp else 110.dp)
                     .clip(RoundedCornerShape(20.dp))
                     .background(
-                        color = colorResource(id = R.color.light_gray),
+                        color = colorResource(id = R.color.light_gray_200),
                         shape = RoundedCornerShape(20.dp)
                     ),
                 contentAlignment = Alignment.Center

@@ -4,6 +4,7 @@ import android.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.retrofit.RetrofitService
+import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.runBlocking
@@ -93,16 +94,22 @@ class ExampleUnitTest {
             name = "Nickname",
             color = Blue.toArgb()
         )
-        val test = Json.encodeToString(UserEntity.serializer(), userEntity)
-        val byteArr = test.toByteArray()
+//        val test = Json.encodeToString(UserEntity.serializer(), userEntity)
+//        val byteArr = test.toByteArray()
+//
+//        println(byteArr)
+//        println(byteArr.toString(Charset.defaultCharset()))
+//        println(
+//            Json.decodeFromString(
+//                UserEntity.serializer(),
+//                byteArr.toString(Charset.defaultCharset())
+//            )
+//        )
+        val payloadType = PayloadType.ClientJoinTimer(userEntity)
+        val json = Json.encodeToString(PayloadType.serializer(), payloadType)
+        val type = Json.decodeFromString(PayloadType.serializer(), json)
 
-        println(byteArr)
-        println(byteArr.toString(Charset.defaultCharset()))
-        println(
-            Json.decodeFromString(
-                UserEntity.serializer(),
-                byteArr.toString(Charset.defaultCharset())
-            )
-        )
+        println(json)
+        println(type)
     }
 }

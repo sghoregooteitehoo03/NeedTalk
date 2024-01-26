@@ -8,11 +8,15 @@ class StopAllConnectionUseCase @Inject constructor(
 ) {
     operator fun invoke(stopCase: StopCase) {
         when (stopCase) {
-            StopCase.StopConnections -> {
-                nearByRepository.stopConnection()
+            is StopCase.DisconnectOther -> {
+                nearByRepository.disconnectOther(stopCase.endpointId)
             }
 
-            StopCase.StopDiscovery -> {
+            is StopCase.StopConnections -> {
+                nearByRepository.stopAllEndpoints()
+            }
+
+            is StopCase.StopDiscovery -> {
                 nearByRepository.stopDiscovery()
             }
         }
@@ -20,6 +24,7 @@ class StopAllConnectionUseCase @Inject constructor(
 }
 
 sealed interface StopCase {
+    data class DisconnectOther(val endpointId: String) : StopCase
     data object StopConnections : StopCase
     data object StopDiscovery : StopCase
 }

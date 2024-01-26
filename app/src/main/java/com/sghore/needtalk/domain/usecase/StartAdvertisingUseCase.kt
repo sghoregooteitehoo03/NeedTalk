@@ -7,6 +7,9 @@ import javax.inject.Inject
 class StartAdvertisingUseCase @Inject constructor(
     private val nearByRepository: NearByRepository
 ) {
-    operator fun invoke(userName: String, packageName: String) =
-        nearByRepository.startAdvertising(userName, packageName)
+    operator fun invoke(userId: String, packageName: String) =
+        nearByRepository.startAdvertising(
+            userId = userId,
+            serviceId = packageName
+        )
 }
