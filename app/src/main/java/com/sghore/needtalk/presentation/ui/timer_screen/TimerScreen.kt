@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui.timer_screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -31,6 +32,7 @@ import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
@@ -46,6 +48,8 @@ import coil.compose.rememberAsyncImagePainter
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.domain.model.ParticipantInfo
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
@@ -57,7 +61,8 @@ import com.sghore.needtalk.util.parseMinuteSecond
 @Composable
 fun TimerScreen(
     uiState: TimerUiState,
-    onEvent: (TimerUiEvent) -> Unit
+    onEvent: (TimerUiEvent) -> Unit,
+    isHost: Boolean
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -80,6 +85,7 @@ fun TimerScreen(
         ) {
             val (groupMember, timer, explainText, btnLayout) = createRefs()
             val timerCmInfo = uiState.timerCommunicateInfo
+            val isEnabled = timerCmInfo?.participantInfoList?.size == timerCmInfo?.maxMember
 
             GroupMember(
                 modifier = Modifier.constrainAs(groupMember) {
@@ -88,8 +94,9 @@ fun TimerScreen(
                     end.linkTo(parent.end)
                 },
                 currentUser = uiState.userEntity,
-                userList = timerCmInfo?.userList ?: listOf(),
-                maxMember = timerCmInfo?.maxMember ?: 0
+                participantInfoList = timerCmInfo?.participantInfoList ?: listOf(),
+                maxMember = timerCmInfo?.maxMember ?: 0,
+                isTimerStart = timerCmInfo?.timerActionState != TimerActionState.TimerWaiting
             )
             TimerContent(
                 modifier = Modifier.constrainAs(timer) {
@@ -101,18 +108,48 @@ fun TimerScreen(
                 currentTime = timerCmInfo?.currentTime ?: 0L,
                 maxTime = timerCmInfo?.maxTime ?: 0L,
             )
-            Text(
-                modifier = Modifier.constrainAs(explainText) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(btnLayout.top, margin = 46.dp)
-                },
-                text = "멤버가 모두 들어올 때 까지\n잠시 기다려주세요.",
-                style = MaterialTheme.typography.h5.copy(
-                    fontSize = 18.sp,
-                    textAlign = TextAlign.Center
-                )
-            )
+            when (timerCmInfo?.timerActionState) {
+                is TimerActionState.TimerWaiting -> {
+                    TimerExplain(
+                        modifier = Modifier.constrainAs(explainText) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(btnLayout.top, margin = 46.dp)
+                        },
+                        title = if (isEnabled) {
+                            "멤버가 모두 들어왔어요.\n대화를시작해보세요!"
+                        } else {
+                            "멤버가 모두 들어올 때 까지\n잠시 기다려주세요."
+                        }
+                    )
+                }
+
+                is TimerActionState.TimerStop -> {
+                    TimerExplain(
+                        modifier = Modifier.constrainAs(explainText) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(btnLayout.top, margin = 46.dp)
+                        },
+                        title = "현재 타이머가 정지되어있습니다.",
+                        content = "모든 사용자가 휴대폰을 내려놓으면\n타이머가 다시 동작됩니다."
+                    )
+                }
+
+                else -> {
+                    TimerExplainWithButton(
+                        modifier = Modifier.constrainAs(explainText) {
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(btnLayout.top, margin = 46.dp)
+                        },
+                        title = "이런 대화는 어떠세요?",
+                        content = "여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?",
+                        buttonIcon = painterResource(id = R.drawable.ic_refresh),
+                        onClick = {}
+                    )
+                }
+            }
             Row(modifier = Modifier.constrainAs(btnLayout) {
                 start.linkTo(parent.start)
                 end.linkTo(parent.end)
@@ -126,15 +163,17 @@ fun TimerScreen(
                     paddingValues = PaddingValues(14.dp),
                     onClick = { onEvent(TimerUiEvent.ClickExit) }
                 )
-                Spacer(modifier = Modifier.width(20.dp))
-                RoundedButton(
-                    modifier = Modifier.width(110.dp),
-                    text = "시작하기",
-                    color = MaterialTheme.colors.secondary,
-                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                    paddingValues = PaddingValues(14.dp),
-                    onClick = {}
-                )
+                if (isHost && timerCmInfo?.timerActionState == TimerActionState.TimerWaiting) {
+                    Spacer(modifier = Modifier.width(20.dp))
+                    RoundedButton(
+                        modifier = Modifier.width(110.dp),
+                        text = "시작하기",
+                        color = MaterialTheme.colors.secondary,
+                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                        paddingValues = PaddingValues(14.dp),
+                        onClick = { onEvent(TimerUiEvent.ClickStart(isEnabled)) }
+                    )
+                }
             }
         }
     }
@@ -219,12 +258,13 @@ fun MusicInfo(
 fun GroupMember(
     modifier: Modifier = Modifier,
     currentUser: UserEntity?,
-    userList: List<UserEntity>,
-    maxMember: Int
+    participantInfoList: List<ParticipantInfo>,
+    maxMember: Int,
+    isTimerStart: Boolean
 ) {
     Row(modifier = modifier) {
-        repeat(userList.size) { index ->
-            val user = userList[index]
+        repeat(participantInfoList.size) { index ->
+            val user = participantInfoList[index].userEntity
             Spacer(modifier = Modifier.width(9.dp))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
@@ -251,12 +291,25 @@ fun GroupMember(
                         .background(
                             color = colorResource(id = R.color.light_gray),
                             shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isTimerStart) {
+                        Icon(
+                            modifier = Modifier.size(20.dp),
+                            painter = if (participantInfoList[index].isReady) {
+                                painterResource(id = R.drawable.ic_check)
+                            } else {
+                                painterResource(id = R.drawable.ic_check)
+                            },
+                            contentDescription = ""
                         )
-                )
+                    }
+                }
             }
             Spacer(modifier = Modifier.width(9.dp))
         }
-        repeat(maxMember - userList.size) {
+        repeat(maxMember - participantInfoList.size) {
             Spacer(modifier = Modifier.width(9.dp))
             Box(
                 modifier = Modifier
@@ -343,6 +396,64 @@ fun TimerContent(
 }
 
 @Composable
+fun TimerExplain(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: String = ""
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.h5.copy(
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center
+            )
+        )
+        if (content.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(
+                text = content,
+                style = MaterialTheme.typography.body2.copy(
+                    color = colorResource(id = R.color.gray),
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun TimerExplainWithButton(
+    modifier: Modifier,
+    title: String,
+    content: String = "",
+    buttonIcon: Painter,
+    onClick: () -> Unit
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        TimerExplain(
+            title = title,
+            content = content,
+        )
+        Spacer(modifier = Modifier.height(12.dp))
+        Icon(
+            modifier = Modifier
+                .size(24.dp)
+                .clickable { onClick() },
+            painter = buttonIcon,
+            contentDescription = "",
+            tint = colorResource(id = R.color.gray)
+        )
+    }
+}
+
+@Composable
 fun WarningDialog(
     modifier: Modifier = Modifier,
     message: String,
@@ -411,21 +522,30 @@ fun WarningDialog(
 fun GroupMemberPreview() {
     NeedTalkTheme {
         val testUserList = listOf(
-            UserEntity(
-                userId = "abc",
-                name = "아령하세요",
-                color = Color.Blue.toArgb()
+            ParticipantInfo(
+                userEntity = UserEntity(
+                    userId = "abc",
+                    name = "아령하세요",
+                    color = Color.Blue.toArgb()
+                ),
+                endpointId = "",
+                isReady = false
             ),
-            UserEntity(
-                userId = "idna",
-                name = "하이하이",
-                color = Color.Magenta.toArgb()
+            ParticipantInfo(
+                userEntity = UserEntity(
+                    userId = "idna",
+                    name = "하이하이",
+                    color = Color.Magenta.toArgb()
+                ),
+                endpointId = "",
+                isReady = false
             )
         )
         GroupMember(
-            currentUser = testUserList[1],
-            userList = testUserList,
-            maxMember = 4
+            currentUser = testUserList[1].userEntity,
+            participantInfoList = testUserList,
+            maxMember = 4,
+            isTimerStart = false
         )
     }
 }

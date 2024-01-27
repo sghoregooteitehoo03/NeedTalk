@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HostTimerRoute(
     viewModel: HostTimerViewModel = hiltViewModel(),
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    showSnackBar: suspend (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -39,6 +40,14 @@ fun HostTimerRoute(
                             )
                         )
                     }
+
+                    is TimerUiEvent.ClickStart -> {
+                        if (event.isEnabled) {
+                            viewModel.runTimer()
+                        } else {
+                            showSnackBar("멤버가 모두 모이지 않았습니다.")
+                        }
+                    }
                 }
             }
         })
@@ -50,7 +59,8 @@ fun HostTimerRoute(
     Surface {
         TimerScreen(
             uiState = uiState,
-            onEvent = viewModel::handelEvent
+            onEvent = viewModel::handelEvent,
+            isHost = true
         )
 
         when (val dialogScreen = uiState.dialogScreen) {

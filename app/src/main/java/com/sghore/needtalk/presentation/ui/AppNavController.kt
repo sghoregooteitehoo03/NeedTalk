@@ -98,7 +98,8 @@ fun AppNavHost(
             HostTimerRoute(
                 navigateUp = {
                     navigateToHome(navController)
-                }
+                },
+                showSnackBar = showSnackBar
             )
         }
         composable(

@@ -7,6 +7,7 @@ import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ConnectionEvent
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
@@ -34,7 +35,6 @@ class HostTimerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
-    private val participantInfoList = mutableListOf<ParticipantInfo>()
 
     val uiState = _uiState.stateIn(
         viewModelScope,
@@ -55,7 +55,6 @@ class HostTimerViewModel @Inject constructor(
             val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
             val timerCmInfo =
                 Json.decodeFromString(TimerCommunicateInfo.serializer(), timerCmInfoJson)
-            participantInfoList.add(ParticipantInfo(userEntity, ""))
 
             _uiState.update {
                 it.copy(
@@ -83,45 +82,44 @@ class HostTimerViewModel @Inject constructor(
                     // 기기간의 연결이 문제가 없는경우
                     is ConnectionEvent.SuccessConnect -> {
                         val timerCmInfo = _uiState.value.timerCommunicateInfo
-                        if (timerCmInfo != null) {
-                            sendUpdateTimerCmInfo(
-                                updateTimerCmInfo = timerCmInfo,
-                                endpointId = event.endpointId,
-                                onFailure = {
+                        sendUpdateTimerCmInfo(
+                            updateTimerCmInfo = timerCmInfo,
+                            endpointId = event.endpointId,
+                            onFailure = {
 
-                                }
-                            )
-                        }
+                            }
+                        )
                     }
 
                     // 어떤 기기와 연결이 끊어진 경우
                     is ConnectionEvent.Disconnected -> {
-                        val disconnectUser = participantInfoList.filter {
+                        val participantInfoList = _uiState.value
+                            .timerCommunicateInfo
+                            ?.participantInfoList
+                            ?.toMutableList()
+
+                        val disconnectUser = participantInfoList?.filter {
                             it.endpointId == event.endpointId
                         }
 
-                        if (disconnectUser.isNotEmpty()) {
+                        if ((disconnectUser?.isNotEmpty()) == true) {
                             // 참가자의 정보를 지움
                             participantInfoList.remove(disconnectUser[0])
                             val updateTimerCmInfo = _uiState.value
                                 .timerCommunicateInfo
-                                ?.copy(
-                                    userList = participantInfoList.map { it.userEntity }
-                                )
+                                ?.copy(participantInfoList = participantInfoList)
 
                             _uiState.update {
                                 it.copy(timerCommunicateInfo = updateTimerCmInfo)
                             }
 
                             // 지워진 정보를 업데이트 한 후 다른 기기들 갱신
-                            if (updateTimerCmInfo != null) {
-                                for (i in 1 until participantInfoList.size) {
-                                    sendUpdateTimerCmInfo(
-                                        updateTimerCmInfo,
-                                        endpointId = participantInfoList[i].endpointId,
-                                        onFailure = {}
-                                    )
-                                }
+                            for (i in 1 until participantInfoList.size) {
+                                sendUpdateTimerCmInfo(
+                                    updateTimerCmInfo,
+                                    endpointId = participantInfoList[i].endpointId,
+                                    onFailure = {}
+                                )
                             }
                         }
                     }
@@ -140,34 +138,37 @@ class HostTimerViewModel @Inject constructor(
                             when (payloadType) {
                                 // 다른 유저가 생성한 타이머에 참가하였을 때
                                 is PayloadType.ClientJoinTimer -> {
+                                    val participantInfoList = _uiState.value
+                                        .timerCommunicateInfo
+                                        ?.participantInfoList
+                                        ?.toMutableList()
+                                        ?: mutableListOf()
+
                                     // 참가자 인원 리스트 추가
                                     participantInfoList.add(
                                         ParticipantInfo(
                                             userEntity = payloadType.user,
-                                            endpointId = event.endpointId
+                                            endpointId = event.endpointId,
+                                            isReady = false
                                         )
                                     )
                                     // 인원이 추가된 데이터로 업데이트함
                                     val updateTimerCmInfo =
                                         _uiState.value
                                             .timerCommunicateInfo
-                                            ?.copy(
-                                                userList = participantInfoList.map { it.userEntity }
-                                            )
+                                            ?.copy(participantInfoList = participantInfoList)
 
                                     _uiState.update {
                                         it.copy(timerCommunicateInfo = updateTimerCmInfo)
                                     }
 
-                                    if (updateTimerCmInfo != null) {
-                                        // 업데이트 된 데이터를 참가자들에게 전달
-                                        for (i in 1 until participantInfoList.size) {
-                                            sendUpdateTimerCmInfo(
-                                                updateTimerCmInfo,
-                                                endpointId = participantInfoList[i].endpointId,
-                                                onFailure = {}
-                                            )
-                                        }
+                                    // 업데이트 된 데이터를 참가자들에게 전달
+                                    for (i in 1 until participantInfoList.size) {
+                                        sendUpdateTimerCmInfo(
+                                            updateTimerCmInfo,
+                                            endpointId = participantInfoList[i].endpointId,
+                                            onFailure = {}
+                                        )
                                     }
                                 }
 
@@ -191,24 +192,44 @@ class HostTimerViewModel @Inject constructor(
         }
     }
 
+    // 타이머 동작
+    fun runTimer() {
+        val updateTimerCmInfo =
+            _uiState.value
+                .timerCommunicateInfo?.copy(timerActionState = TimerActionState.TimerRunning)
+
+        _uiState.update {
+            it.copy(timerCommunicateInfo = updateTimerCmInfo)
+        }
+        for (i in 1 until (updateTimerCmInfo?.participantInfoList?.size ?: 1)) {
+            sendUpdateTimerCmInfo(
+                updateTimerCmInfo = updateTimerCmInfo,
+                endpointId = updateTimerCmInfo?.participantInfoList?.get(i)?.endpointId ?: "",
+                onFailure = {}
+            )
+        }
+    }
+
     private fun sendUpdateTimerCmInfo(
-        updateTimerCmInfo: TimerCommunicateInfo,
+        updateTimerCmInfo: TimerCommunicateInfo?,
         endpointId: String,
         onFailure: (Exception) -> Unit
     ) {
-        val sendPayloadType =
-            PayloadType.UpdateTimerCmInfo(updateTimerCmInfo)
-        val sendPayloadTypeJson =
-            Json.encodeToString(
-                PayloadType.serializer(),
-                sendPayloadType
-            )
+        if (updateTimerCmInfo != null) {
+            val sendPayloadType =
+                PayloadType.UpdateTimerCmInfo(updateTimerCmInfo)
+            val sendPayloadTypeJson =
+                Json.encodeToString(
+                    PayloadType.serializer(),
+                    sendPayloadType
+                )
 
-        // 다른 기기에게 타이머에 대한 정보를 전달함
-        sendPayloadUseCase(
-            bytes = sendPayloadTypeJson.toByteArray(),
-            endpointId = endpointId,
-            onFailure = onFailure
-        )
+            // 다른 기기에게 타이머에 대한 정보를 전달함
+            sendPayloadUseCase(
+                bytes = sendPayloadTypeJson.toByteArray(),
+                endpointId = endpointId,
+                onFailure = onFailure
+            )
+        }
     }
 }

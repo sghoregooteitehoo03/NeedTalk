@@ -50,7 +50,8 @@ fun ClientTimerRoute(
     Surface {
         TimerScreen(
             uiState = uiState,
-            onEvent = viewModel::handelEvent
+            onEvent = viewModel::handelEvent,
+            isHost = false
         )
 
         when (val dialogScreen = uiState.dialogScreen) {

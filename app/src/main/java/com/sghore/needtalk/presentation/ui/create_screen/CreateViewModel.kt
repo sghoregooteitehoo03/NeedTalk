@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.AddYoutubeMusicUseCase
@@ -112,7 +113,13 @@ class CreateViewModel @Inject constructor(
         insertTimerSettingUseCase(timerSetting)
         navigateToTimer(
             TimerCommunicateInfo(
-                userList = listOf(stateValue.userEntity!!),
+                participantInfoList = listOf(
+                    ParticipantInfo(
+                        stateValue.userEntity!!,
+                        endpointId = "",
+                        isReady = false
+                    )
+                ),
                 musicInfo = stateValue.musics.filter { it.id == timerSetting.selectMusicId }[0],
                 currentTime = if (timerSetting.isStopwatch) {
                     0L

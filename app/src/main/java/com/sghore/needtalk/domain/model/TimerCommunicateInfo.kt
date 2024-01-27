@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TimerCommunicateInfo(
-    val userList: List<UserEntity>,
+    val participantInfoList: List<ParticipantInfo>,
     val musicInfo: MusicEntity,
     val currentTime: Long,
     val maxTime: Long,
