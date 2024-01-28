@@ -38,7 +38,8 @@ import com.sghore.needtalk.presentation.ui.theme.Red
 
 @Composable
 fun DisposableEffectWithLifeCycle(
-    onCreate: () -> Unit,
+    onCreate: () -> Unit = {},
+    onDestroy: () -> Unit = {},
     onDispose: () -> Unit
 ) {
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -48,6 +49,10 @@ fun DisposableEffectWithLifeCycle(
             when (event) {
                 Lifecycle.Event.ON_CREATE -> {
                     onCreate()
+                }
+
+                Lifecycle.Event.ON_DESTROY -> {
+                    onDestroy()
                 }
 
                 else -> {}

@@ -1,5 +1,11 @@
 package com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen
 
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.ServiceConnection
+import android.os.IBinder
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -10,11 +16,15 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.component.TimerService
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
@@ -26,6 +36,33 @@ fun ClientTimerRoute(
     navigateUp: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    var service: TimerService? = remember { null }
+    val connection = object : ServiceConnection {
+        override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
+            service = (binder as TimerService.LocalBinder).getService()
+            // Nearby API 호스트와 연결 시작
+            Log.i("Check", service?.msg ?: "")
+        }
+
+        override fun onServiceDisconnected(className: ComponentName?) {
+            service = null
+        }
+    }
+
+    DisposableEffectWithLifeCycle(
+        onCreate = {
+            startService(
+                context = context,
+                connection = connection
+            )
+        },
+        onDispose = {
+            service = null
+            stopService(context = context, connection = connection)
+        }
+    )
 
     LaunchedEffect(
         key1 = viewModel.uiEvent,
@@ -102,4 +139,21 @@ fun ClientTimerRoute(
             else -> {}
         }
     }
+}
+
+private fun startService(
+    context: Context,
+    connection: ServiceConnection
+) {
+    Intent(context, TimerService::class.java).also { intent ->
+        context.bindService(
+            intent,
+            connection,
+            Context.BIND_AUTO_CREATE
+        )
+    }
+}
+
+private fun stopService(context: Context, connection: ServiceConnection) {
+    context.unbindService(connection)
 }
