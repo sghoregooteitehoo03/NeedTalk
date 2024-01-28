@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ClientEvent
 import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
@@ -26,8 +27,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ClientTimerViewModel @Inject constructor(
-    private val connectToHostUseCase: ConnectToHostUseCase,
-    private val sendPayloadUseCase: SendPayloadUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
@@ -52,12 +51,17 @@ class ClientTimerViewModel @Inject constructor(
             val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
 
             _uiState.update {
-                it.copy(userEntity = userEntity)
+                it.copy(
+                    userEntity = userEntity,
+                    hostEndpointId = hostEndpointId
+                )
             }
-            connectToHost(
-                userEntity = userEntity,
-                hostEndpointId = hostEndpointId
-            )
+        }
+    }
+
+    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
+        _uiState.update {
+            it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
     }
 
@@ -70,67 +74,4 @@ class ClientTimerViewModel @Inject constructor(
             it.copy(dialogScreen = dialogScreen)
         }
     }
-
-    private fun connectToHost(userEntity: UserEntity, hostEndpointId: String) =
-        viewModelScope.launch {
-            connectToHostUseCase(
-                userId = userEntity.userId,
-                endpointId = hostEndpointId
-            ).collectLatest { event ->
-                when (event) {
-                    // host에게 데이터가 왔을 때
-                    is ClientEvent.PayloadReceived -> {
-                        val payloadTypeJson =
-                            event.payload.asBytes()?.toString(Charset.defaultCharset())
-
-                        if (payloadTypeJson != null) {
-                            val payloadType = Json.decodeFromString(
-                                PayloadType.serializer(),
-                                payloadTypeJson
-                            )
-
-                            if (payloadType is PayloadType.UpdateTimerCmInfo) {
-                                _uiState.update {
-                                    it.copy(timerCommunicateInfo = payloadType.timerCommunicateInfo)
-                                }
-                            }
-                        }
-                    }
-
-                    // 연결이 성공적으로 됨
-                    is ClientEvent.SuccessConnect -> {
-                        val payloadType = PayloadType.ClientJoinTimer(userEntity)
-                        val payloadTypeJson =
-                            Json.encodeToString(PayloadType.serializer(), payloadType)
-
-                        sendPayloadUseCase(
-                            bytes = payloadTypeJson.toByteArray(),
-                            endpointId = hostEndpointId,
-                            onFailure = {
-
-                            }
-                        )
-                    }
-
-                    // host와 연결이 끊어졌을 때
-                    is ClientEvent.Disconnect -> {
-                        _uiState.update {
-                            it.copy(
-                                dialogScreen = DialogScreen.DialogWarning(
-                                    message = "호스트와 연결이 끊어졌습니다.\n" +
-                                            "진행되고 있는 타이머는 중단됩니다.",
-                                    isError = true
-                                ),
-                            )
-                        }
-                    }
-
-                    is ClientEvent.ClientConnectionFailure -> {
-
-                    }
-
-                    else -> {}
-                }
-            }
-        }
 }

@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,7 +21,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sghore.needtalk.component.TimerService
+import com.sghore.needtalk.component.ClientTimerService
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
@@ -38,12 +37,19 @@ fun ClientTimerRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var service: TimerService? = remember { null }
+    var service: ClientTimerService? = remember { null }
     val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
-            service = (binder as TimerService.LocalBinder).getService()
-            // Nearby API 호스트와 연결 시작
-            Log.i("Check", service?.msg ?: "")
+            service = (binder as ClientTimerService.LocalBinder).getService()
+            service?.connectToHost(
+                userEntity = uiState.userEntity,
+                hostEndpointId = uiState.hostEndpointId,
+                onUpdateUiState = viewModel::updateTimerCommunicateInfo,
+                onOpenDialog = viewModel::setDialogScreen,
+                onError = {
+
+                }
+            )
         }
 
         override fun onServiceDisconnected(className: ComponentName?) {
@@ -145,7 +151,7 @@ private fun startService(
     context: Context,
     connection: ServiceConnection
 ) {
-    Intent(context, TimerService::class.java).also { intent ->
+    Intent(context, ClientTimerService::class.java).also { intent ->
         context.bindService(
             intent,
             connection,

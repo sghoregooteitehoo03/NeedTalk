@@ -45,7 +45,8 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".component.TimerService" />
+        <service android:name=".component.HostTimerService" />
+        <service android:name=".component.ClientTimerService" />
     </application>
 
 </manifest>

@@ -22,7 +22,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sghore.needtalk.component.TimerService
+import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
@@ -39,12 +39,15 @@ fun HostTimerRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
-    var service: TimerService? = remember { null }
+    var service: HostTimerService? = remember { null }
     val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
-            service = (binder as TimerService.LocalBinder).getService()
-            // Nearby API 광고 시작
-            Log.i("Check", service?.msg ?: "")
+            service = (binder as HostTimerService.LocalBinder).getService()
+            service?.startAdvertising(
+                initTimerCmInfo = uiState.timerCommunicateInfo,
+                onUpdateUiState = viewModel::updateTimerCommunicateInfo,
+                onError = {}
+            )
         }
 
         override fun onServiceDisconnected(className: ComponentName?) {
@@ -80,7 +83,7 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-                            viewModel.runTimer()
+
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
@@ -135,7 +138,7 @@ private fun startService(
     context: Context,
     connection: ServiceConnection
 ) {
-    Intent(context, TimerService::class.java).also { intent ->
+    Intent(context, HostTimerService::class.java).also { intent ->
         context.bindService(
             intent,
             connection,

@@ -138,7 +138,8 @@ class NearByRepository @Inject constructor(
         }
 
         awaitClose { // 모든 동작을 취소함
-            stopDiscovery()
+            // TODO: 화면 이동 시 해당 플로우가 안 닫히는 경우 발생
+            connectionClient.stopAllEndpoints()
         }
     }
 
