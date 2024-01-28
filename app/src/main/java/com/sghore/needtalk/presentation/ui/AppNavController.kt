@@ -58,7 +58,6 @@ fun AppNavHost(
                     navigateToHostTimerScreen(
                         navController = navController,
                         userEntity = gViewModel.getUserEntity(),
-                        packageName = context.packageName,
                         timerCmInfo = timerCmInfo
                     )
                 }
@@ -78,8 +77,7 @@ fun AppNavHost(
                     navigateToClientTimerScreen(
                         navController = navController,
                         userEntity = gViewModel.getUserEntity(),
-                        hostEndpointId = timerInfo.hostEndpointId,
-                        packageName = context.packageName
+                        hostEndpointId = timerInfo.hostEndpointId
                     )
                 },
                 showSnackBar = showSnackBar
@@ -87,11 +85,10 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.HostTimerScreen.route +
-                    "?userEntity={userEntity}&timerCmInfo={timerCmInfo}&packageName={packageName}",
+                    "?userEntity={userEntity}&timerCmInfo={timerCmInfo}",
             arguments = listOf(
                 navArgument("userEntity") { type = NavType.StringType },
-                navArgument("timerCmInfo") { type = NavType.StringType },
-                navArgument("packageName") { type = NavType.StringType }
+                navArgument("timerCmInfo") { type = NavType.StringType }
             )
         ) {
             HostTimerRoute(
@@ -103,11 +100,10 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.ClientTimerScreen.route +
-                    "?userEntity={userEntity}&hostEndpointId={hostEndpointId}&packageName={packageName}",
+                    "?userEntity={userEntity}&hostEndpointId={hostEndpointId}",
             arguments = listOf(
                 navArgument("userEntity") { type = NavType.StringType },
-                navArgument("hostEndpointId") { type = NavType.StringType },
-                navArgument("packageName") { type = NavType.StringType }
+                navArgument("hostEndpointId") { type = NavType.StringType }
             )
         ) {
             ClientTimerRoute(
@@ -146,7 +142,6 @@ private fun navigateToJoinScreen(
 private fun navigateToHostTimerScreen(
     navController: NavHostController,
     userEntity: UserEntity?,
-    packageName: String,
     timerCmInfo: TimerCommunicateInfo
 ) {
     if (userEntity != null) {
@@ -156,7 +151,7 @@ private fun navigateToHostTimerScreen(
 
         navController.navigate(
             UiScreen.HostTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&timerCmInfo=${timerCmInfoJson}&packageName=${packageName}"
+                    "?&userEntity=${userEntityJson}&timerCmInfo=${timerCmInfoJson}"
         )
     }
 }
@@ -164,15 +159,14 @@ private fun navigateToHostTimerScreen(
 private fun navigateToClientTimerScreen(
     navController: NavHostController,
     userEntity: UserEntity?,
-    hostEndpointId: String,
-    packageName: String
+    hostEndpointId: String
 ) {
     if (userEntity != null) {
         val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
 
         navController.navigate(
             UiScreen.ClientTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&hostEndpointId=${hostEndpointId}&packageName=${packageName}"
+                    "?&userEntity=${userEntityJson}&hostEndpointId=${hostEndpointId}"
         )
     }
 }

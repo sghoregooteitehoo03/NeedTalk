@@ -1,5 +1,6 @@
 package com.sghore.needtalk.di
 
+import android.app.NotificationManager
 import android.content.Context
 import androidx.room.Room
 import com.google.android.gms.nearby.Nearby
@@ -46,4 +47,9 @@ object AppModule {
     @Provides
     fun provideConnectionsClient(@ApplicationContext context: Context) =
         Nearby.getConnectionsClient(context)
+
+    @Singleton
+    @Provides
+    fun provideNotificationManager(@ApplicationContext context: Context) =
+        context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 }

@@ -69,22 +69,4 @@ class HostTimerViewModel @Inject constructor(
             it.copy(dialogScreen = dialogScreen)
         }
     }
-
-    // 타이머 동작
-//    fun runTimer() {
-//        val updateTimerCmInfo =
-//            _uiState.value
-//                .timerCommunicateInfo?.copy(timerActionState = TimerActionState.TimerRunning)
-//
-//        _uiState.update {
-//            it.copy(timerCommunicateInfo = updateTimerCmInfo)
-//        }
-//        for (i in 1 until (updateTimerCmInfo?.participantInfoList?.size ?: 1)) {
-//            sendUpdateTimerCmInfo(
-//                updateTimerCmInfo = updateTimerCmInfo,
-//                endpointId = updateTimerCmInfo?.participantInfoList?.get(i)?.endpointId ?: "",
-//                onFailure = {}
-//            )
-//        }
-//    }
 }

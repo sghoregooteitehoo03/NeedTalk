@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
-import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -46,6 +45,7 @@ fun HostTimerRoute(
             service?.startAdvertising(
                 initTimerCmInfo = uiState.timerCommunicateInfo,
                 onUpdateUiState = viewModel::updateTimerCommunicateInfo,
+                onOpenDialog = viewModel::setDialogScreen,
                 onError = {}
             )
         }
@@ -61,6 +61,12 @@ fun HostTimerRoute(
                 context = context,
                 connection = connection
             )
+        },
+        onResume = {
+            service?.stopForegroundService()
+        },
+        onStop = {
+            service?.startForegroundService()
         },
         onDispose = {
             service = null
@@ -83,7 +89,7 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-
+                            service?.runTimer(viewModel::updateTimerCommunicateInfo)
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
@@ -105,28 +111,47 @@ fun HostTimerRoute(
 
         when (val dialogScreen = uiState.dialogScreen) {
             is DialogScreen.DialogWarning -> {
-                WarningDialog(
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colors.background,
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        )
-                        .fillMaxWidth()
-                        .padding(14.dp),
-                    message = dialogScreen.message,
-                    possibleButtonText = "나가기",
-                    onPossibleClick = {
-                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                        navigateUp()
-                    },
-                    negativeButtonText = "취소",
-                    onNegativeClick = {
-                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                    },
-                    onDismiss = {
-                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                    }
-                )
+                if (dialogScreen.isError) {
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                            navigateUp()
+                        },
+                        onDismiss = {}
+                    )
+                } else {
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                            navigateUp()
+                        },
+                        negativeButtonText = "취소",
+                        onNegativeClick = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                        },
+                        onDismiss = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                        }
+                    )
+                }
             }
 
             else -> {}

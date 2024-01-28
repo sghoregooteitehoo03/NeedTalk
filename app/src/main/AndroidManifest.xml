@@ -3,6 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <!-- Required for Nearby Connections -->
     <uses-permission android:name="android.permission.BLUETOOTH" />
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN" />
@@ -37,6 +41,7 @@
             android:name=".presentation.ui.MainActivity"
             android:exported="true"
             android:label="@string/app_name"
+            android:launchMode="singleTask"
             android:theme="@style/Theme.NeedTalk">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -45,8 +50,14 @@
             </intent-filter>
         </activity>
 
-        <service android:name=".component.HostTimerService" />
-        <service android:name=".component.ClientTimerService" />
+        <service
+            android:name=".component.HostTimerService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
+        <service
+            android:name=".component.ClientTimerService"
+            android:exported="false"
+            android:foregroundServiceType="connectedDevice" />
     </application>
 
 </manifest>
