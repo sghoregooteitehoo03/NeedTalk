@@ -22,8 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
@@ -89,7 +91,20 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-                            service?.timerReady(viewModel::updateTimerCommunicateInfo)
+                            service?.timerReady(
+                                onUpdateUiState = {
+                                    if (it?.timerActionState == TimerActionState.TimerReady) {
+                                        viewModel.setDialogScreen(DialogScreen.DialogTimerReady)
+                                    } else if (
+                                        it?.timerActionState == TimerActionState.TimerRunning
+                                        && uiState.dialogScreen == DialogScreen.DialogTimerReady
+                                    ) {
+                                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                                    }
+
+                                    viewModel.updateTimerCommunicateInfo(it)
+                                }
+                            )
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
@@ -152,6 +167,18 @@ fun HostTimerRoute(
                         }
                     )
                 }
+            }
+
+            is DialogScreen.DialogTimerReady -> {
+                TimerReadyDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 24.dp)
+                )
             }
 
             else -> {}

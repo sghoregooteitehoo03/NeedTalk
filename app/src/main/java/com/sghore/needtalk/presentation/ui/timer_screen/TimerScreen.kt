@@ -517,6 +517,34 @@ fun WarningDialog(
     }
 }
 
+@Composable
+fun TimerReadyDialog(
+    modifier: Modifier
+) {
+    BottomSheetDialog(onDismissRequest = {}) {
+        Column(
+            modifier = modifier,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Image(
+                modifier = Modifier.size(120.dp),
+                painter = painterResource(id = R.drawable.phone_image),
+                contentDescription = "",
+                contentScale = ContentScale.FillWidth
+            )
+            Spacer(modifier = Modifier.height(12.dp))
+            Text(
+                text = "모든 사용자가 휴대폰을 내려놓으면\n타이머가 시작됩니다.",
+                style = MaterialTheme.typography.h5.copy(
+                    color = colorResource(id = R.color.gray),
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
+            )
+        }
+    }
+}
+
 @Preview
 @Composable
 fun GroupMemberPreview() {

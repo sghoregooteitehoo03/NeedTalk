@@ -45,9 +45,8 @@ class ClientTimerViewModel @Inject constructor(
     init {
         val userEntityJson = savedStateHandle.get<String>("userEntity")
         val hostEndpointId = savedStateHandle.get<String>("hostEndpointId")
-        val packageName = savedStateHandle.get<String>("packageName") ?: ""
 
-        if (userEntityJson != null && hostEndpointId != null && packageName.isNotEmpty()) {
+        if (userEntityJson != null && hostEndpointId != null) {
             val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
 
             _uiState.update {
