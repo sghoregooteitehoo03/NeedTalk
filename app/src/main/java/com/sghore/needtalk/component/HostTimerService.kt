@@ -3,9 +3,14 @@ package com.sghore.needtalk.component
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener2
+import android.hardware.SensorManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -41,6 +46,10 @@ class HostTimerService : LifecycleService() {
     @Inject
     lateinit var notificationManager: NotificationManager
 
+    @Inject
+    lateinit var sensorManager: SensorManager
+    private lateinit var sensorListener: SensorEventListener2
+
     private var timerJob: Job? = null
     private val binder = LocalBinder()
     private var timerCmInfo: TimerCommunicateInfo? = null
@@ -52,6 +61,7 @@ class HostTimerService : LifecycleService() {
     }
 
     override fun onDestroy() {
+        stopSensor()
         super.onDestroy()
     }
 
@@ -106,7 +116,7 @@ class HostTimerService : LifecycleService() {
                                     participantInfoList.size == 1
                                     && timerCmInfo?.timerActionState != TimerActionState.TimerWaiting
                                 ) {
-                                    timerStop()
+                                    timerStop({})
                                     onOpenDialog(
                                         DialogScreen.DialogWarning(
                                             message = "참여하고 있는 인원이 존재하지 않아\n" +
@@ -200,7 +210,7 @@ class HostTimerService : LifecycleService() {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
                 .setContentTitle("대화에 집중하고 있습니다.")
-                .setContentText("00:00")
+                .setContentText(parseMinuteSecond(timerCmInfo?.currentTime ?: 0L))
 
         startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
     }
@@ -212,10 +222,10 @@ class HostTimerService : LifecycleService() {
         }
     }
 
-    fun runTimer(onUpdateUiState: (TimerCommunicateInfo?) -> Unit) {
+    fun timerReady(onUpdateUiState: (TimerCommunicateInfo?) -> Unit) {
         timerCmInfo = timerCmInfo?.copy(timerActionState = TimerActionState.TimerRunning)
-
         onUpdateUiState(timerCmInfo)
+
         for (i in 1 until (timerCmInfo?.participantInfoList?.size ?: 1)) {
             sendUpdateTimerCmInfo(
                 updateTimerCmInfo = timerCmInfo,
@@ -223,28 +233,71 @@ class HostTimerService : LifecycleService() {
                 onFailure = {}
             )
         }
-        timerStart(onUpdateUiState)
+
+        startSensor(onUpdateUiState)
     }
 
-    fun timerStart(
+    private fun startSensor(onUpdateUiState: (TimerCommunicateInfo?) -> Unit) {
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+        sensorListener = object : SensorEventListener2 {
+            override fun onSensorChanged(event: SensorEvent?) {
+                val eventZ = event?.values?.get(2) ?: 0f
+
+                // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
+                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && timerJob == null) {
+                    Log.i("Check", "TimerStart")
+                    // TODO: 진동 기능 추가
+                    timerStart(onUpdateUiState)
+                } else if (eventZ < 7f && timerJob != null) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+                    Log.i("Check", "TimerStop")
+                    timerStop(onUpdateUiState)
+                }
+            }
+
+            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+
+            override fun onFlushCompleted(p0: Sensor?) {}
+        }
+
+        sensorManager.registerListener(
+            sensorListener,
+            sensor,
+            SensorManager.SENSOR_DELAY_NORMAL
+        )
+    }
+
+    private fun stopSensor() {
+        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+
+        sensorManager.unregisterListener(
+            sensorListener,
+            sensor,
+        )
+    }
+
+    private fun timerStart(
         onUpdateUiState: (TimerCommunicateInfo?) -> Unit
     ) {
         if (timerCmInfo != null) {
             timerJob = lifecycleScope.launch {
                 while ((timerCmInfo?.currentTime ?: 0L) > 0L) {
                     delay(1000)
+                    // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
                     timerCmInfo = timerCmInfo
-                        ?.copy(currentTime = timerCmInfo?.currentTime?.minus(60000L) ?: 0L)
+                        ?.copy(
+                            currentTime = timerCmInfo?.currentTime?.minus(60000L) ?: 0L,
+                            timerActionState = TimerActionState.TimerRunning
+                        )
 
                     onUpdateUiState(timerCmInfo)
-                    if (baseNotification != null) {
-                        baseNotification!!.setContentText(
+                    if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
+                        baseNotification?.setContentText(
                             parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
                         )
 
                         notificationManager.notify(
                             Constants.NOTIFICATION_ID_TIMER,
-                            baseNotification!!.build()
+                            baseNotification?.build()
                         )
                     }
                 }
@@ -254,9 +307,16 @@ class HostTimerService : LifecycleService() {
         }
     }
 
-    fun timerStop() {
+    private fun timerStop(onUpdateUiState: (TimerCommunicateInfo?) -> Unit) {
         timerJob?.cancel()
         timerJob = null
+
+        timerCmInfo = timerCmInfo
+            ?.copy(
+                currentTime = timerCmInfo?.currentTime?.minus(60000L) ?: 0L,
+                timerActionState = TimerActionState.TimerStop
+            )
+        onUpdateUiState(timerCmInfo)
     }
 
     private fun sendUpdateTimerCmInfo(

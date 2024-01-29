@@ -22,6 +22,10 @@ sealed interface TimerActionState {
     data object TimerWaiting : TimerActionState
 
     @Serializable
+    @SerialName("TimerReady")
+    data object TimerReady : TimerActionState
+
+    @Serializable
     @SerialName("TimerStop")
     data object TimerStop : TimerActionState
 

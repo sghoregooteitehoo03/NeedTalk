@@ -89,7 +89,7 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-                            service?.runTimer(viewModel::updateTimerCommunicateInfo)
+                            service?.timerReady(viewModel::updateTimerCommunicateInfo)
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
