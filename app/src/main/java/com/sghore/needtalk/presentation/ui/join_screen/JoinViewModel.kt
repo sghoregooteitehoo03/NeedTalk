@@ -145,7 +145,7 @@ class JoinViewModel @Inject constructor(
                                 val timerInfo = TimerInfo(
                                     hostUser = payloadType.timerCommunicateInfo
                                         .participantInfoList[0]
-                                        .userEntity,
+                                        !!.userEntity,
                                     timerTime = payloadType.timerCommunicateInfo.maxTime,
                                     currentMember = payloadType.timerCommunicateInfo.participantInfoList.size,
                                     maxMember = payloadType.timerCommunicateInfo.maxMember,

@@ -1,13 +1,12 @@
 package com.sghore.needtalk.domain.model
 
 import com.sghore.needtalk.data.model.entity.MusicEntity
-import com.sghore.needtalk.data.model.entity.UserEntity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
 data class TimerCommunicateInfo(
-    val participantInfoList: List<ParticipantInfo>,
+    val participantInfoList: List<ParticipantInfo?>,
     val musicInfo: MusicEntity,
     val currentTime: Long,
     val maxTime: Long,
@@ -32,4 +31,8 @@ sealed interface TimerActionState {
     @Serializable
     @SerialName("TimerRunning")
     data object TimerRunning : TimerActionState
+
+    @Serializable
+    @SerialName("TimerFinished")
+    data object TimerFinished : TimerActionState
 }

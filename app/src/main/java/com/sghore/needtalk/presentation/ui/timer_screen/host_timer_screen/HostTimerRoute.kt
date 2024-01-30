@@ -71,7 +71,6 @@ fun HostTimerRoute(
             service?.startForegroundService()
         },
         onDispose = {
-            service = null
             stopService(context = context, connection = connection)
         }
     )
@@ -91,23 +90,31 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-                            service?.timerReady(
-                                onUpdateUiState = {
-                                    if (it?.timerActionState == TimerActionState.TimerReady) {
-                                        viewModel.setDialogScreen(DialogScreen.DialogTimerReady)
-                                    } else if (
-                                        it?.timerActionState == TimerActionState.TimerRunning
-                                        && uiState.dialogScreen == DialogScreen.DialogTimerReady
-                                    ) {
-                                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                                    }
+                            viewModel.saveOtherUserData(onSuccess = {
+                                service?.timerReady(
+                                    onUpdateUiState = {
+                                        if (it?.timerActionState == TimerActionState.TimerReady) {
+                                            viewModel.setDialogScreen(DialogScreen.DialogTimerReady)
+                                        } else if (
+                                            it?.timerActionState == TimerActionState.TimerRunning
+                                            && uiState.dialogScreen == DialogScreen.DialogTimerReady
+                                        ) {
+                                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                                        }
 
-                                    viewModel.updateTimerCommunicateInfo(it)
-                                }
-                            )
+                                        viewModel.updateTimerCommunicateInfo(it)
+                                    }
+                                )
+                            })
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
+                    }
+
+                    is TimerUiEvent.ClickFinished -> {
+                        viewModel.finishedTimer(onSuccess = {
+                            navigateUp()
+                        })
                     }
                 }
             }

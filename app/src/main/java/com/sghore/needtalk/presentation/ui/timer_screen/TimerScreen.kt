@@ -52,12 +52,14 @@ import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
+import com.sghore.needtalk.presentation.ui.theme.Green50
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Orange80
 import com.sghore.needtalk.util.calcDominantColor
 import com.sghore.needtalk.util.parseMinuteSecond
 
+// TODO: 타이머 끝났을 때 보여줄 화면 구현
 @Composable
 fun TimerScreen(
     uiState: TimerUiState,
@@ -107,6 +109,7 @@ fun TimerScreen(
                 },
                 currentTime = timerCmInfo?.currentTime ?: 0L,
                 maxTime = timerCmInfo?.maxTime ?: 0L,
+                isRunning = timerCmInfo?.timerActionState != TimerActionState.TimerStop
             )
             when (timerCmInfo?.timerActionState) {
                 is TimerActionState.TimerWaiting -> {
@@ -155,14 +158,26 @@ fun TimerScreen(
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom, margin = 32.dp)
             }) {
-                RoundedButton(
-                    modifier = Modifier.width(110.dp),
-                    text = "나가기",
-                    color = colorResource(id = R.color.light_gray_200),
-                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                    paddingValues = PaddingValues(14.dp),
-                    onClick = { onEvent(TimerUiEvent.ClickExit) }
-                )
+                if (timerCmInfo?.timerActionState == TimerActionState.TimerFinished) {
+                    RoundedButton(
+                        modifier = Modifier.width(110.dp),
+                        text = "끝내기",
+                        color = MaterialTheme.colors.secondary,
+                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                        paddingValues = PaddingValues(14.dp),
+                        onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                    )
+                } else {
+                    RoundedButton(
+                        modifier = Modifier.width(110.dp),
+                        text = "나가기",
+                        color = colorResource(id = R.color.light_gray_200),
+                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                        paddingValues = PaddingValues(14.dp),
+                        onClick = { onEvent(TimerUiEvent.ClickExit) }
+                    )
+                }
+
                 if (isHost && timerCmInfo?.timerActionState == TimerActionState.TimerWaiting) {
                     Spacer(modifier = Modifier.width(20.dp))
                     RoundedButton(
@@ -258,25 +273,25 @@ fun MusicInfo(
 fun GroupMember(
     modifier: Modifier = Modifier,
     currentUser: UserEntity?,
-    participantInfoList: List<ParticipantInfo>,
+    participantInfoList: List<ParticipantInfo?>,
     maxMember: Int,
     isTimerStart: Boolean
 ) {
     Row(modifier = modifier) {
         repeat(participantInfoList.size) { index ->
-            val user = participantInfoList[index].userEntity
+            val user = participantInfoList[index]?.userEntity
             Spacer(modifier = Modifier.width(9.dp))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 NameTag(
-                    name = user.name,
-                    color = Color(user.color),
+                    name = user?.name ?: "",
+                    color = Color(user?.color ?: 0),
                     interval = 4.dp,
                     colorSize = 10.dp,
                     textStyle = MaterialTheme.typography.body1.copy(
                         color = MaterialTheme.colors.onPrimary,
-                        fontWeight = if (user.userId == (currentUser?.userId ?: "")) {
+                        fontWeight = if (user?.userId == currentUser?.userId) {
                             FontWeight.ExtraBold
                         } else {
                             FontWeight.Normal
@@ -295,14 +310,21 @@ fun GroupMember(
                     contentAlignment = Alignment.Center
                 ) {
                     if (isTimerStart) {
+                        val ready = participantInfoList[index]?.isReady ?: false
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            painter = if (participantInfoList[index].isReady) {
+                            painter = if (ready) {
                                 painterResource(id = R.drawable.ic_check)
                             } else {
-                                painterResource(id = R.drawable.ic_check)
+                                painterResource(id = R.drawable.ic_pause)
                             },
-                            contentDescription = ""
+                            contentDescription = "",
+                            tint = if (ready) {
+                                Green50
+                            } else {
+                                colorResource(id = R.color.gray)
+                            }
+
                         )
                     }
                 }
@@ -326,22 +348,20 @@ fun GroupMember(
     }
 }
 
+// TODO: 프로그래스 움직이는 애니메이션 구현
 @Composable
 fun TimerContent(
     modifier: Modifier = Modifier,
     currentTime: Long,
     maxTime: Long,
+    isRunning: Boolean
 ) {
     val isStopwatch = remember { maxTime == -1L }
     val maxWidth = LocalConfiguration.current.screenWidthDp
     val progress = if (isStopwatch) {
         1f
     } else {
-        if ((currentTime / maxTime.toFloat()) < 0.025f) {
-            (currentTime / maxTime.toFloat()) + 0.025f
-        } else {
-            (currentTime / maxTime.toFloat())
-        }
+        (currentTime / maxTime.toFloat())
     }
 
     Column(
@@ -351,7 +371,13 @@ fun TimerContent(
     ) {
         Text(
             text = parseMinuteSecond(timeStamp = currentTime),
-            style = MaterialTheme.typography.h1.copy(Orange50)
+            style = MaterialTheme.typography.h1.copy(
+                if (isRunning) {
+                    Orange50
+                } else {
+                    colorResource(id = R.color.gray)
+                }
+            )
         )
         Spacer(modifier = Modifier.height(16.dp))
         Row(
@@ -371,10 +397,10 @@ fun TimerContent(
                                 Modifier
                                     .height(26.dp)
                                     .background(
-                                        color = if (isStopwatch) {
-                                            Orange80
-                                        } else {
+                                        color = if (isRunning) {
                                             Orange50
+                                        } else {
+                                            colorResource(id = R.color.gray)
                                         },
                                         shape = CircleShape
                                     )
@@ -595,7 +621,8 @@ fun TimerContentPreview() {
     NeedTalkTheme {
         TimerContent(
             currentTime = 3600000,
-            maxTime = 3600000
+            maxTime = 3600000,
+            isRunning = true
         )
     }
 }
