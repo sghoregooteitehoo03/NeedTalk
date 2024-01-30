@@ -158,7 +158,9 @@ fun TimerScreen(
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom, margin = 32.dp)
             }) {
-                if (timerCmInfo?.timerActionState == TimerActionState.TimerFinished) {
+                if (timerCmInfo?.timerActionState == TimerActionState.TimerFinished
+                    || (timerCmInfo?.maxTime == -1L && timerCmInfo.currentTime >= 300000L)
+                ) {
                     RoundedButton(
                         modifier = Modifier.width(110.dp),
                         text = "끝내기",

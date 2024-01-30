@@ -301,6 +301,8 @@ class HostTimerService : LifecycleService() {
                 if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && timerJob == null) {
                     val updateParticipantInfo =
                         timerCmInfo?.participantInfoList?.get(0)?.copy(isReady = true)
+                    val isStopwatch = timerCmInfo?.maxTime == -1L
+
                     // TODO: 진동 기능 추가
                     timerCmInfo =
                         timerCmInfo?.copy(
@@ -370,7 +372,9 @@ class HostTimerService : LifecycleService() {
                                 stopSensor()
                                 stopAllConnectionUseCase(StopCase.StopConnections)
                             }
-                        })
+                        },
+                        isStopwatch = timerCmInfo?.maxTime == -1L
+                    )
                 } else if (eventZ < 7f && timerJob != null) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
                     timerPause()
                     val updateParticipantInfo =
@@ -421,15 +425,27 @@ class HostTimerService : LifecycleService() {
 
     private fun timerStart(
         startTime: Long,
-        onUpdateTime: (Long) -> Unit
+        onUpdateTime: (Long) -> Unit,
+        isStopwatch: Boolean
     ) {
         timerJob = lifecycleScope.launch {
             var time = startTime
-            while (time > 0L) {
-                delay(1000)
-                // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                time -= 60000L
-                onUpdateTime(time)
+            if (isStopwatch) {
+                while (true) {
+                    delay(1000)
+
+                    // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
+                    time += 60000L
+                    onUpdateTime(time)
+                }
+            } else {
+                while (time > 0L) {
+                    delay(1000)
+
+                    // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
+                    time -= 60000L
+                    onUpdateTime(time)
+                }
             }
 
             timerJob = null // 동작이 끝이 나면
