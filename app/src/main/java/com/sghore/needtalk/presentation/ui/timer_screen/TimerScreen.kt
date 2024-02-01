@@ -55,7 +55,6 @@ import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.Green50
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
-import com.sghore.needtalk.presentation.ui.theme.Orange80
 import com.sghore.needtalk.util.calcDominantColor
 import com.sghore.needtalk.util.parseMinuteSecond
 
@@ -97,8 +96,7 @@ fun TimerScreen(
                 },
                 currentUser = uiState.userEntity,
                 participantInfoList = timerCmInfo?.participantInfoList ?: listOf(),
-                maxMember = timerCmInfo?.maxMember ?: 0,
-                isTimerStart = timerCmInfo?.timerActionState != TimerActionState.TimerWaiting
+                maxMember = timerCmInfo?.maxMember ?: 0
             )
             TimerContent(
                 modifier = Modifier.constrainAs(timer) {
@@ -276,8 +274,7 @@ fun GroupMember(
     modifier: Modifier = Modifier,
     currentUser: UserEntity?,
     participantInfoList: List<ParticipantInfo?>,
-    maxMember: Int,
-    isTimerStart: Boolean
+    maxMember: Int
 ) {
     Row(modifier = modifier) {
         repeat(participantInfoList.size) { index ->
@@ -311,17 +308,18 @@ fun GroupMember(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (isTimerStart) {
-                        val ready = participantInfoList[index]?.isReady ?: false
+                    val isReady = participantInfoList[index]?.isReady
+
+                    if (isReady != null) {
                         Icon(
                             modifier = Modifier.size(20.dp),
-                            painter = if (ready) {
+                            painter = if (isReady) {
                                 painterResource(id = R.drawable.ic_check)
                             } else {
                                 painterResource(id = R.drawable.ic_pause)
                             },
                             contentDescription = "",
-                            tint = if (ready) {
+                            tint = if (isReady) {
                                 Green50
                             } else {
                                 colorResource(id = R.color.gray)
@@ -600,8 +598,7 @@ fun GroupMemberPreview() {
         GroupMember(
             currentUser = testUserList[1].userEntity,
             participantInfoList = testUserList,
-            maxMember = 4,
-            isTimerStart = false
+            maxMember = 4
         )
     }
 }

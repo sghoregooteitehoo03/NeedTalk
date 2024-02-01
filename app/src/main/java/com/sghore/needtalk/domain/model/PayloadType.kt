@@ -13,4 +13,8 @@ sealed interface PayloadType {
     @Serializable
     @SerialName("ClientJoinTimer")
     data class ClientJoinTimer(val user: UserEntity) : PayloadType
+
+    @Serializable
+    @SerialName("ClientReady")
+    data class ClientReady(val isReady: Boolean, val participantIndex: Int) : PayloadType
 }

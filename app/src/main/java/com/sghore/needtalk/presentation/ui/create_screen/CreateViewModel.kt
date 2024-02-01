@@ -117,7 +117,7 @@ class CreateViewModel @Inject constructor(
                     ParticipantInfo(
                         stateValue.userEntity!!,
                         endpointId = "",
-                        isReady = false
+                        isReady = null
                     )
                 ),
                 musicInfo = stateValue.musics.filter { it.id == timerSetting.selectMusicId }[0],

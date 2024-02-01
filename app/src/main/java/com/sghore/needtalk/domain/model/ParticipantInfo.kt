@@ -7,5 +7,5 @@ import kotlinx.serialization.Serializable
 data class ParticipantInfo(
     val userEntity: UserEntity,
     val endpointId: String,
-    val isReady: Boolean
+    val isReady: Boolean?
 )

@@ -22,8 +22,10 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.ClientTimerService
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
@@ -46,9 +48,7 @@ fun ClientTimerRoute(
                 hostEndpointId = uiState.hostEndpointId,
                 onUpdateUiState = viewModel::updateTimerCommunicateInfo,
                 onOpenDialog = viewModel::setDialogScreen,
-                onError = {
-
-                }
+                onError = {}
             )
         }
 
@@ -63,6 +63,12 @@ fun ClientTimerRoute(
                 context = context,
                 connection = connection
             )
+        },
+        onResume = {
+            service?.stopForegroundService()
+        },
+        onStop = {
+            service?.startForegroundService()
         },
         onDispose = {
             service = null
@@ -140,6 +146,18 @@ fun ClientTimerRoute(
                         }
                     )
                 }
+            }
+
+            is DialogScreen.DialogTimerReady -> {
+                TimerReadyDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 24.dp)
+                )
             }
 
             else -> {}

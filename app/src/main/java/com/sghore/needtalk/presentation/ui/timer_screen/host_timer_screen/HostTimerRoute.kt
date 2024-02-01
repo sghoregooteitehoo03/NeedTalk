@@ -92,18 +92,8 @@ fun HostTimerRoute(
                         if (event.isEnabled) {
                             viewModel.saveOtherUserData(onSuccess = {
                                 service?.timerReady(
-                                    onUpdateUiState = {
-                                        if (it?.timerActionState == TimerActionState.TimerReady) {
-                                            viewModel.setDialogScreen(DialogScreen.DialogTimerReady)
-                                        } else if (
-                                            it?.timerActionState == TimerActionState.TimerRunning
-                                            && uiState.dialogScreen == DialogScreen.DialogTimerReady
-                                        ) {
-                                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                                        }
-
-                                        viewModel.updateTimerCommunicateInfo(it)
-                                    }
+                                    onUpdateUiState = viewModel::updateTimerCommunicateInfo,
+                                    onOpenDialog = viewModel::setDialogScreen
                                 )
                             })
                         } else {

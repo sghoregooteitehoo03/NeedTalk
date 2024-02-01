@@ -69,8 +69,10 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     fun setDialogScreen(dialogScreen: DialogScreen) {
-        _uiState.update {
-            it.copy(dialogScreen = dialogScreen)
+        if (dialogScreen != _uiState.value.dialogScreen) {
+            _uiState.update {
+                it.copy(dialogScreen = dialogScreen)
+            }
         }
     }
 }
