@@ -88,6 +88,10 @@ fun ClientTimerRoute(
                             )
                         )
                     }
+
+                    is TimerUiEvent.ClickFinished -> {
+                        navigateUp()
+                    }
                 }
             }
         })

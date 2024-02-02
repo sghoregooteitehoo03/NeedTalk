@@ -90,21 +90,18 @@ fun HostTimerRoute(
 
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
-                            viewModel.saveOtherUserData(onSuccess = {
-                                service?.timerReady(
-                                    onUpdateUiState = viewModel::updateTimerCommunicateInfo,
-                                    onOpenDialog = viewModel::setDialogScreen
-                                )
-                            })
+                            viewModel.saveOtherUserData()
+                            service?.timerReady(
+                                onUpdateUiState = viewModel::updateTimerCommunicateInfo,
+                                onOpenDialog = viewModel::setDialogScreen,
+                            )
                         } else {
                             showSnackBar("멤버가 모두 모이지 않았습니다.")
                         }
                     }
 
                     is TimerUiEvent.ClickFinished -> {
-                        viewModel.finishedTimer(onSuccess = {
-                            navigateUp()
-                        })
+                        navigateUp()
                     }
                 }
             }

@@ -22,6 +22,7 @@ import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
+import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
@@ -134,13 +135,15 @@ class ClientTimerService : LifecycleService() {
 
                     // host와 연결이 끊어졌을 때
                     is ClientEvent.Disconnect -> {
-                        onOpenDialog(
-                            DialogScreen.DialogWarning(
-                                message = "호스트와 연결이 끊어졌습니다.\n" +
-                                        "진행되고 있는 타이머는 중단됩니다.",
-                                isError = true
+                        if (timerCmInfo?.timerActionState != TimerActionState.TimerFinished) {
+                            onOpenDialog(
+                                DialogScreen.DialogWarning(
+                                    message = "호스트와 연결이 끊어졌습니다.\n" +
+                                            "진행되고 있는 타이머는 중단됩니다.",
+                                    isError = true
+                                )
                             )
-                        )
+                        }
                     }
 
                     is ClientEvent.ClientConnectionFailure -> {
@@ -312,7 +315,7 @@ class ClientTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 60000L
+                    time += 1000L
                     onUpdateTime(time)
                 }
             } else {
@@ -320,7 +323,7 @@ class ClientTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 60000L
+                    time -= 1000L
                     onUpdateTime(time)
                 }
             }
@@ -359,7 +362,96 @@ class ClientTimerService : LifecycleService() {
                 }
             }
 
+            is TimerActionState.TimerRunning -> {
+                timerStart(
+                    startTime = timerCmInfo?.currentTime ?: 0L,
+                    onUpdateTime = { updateTime ->
+                        if (updateTime != 0L) { // 타이머 동작 중
+                            timerCmInfo =
+                                timerCmInfo?.copy(currentTime = updateTime)
+                            onUpdateUiState(timerCmInfo)
+
+                            // foreground로 동작 시 알림 업데이트
+                            onNotifyUpdate(
+                                parseMinuteSecond(
+                                    timerCmInfo?.currentTime ?: 0L
+                                )
+                            )
+                        } else { // 타이머 동작이 끝이난 경우
+                            timerCmInfo = timerCmInfo?.copy(
+                                currentTime = updateTime,
+                                timerActionState = TimerActionState.TimerFinished
+                            )
+
+                            onUpdateUiState(timerCmInfo)
+                            onNotifyFinished() // foreground로 동작 시 알림 업데이트
+
+                            stopSensor()
+                        }
+                    },
+                    isStopwatch = timerCmInfo?.maxTime == -1L
+                )
+            }
+
+            is TimerActionState.TimerStop -> {
+                timerPause()
+                onNotifyUpdate(
+                    parseMinuteSecond(
+                        timerCmInfo?.currentTime ?: 0L
+                    )
+                            + " (일시 정지)"
+                )
+            }
+
             else -> {}
+        }
+    }
+
+    private fun onNotifyUpdate(
+        contentText: String
+    ) {
+        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
+            baseNotification?.setContentText(contentText)
+
+            notificationManager.notify(
+                Constants.NOTIFICATION_ID_TIMER,
+                baseNotification?.build()
+            )
+        }
+    }
+
+    private fun onNotifyFinished() {
+        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
+            val actionPendingIntent = PendingIntent.getActivity(
+                applicationContext,
+                0,
+                Intent(
+                    applicationContext,
+                    MainActivity::class.java
+                ),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                } else {
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                }
+            )
+
+            baseNotification =
+                NotificationCompat.Builder(
+                    applicationContext,
+                    Constants.DEFAULT_NOTIFY_CHANNEL
+                )
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentIntent(actionPendingIntent)
+                    .setVibrate(longArrayOf(1000, 2000, 3000, 4000))
+                    .setContentTitle("대화 타이머가 끝났어요.")
+                    .setContentText("즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다.")
+
+            notificationManager.notify(
+                Constants.NOTIFICATION_ID_TIMER,
+                baseNotification?.build()
+            )
         }
     }
 

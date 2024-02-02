@@ -58,7 +58,10 @@ import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.calcDominantColor
 import com.sghore.needtalk.util.parseMinuteSecond
 
-// TODO: 타이머 끝났을 때 보여줄 화면 구현
+// TODO:
+//  . 음악 기능 제거
+//  . 타이머 끝났을 때 보여줄 화면 구현
+//  . 대화 주제
 @Composable
 fun TimerScreen(
     uiState: TimerUiState,

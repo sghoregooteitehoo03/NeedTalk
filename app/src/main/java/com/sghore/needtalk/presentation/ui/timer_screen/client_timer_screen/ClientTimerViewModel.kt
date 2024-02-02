@@ -4,11 +4,11 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.data.repository.ClientEvent
-import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.TalkHistory
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
-import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
-import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
+import com.sghore.needtalk.domain.usecase.InsertTalkEntityUseCase
+import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
@@ -16,17 +16,17 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import java.nio.charset.Charset
 import javax.inject.Inject
 
 @HiltViewModel
 class ClientTimerViewModel @Inject constructor(
+    private val insertTalkEntityUseCase: InsertTalkEntityUseCase,
+    private val insertUserEntityUseCase: InsertUserEntityUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
@@ -59,6 +59,19 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
+        when (timerCommunicateInfo?.timerActionState) {
+            is TimerActionState.TimerReady -> {
+                if (_uiState.value.timerCommunicateInfo?.timerActionState == TimerActionState.TimerWaiting)
+                    saveOtherUserData()
+            }
+
+            is TimerActionState.TimerFinished -> {
+                saveTalkHistory(timerCommunicateInfo)
+            }
+
+            else -> {}
+        }
+
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
@@ -74,5 +87,24 @@ class ClientTimerViewModel @Inject constructor(
                 it.copy(dialogScreen = dialogScreen)
             }
         }
+    }
+
+    private fun saveOtherUserData() = viewModelScope.launch {
+        val timerCmInfo = _uiState.value.timerCommunicateInfo
+        for (i in 1 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
+            insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
+        }
+    }
+
+    // 타이머 끝났을 떄 취하는 동작
+    private fun saveTalkHistory(updateTimerInfo: TimerCommunicateInfo?) = viewModelScope.launch {
+        val talkHistory = TalkHistory(
+            talkTime = updateTimerInfo?.maxTime ?: 0L,
+            users = updateTimerInfo?.participantInfoList?.map { it?.userEntity } ?: listOf(),
+            createTimeStamp = System.currentTimeMillis()
+        )
+
+        // 대화 정보를 저장함
+        insertTalkEntityUseCase(talkHistory)
     }
 }

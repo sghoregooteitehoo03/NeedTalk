@@ -36,7 +36,10 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO: NullPointer 처리
+// TODO:
+//  . NullPointer 처리
+//  . flow를 이용하는 방법 생각해보기
+
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -203,6 +206,49 @@ class HostTimerService : LifecycleService() {
 
                                         timerCmInfo =
                                             timerCmInfo?.copy(participantInfoList = updateParticipantInfo)
+                                        isAvailableTimerStart(
+                                            startTimer = {
+                                                timerStart(
+                                                    startTime = timerCmInfo?.currentTime ?: 0L,
+                                                    onUpdateTime = { updateTime ->
+                                                        if (updateTime != 0L) { // 타이머 동작 중
+                                                            timerCmInfo =
+                                                                timerCmInfo?.copy(currentTime = updateTime)
+                                                            onUpdateUiState(timerCmInfo)
+
+                                                            // foreground로 동작 시 알림 업데이트
+                                                            onNotifyUpdate(
+                                                                parseMinuteSecond(
+                                                                    timerCmInfo?.currentTime ?: 0L
+                                                                )
+                                                            )
+                                                        } else { // 타이머 동작이 끝이난 경우
+                                                            timerCmInfo = timerCmInfo?.copy(
+                                                                currentTime = updateTime,
+                                                                timerActionState = TimerActionState.TimerFinished
+                                                            )
+
+                                                            onUpdateUiState(timerCmInfo)
+                                                            onNotifyFinished() // foreground로 동작 시 알림 업데이트
+
+                                                            // 모든 동작 정지
+                                                            stopSensor()
+                                                        }
+                                                    },
+                                                    isStopwatch = timerCmInfo?.maxTime == -1L
+                                                )
+                                            },
+                                            stopTimer = {
+                                                timerPause()
+                                                onNotifyUpdate(
+                                                    parseMinuteSecond(
+                                                        timerCmInfo?.currentTime ?: 0L
+                                                    )
+                                                            + " (일시 정지)"
+                                                )
+                                            }
+                                        )
+
                                         onUpdateUiState(timerCmInfo)
 
                                         sendUpdateTimerCmInfo(
@@ -335,14 +381,44 @@ class HostTimerService : LifecycleService() {
                                 ?.apply { set(participantInfoIndex, updateParticipantInfo) }
                                 ?: listOf()
                         )
-                    onUpdateUiState(timerCmInfo)
+                    isAvailableTimerStart(
+                        startTimer = {
+                            timerStart(
+                                startTime = timerCmInfo?.currentTime ?: 0L,
+                                onUpdateTime = { updateTime ->
+                                    if (updateTime != 0L) { // 타이머 동작 중
+                                        timerCmInfo = timerCmInfo?.copy(currentTime = updateTime)
+                                        onUpdateUiState(timerCmInfo)
 
+                                        // foreground로 동작 시 알림 업데이트
+                                        onNotifyUpdate(
+                                            parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
+                                        )
+                                    } else { // 타이머 동작이 끝이난 경우
+                                        timerCmInfo = timerCmInfo?.copy(
+                                            currentTime = updateTime,
+                                            timerActionState = TimerActionState.TimerFinished
+                                        )
+
+                                        onUpdateUiState(timerCmInfo)
+                                        onNotifyFinished() // foreground로 동작 시 알림 업데이트
+
+                                        // 모든 동작 정지
+                                        stopSensor()
+                                    }
+                                },
+                                isStopwatch = timerCmInfo?.maxTime == -1L
+                            )
+                        },
+                        stopTimer = {}
+                    )
+
+                    onUpdateUiState(timerCmInfo)
                     sendUpdateTimerCmInfo(
                         updateTimerCmInfo = timerCmInfo,
                         onFailure = {}
                     )
                 } else if (eventZ < 7f && participantInfo?.isReady == true) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
-                    timerPause()
                     val updateParticipantInfo = participantInfo.copy(isReady = false)
                     timerCmInfo = timerCmInfo
                         ?.copy(
@@ -351,8 +427,18 @@ class HostTimerService : LifecycleService() {
                                 ?: listOf()
                         )
 
-                    onUpdateUiState(timerCmInfo)
+                    isAvailableTimerStart(
+                        startTimer = {},
+                        stopTimer = {
+                            timerPause()
+                            onNotifyUpdate(
+                                parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
+                                        + " (일시 정지)"
+                            )
+                        }
+                    )
 
+                    onUpdateUiState(timerCmInfo)
                     sendUpdateTimerCmInfo(
                         updateTimerCmInfo = timerCmInfo,
                         onFailure = {}
@@ -393,7 +479,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 60000L
+                    time += 1000L
                     onUpdateTime(time)
                 }
             } else {
@@ -401,7 +487,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 60000L
+                    time -= 1000L
                     onUpdateTime(time)
                 }
             }
@@ -460,6 +546,69 @@ class HostTimerService : LifecycleService() {
                     onFailure = onFailure
                 )
             }
+        }
+    }
+
+    private fun isAvailableTimerStart(
+        startTimer: () -> Unit,
+        stopTimer: () -> Unit
+    ) {
+        val participantInfoList = timerCmInfo?.participantInfoList
+
+        if (participantInfoList?.none { it?.isReady != true } == true) {
+            timerCmInfo = timerCmInfo?.copy(timerActionState = TimerActionState.TimerRunning)
+            startTimer()
+        } else if (timerCmInfo?.timerActionState == TimerActionState.TimerRunning) {
+            timerCmInfo = timerCmInfo?.copy(timerActionState = TimerActionState.TimerStop)
+            stopTimer()
+        }
+    }
+
+    private fun onNotifyUpdate(
+        contentText: String
+    ) {
+        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
+            baseNotification?.setContentText(contentText)
+
+            notificationManager.notify(
+                Constants.NOTIFICATION_ID_TIMER,
+                baseNotification?.build()
+            )
+        }
+    }
+
+    private fun onNotifyFinished() {
+        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
+            val actionPendingIntent = PendingIntent.getActivity(
+                applicationContext,
+                0,
+                Intent(
+                    applicationContext,
+                    MainActivity::class.java
+                ),
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                } else {
+                    PendingIntent.FLAG_UPDATE_CURRENT
+                }
+            )
+
+            baseNotification =
+                NotificationCompat.Builder(
+                    applicationContext,
+                    Constants.DEFAULT_NOTIFY_CHANNEL
+                )
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.mipmap.ic_launcher)
+                    .setContentIntent(actionPendingIntent)
+                    .setVibrate(longArrayOf(1000, 2000, 3000, 4000))
+                    .setContentTitle("대화 타이머가 끝났어요.")
+                    .setContentText("즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다.")
+
+            notificationManager.notify(
+                Constants.NOTIFICATION_ID_TIMER,
+                baseNotification?.build()
+            )
         }
     }
 

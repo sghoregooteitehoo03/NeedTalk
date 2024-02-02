@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TalkHistory
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.InsertTalkEntityUseCase
 import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
@@ -60,6 +61,10 @@ class HostTimerViewModel @Inject constructor(
     }
 
     fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
+        if (timerCommunicateInfo?.timerActionState == TimerActionState.TimerFinished) {
+            saveTalkHistory(timerCommunicateInfo)
+        }
+
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
@@ -78,30 +83,22 @@ class HostTimerViewModel @Inject constructor(
     }
 
     // 참여한 인원들에 대한 정보를 저장함
-    fun saveOtherUserData(
-        onSuccess: () -> Unit
-    ) = viewModelScope.launch {
+    fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
         for (i in 1 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
             insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
         }
-
-        onSuccess()
     }
 
     // 타이머 끝났을 떄 취하는 동작
-    fun finishedTimer(
-        onSuccess: () -> Unit
-    ) = viewModelScope.launch {
-        val timerCmInfo = _uiState.value.timerCommunicateInfo
+    private fun saveTalkHistory(updateTimerInfo: TimerCommunicateInfo?) = viewModelScope.launch {
         val talkHistory = TalkHistory(
-            talkTime = timerCmInfo?.maxTime ?: 0L,
-            users = timerCmInfo?.participantInfoList?.map { it?.userEntity } ?: listOf(),
+            talkTime = updateTimerInfo?.maxTime ?: 0L,
+            users = updateTimerInfo?.participantInfoList?.map { it?.userEntity } ?: listOf(),
             createTimeStamp = System.currentTimeMillis()
         )
 
         // 대화 정보를 저장함
         insertTalkEntityUseCase(talkHistory)
-        onSuccess()
     }
 }
