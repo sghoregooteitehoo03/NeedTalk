@@ -12,11 +12,12 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import okhttp3.OkHttpClient
 import org.junit.Test
-
 import org.junit.Assert.*
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.nio.charset.Charset
+import java.util.Calendar
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 /**
@@ -111,5 +112,33 @@ class ExampleUnitTest {
 
         println(json)
         println(type)
+    }
+
+    @Test
+    fun getWeekTest() {
+        val testDate = System.currentTimeMillis()
+        val calendar = Calendar.getInstance().apply { this.timeInMillis = testDate }
+        val firstTime = calendar.apply {
+            set(Calendar.DAY_OF_WEEK, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+        val lastTime = calendar.apply {
+            set(Calendar.DAY_OF_WEEK, 7)
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 0)
+        }.timeInMillis
+
+        println("first: ${firstTime}, last: $lastTime")
+    }
+
+    @Test
+    fun test() {
+        val li = listOf(3600000L, 3600000L)
+        println(li.sum())
     }
 }

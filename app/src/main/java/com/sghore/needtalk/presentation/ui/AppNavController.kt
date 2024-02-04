@@ -13,6 +13,7 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
+import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
@@ -111,6 +112,9 @@ fun AppNavHost(
                     navigateToHome(navController)
                 }
             )
+        }
+        composable(route = UiScreen.StaticsScreen.route) {
+            StaticsRoute()
         }
     }
 }

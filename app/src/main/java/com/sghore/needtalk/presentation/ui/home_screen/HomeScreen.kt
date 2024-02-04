@@ -272,7 +272,7 @@ fun TalkHistoryItem(
                 text = SimpleDateFormat(
                     "H시간 m분",
                     Locale.KOREA
-                ).format(talkHistory?.talkTime ?: 0L),
+                ).format(talkHistory?.talkTime?.minus(32400000)),
                 style = MaterialTheme.typography.h2
             )
             Text(
@@ -380,7 +380,7 @@ fun SetName(
 fun TalkHistoryItemPreview() {
     val owner = UserEntity("asdf", "김수한무", color = Purple.toArgb())
     val testData = TalkHistory(
-        talkTime = (3600000L).minus(32400000),
+        talkTime = (3600000L),
         users = listOf(
             owner,
             UserEntity("bdsc", "거북이", color = Blue.toArgb()),
