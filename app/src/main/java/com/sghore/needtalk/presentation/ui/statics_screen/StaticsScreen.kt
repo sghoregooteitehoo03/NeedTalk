@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -32,10 +33,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantCount
@@ -44,9 +49,11 @@ import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.getFirstTime
 import com.sghore.needtalk.util.getLastTime
 import com.sghore.needtalk.util.getRandomColor
+import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -96,7 +103,7 @@ fun DatePage(
     onLeftClick: (Long) -> Unit,
     onRightClick: (Long) -> Unit
 ) {
-    val currentTime = System.currentTimeMillis()
+    val currentTime = getFirstTime(System.currentTimeMillis())
 
     Row(
         modifier = modifier,
@@ -172,6 +179,31 @@ fun TotalTalkTime(
 }
 
 @Composable
+fun WeekFocusTimeRate(
+    modifier: Modifier = Modifier,
+    data: List<Long>
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        BarChart(
+            modifier = Modifier.height(226.dp),
+            data = data
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Text(
+            text = "요일별 대화한 시간",
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onPrimary.copy(
+                    alpha = 0.6f
+                )
+            )
+        )
+    }
+}
+
+@Composable
 fun TopParticipants(
     modifier: Modifier = Modifier,
     participantCount: List<ParticipantCount>
@@ -229,6 +261,7 @@ fun NumberOfPeopleRate(
             verticalAlignment = Alignment.CenterVertically
         ) {
             DonutChart(
+                modifier = Modifier.size(180.dp),
                 data = rate
             )
             Spacer(modifier = Modifier.width(26.dp))
@@ -300,12 +333,14 @@ fun RateItem(
 }
 
 @Composable
-fun DonutChart(data: List<Float>) {
+fun DonutChart(
+    modifier: Modifier = Modifier,
+    data: List<Float>
+) {
     val totalValue by remember { mutableFloatStateOf(data.sum()) }
 
     Canvas(
-        modifier = Modifier
-            .size(180.dp)
+        modifier = modifier
     ) {
         val centerX = size.width / 2
         val centerY = size.height / 2
@@ -327,6 +362,206 @@ fun DonutChart(data: List<Float>) {
             )
 
             startAngle += sweepAngle
+        }
+    }
+}
+
+@Composable
+fun BarChart(
+    modifier: Modifier = Modifier,
+    data: List<Long>
+) {
+    val maxDataValue by remember { mutableLongStateOf(data.max()) }
+    val day = remember { listOf("일", "월", "화", "수", "목", "금", "토") }
+
+    Box {
+        ConstraintLayout(
+            modifier = modifier.fillMaxWidth()
+        ) {
+            val (text0, text1, text2, text3, text4, text5, text6) = createRefs()
+            val divider = remember { maxDataValue / 6 }
+            val decimalFormat = DecimalFormat("#0")
+
+            Text(
+                modifier = Modifier.constrainAs(text0) { bottom.linkTo(parent.bottom) },
+                text = "",
+                style = MaterialTheme.typography.subtitle1
+            )
+            Row(
+                modifier = Modifier.constrainAs(text1) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider * 6) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue - (maxDataValue / 5) * 5) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+            Row(
+                modifier = Modifier.constrainAs(text2) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider * 5) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue - (maxDataValue / 5) * 4) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+            Row(
+                modifier = Modifier.constrainAs(text3) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider * 4) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue - (maxDataValue / 5) * 3) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+            Row(
+                modifier = Modifier.constrainAs(text4) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider * 3) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue - (maxDataValue / 5) * 2) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+            Row(
+                modifier = Modifier.constrainAs(text5) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider * 2) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue - (maxDataValue / 5) * 1) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+            Row(
+                modifier = Modifier.constrainAs(text6) {
+                    bottom.linkTo(
+                        text0.top,
+                        ((((maxDataValue.toFloat() - divider) / maxDataValue) * 220) + 11).dp
+                    )
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    modifier = Modifier.width(32.dp),
+                    text = "${decimalFormat.format((maxDataValue) / 60000L)}분",
+                    style = MaterialTheme.typography.subtitle1.copy(
+                        color = colorResource(id = R.color.gray),
+                        textAlign = TextAlign.End
+                    )
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Divider(
+                    modifier = Modifier.clip(CircleShape),
+                    color = colorResource(id = R.color.light_gray)
+                )
+            }
+        }
+        Row(
+            modifier = modifier,
+            verticalAlignment = Alignment.Bottom
+        ) {
+            val width = LocalConfiguration.current.screenWidthDp - (28 + 36)
+            val spacerWidth = (width - (12 * 7)) / 8
+
+            Spacer(modifier = Modifier.width(30.dp))
+            repeat(7) {
+                Spacer(modifier = Modifier.width(spacerWidth.dp))
+
+                val barHeight = if (data[it] == 0L) {
+                    8f
+                } else {
+                    ((data[it].toFloat() / maxDataValue) * 191)
+                }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Box(
+                        modifier = Modifier
+                            .width(14.dp)
+                            .height(barHeight.dp)
+                            .clip(CircleShape)
+                            .background(Orange50, CircleShape)
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = day[it],
+                        style = MaterialTheme.typography.subtitle1.copy(
+                            color = MaterialTheme.colors.onPrimary.copy(
+                                alpha = 0.6f
+                            )
+                        )
+                    )
+                }
+            }
         }
     }
 }
@@ -379,6 +614,19 @@ fun TotalTalkTimePreview() {
 
 @Preview
 @Composable
+fun WeekFocusTimeRatePreview() {
+    NeedTalkTheme {
+        WeekFocusTimeRate(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 24.dp, bottom = 14.dp, start = 14.dp, end = 14.dp),
+            data = listOf(0, 3600000, 3600000, 7200000, 2452013, 7200000, 0)
+        )
+    }
+}
+
+@Preview
+@Composable
 fun TopParticipantsPreview() {
     NeedTalkTheme {
         TopParticipants(
@@ -395,7 +643,7 @@ fun TopParticipantsPreview() {
     }
 }
 
-@Preview()
+@Preview
 @Composable
 fun NumberOfPeopleRatePreview() {
     NeedTalkTheme {
