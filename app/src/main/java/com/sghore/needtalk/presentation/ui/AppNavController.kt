@@ -34,6 +34,9 @@ fun AppNavHost(
     ) {
         composable(UiScreen.HomeScreen.route) {
             HomeRoute(
+                navigateToStaticsScreen = {
+                    navigateToStaticsScreen(navController, gViewModel.getUserEntity())
+                },
                 navigateToCreateScreen = {
                     navigateToCreateScreen(navController, gViewModel.getUserEntity())
                 },
@@ -113,9 +116,22 @@ fun AppNavHost(
                 }
             )
         }
-        composable(route = UiScreen.StaticsScreen.route) {
+        composable(
+            route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",
+            arguments = listOf(navArgument("userEntity") { type = NavType.StringType })
+        ) {
             StaticsRoute()
         }
+    }
+}
+
+private fun navigateToStaticsScreen(
+    navController: NavHostController,
+    userEntity: UserEntity?
+) {
+    if (userEntity != null) {
+        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
+        navController.navigate(UiScreen.StaticsScreen.route + "?userEntity=${userEntityJson}")
     }
 }
 

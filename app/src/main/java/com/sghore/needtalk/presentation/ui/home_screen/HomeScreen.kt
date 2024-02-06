@@ -99,9 +99,9 @@ fun HomeScreen(
                 actions = { modifier ->
                     Icon(
                         modifier = modifier
-                            .size(24.dp)
                             .clip(CircleShape)
-                            .clickable { },
+                            .size(24.dp)
+                            .clickable { onEvent(HomeUiEvent.ClickStatics) },
                         painter = painterResource(id = R.drawable.ic_graph),
                         contentDescription = "Graph",
                         tint = MaterialTheme.colors.onPrimary

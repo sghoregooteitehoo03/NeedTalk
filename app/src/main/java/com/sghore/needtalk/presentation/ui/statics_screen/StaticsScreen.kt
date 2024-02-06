@@ -3,17 +3,21 @@ package com.sghore.needtalk.presentation.ui.statics_screen
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -59,7 +63,7 @@ import java.util.Locale
 
 @Composable
 fun StaticsScreen() {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -83,15 +87,56 @@ fun StaticsScreen() {
                 style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
-        DatePage(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            baseDate = 0L,
-            startDate = 0L,
-            onLeftClick = {},
-            onRightClick = {}
-        )
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            DatePage(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                baseDate = 0L,
+                startDate = 0L,
+                onLeftClick = {},
+                onRightClick = {}
+            )
+            TotalTalkTime(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 10.dp, bottom = 14.dp),
+                totalTime = 0L
+            )
+            Divider(
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
+            )
+            WeekFocusTimeRate(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 14.dp, start = 14.dp, end = 14.dp),
+                data = listOf(0, 3600000, 3600000, 7200000, 2452013, 7200000, 0)
+            )
+            Divider(
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
+            )
+            TopParticipants(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 24.dp, bottom = 14.dp),
+                participantCount = listOf(
+                    ParticipantCount(
+                        userEntity = UserEntity("bdsc", "거북이", color = Blue.toArgb()),
+                        count = 12
+                    )
+                )
+            )
+            Divider(
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
+            )
+            NumberOfPeopleRate(
+                modifier = Modifier.padding(top = 24.dp, bottom = 14.dp),
+                rate = listOf(60f, 20f, 20f)
+            )
+        }
     }
 }
 
@@ -112,6 +157,7 @@ fun DatePage(
     ) {
         Icon(
             modifier = Modifier
+                .clip(CircleShape)
                 .size(24.dp)
                 .clickable {
                     if (baseDate > startDate) {

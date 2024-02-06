@@ -34,6 +34,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
+    navigateToStaticsScreen: () -> Unit,
     navigateToCreateScreen: () -> Unit,
     navigateToJoinScreen: () -> Unit,
     updateUserEntity: (UserEntity?) -> Unit
@@ -51,6 +52,10 @@ fun HomeRoute(
 
                 is HomeUiEvent.ClickNameTag -> {
                     viewModel.setDialogScreen(DialogScreen.DialogSetName)
+                }
+
+                is HomeUiEvent.ClickStatics -> {
+                    navigateToStaticsScreen()
                 }
 
                 is HomeUiEvent.ClickStartAndClose -> {
