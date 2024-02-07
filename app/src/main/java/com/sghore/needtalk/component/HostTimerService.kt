@@ -268,6 +268,7 @@ class HostTimerService : LifecycleService() {
             }
         }
 
+    // TODO: .fix 포그라운드로 실행 시 타이머가 느려지는 경우 버그 확인
     fun startForegroundService() {
         val actionPendingIntent = PendingIntent.getActivity(
             applicationContext,
@@ -487,7 +488,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 1000L
+                    time -= 60000L
                     onUpdateTime(time)
                 }
             }

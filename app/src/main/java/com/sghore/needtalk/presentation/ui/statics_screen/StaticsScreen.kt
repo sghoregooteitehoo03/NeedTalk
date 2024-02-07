@@ -3,7 +3,6 @@ package com.sghore.needtalk.presentation.ui.statics_screen
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,7 +61,9 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun StaticsScreen() {
+fun StaticsScreen(
+    uiState: StaticsUiState
+) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -92,8 +93,8 @@ fun StaticsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(14.dp),
-                baseDate = 0L,
-                startDate = 0L,
+                baseDate = uiState.baseDate,
+                startDate = uiState.userEntity?.createTime ?: 0L,
                 onLeftClick = {},
                 onRightClick = {}
             )
@@ -101,7 +102,7 @@ fun StaticsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 10.dp, bottom = 14.dp),
-                totalTime = 0L
+                totalTime = uiState.talkStatics?.totalTalkTime ?: 0L
             )
             Divider(
                 color = colorResource(id = R.color.light_gray),
@@ -111,7 +112,8 @@ fun StaticsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp, bottom = 14.dp, start = 14.dp, end = 14.dp),
-                data = listOf(0, 3600000, 3600000, 7200000, 2452013, 7200000, 0)
+                data = uiState.talkStatics?.dayOfWeekTalkTime
+                    ?: listOf(3600000, 3600000, 3600000, 3600000, 3600000, 3600000, 3600000)
             )
             Divider(
                 color = colorResource(id = R.color.light_gray),
@@ -121,20 +123,20 @@ fun StaticsScreen() {
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = 24.dp, bottom = 14.dp),
-                participantCount = listOf(
-                    ParticipantCount(
-                        userEntity = UserEntity("bdsc", "거북이", color = Blue.toArgb()),
-                        count = 12
-                    )
-                )
+                participantCount = uiState.talkStatics?.participantCount ?: listOf()
             )
             Divider(
                 color = colorResource(id = R.color.light_gray),
                 thickness = 8.dp
             )
             NumberOfPeopleRate(
-                modifier = Modifier.padding(top = 24.dp, bottom = 14.dp),
-                rate = listOf(60f, 20f, 20f)
+                modifier = Modifier.padding(
+                    top = 24.dp,
+                    bottom = 14.dp,
+                    start = 14.dp,
+                    end = 14.dp
+                ),
+                rate = uiState.talkStatics?.numberOfPeopleRate ?: listOf(10f, 10f, 10f)
             )
         }
     }
@@ -300,7 +302,7 @@ fun NumberOfPeopleRate(
     rate: List<Float>
 ) {
     Column(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row(
@@ -313,18 +315,21 @@ fun NumberOfPeopleRate(
             Spacer(modifier = Modifier.width(26.dp))
             Column {
                 RateItem(
+                    modifier = Modifier.fillMaxWidth(1f),
                     iconPainter = painterResource(id = R.drawable.ic_people_two),
                     rate = rate[0].toInt(),
                     color = getRandomColor(0)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 RateItem(
+                    modifier = Modifier.fillMaxWidth(1f),
                     iconPainter = painterResource(id = R.drawable.ic_people_three),
                     rate = rate[1].toInt(),
                     color = getRandomColor(1)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 RateItem(
+                    modifier = Modifier.fillMaxWidth(1f),
                     iconPainter = painterResource(id = R.drawable.ic_people_four),
                     rate = rate[2].toInt(),
                     color = getRandomColor(2)
@@ -350,22 +355,23 @@ fun RateItem(
     rate: Int,
     color: Color
 ) {
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier.size(32.dp),
-            painter = iconPainter,
-            contentDescription = "",
-            tint = MaterialTheme.colors.onPrimary
-        )
-        Spacer(modifier = Modifier.width(4.dp))
-        Text(
-            text = "${rate}%",
-            style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
-        )
-        Spacer(modifier = Modifier.width(42.dp))
+    Box(modifier = modifier) {
+        Row(
+            modifier = Modifier.align(Alignment.CenterStart),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                modifier = Modifier.size(32.dp),
+                painter = iconPainter,
+                contentDescription = "",
+                tint = MaterialTheme.colors.onPrimary
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = "${rate}%",
+                style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
+            )
+        }
         Box(
             modifier = Modifier
                 .size(10.dp)
@@ -374,6 +380,7 @@ fun RateItem(
                     color = color,
                     shape = CircleShape
                 )
+                .align(Alignment.CenterEnd)
         )
     }
 }
@@ -383,7 +390,7 @@ fun DonutChart(
     modifier: Modifier = Modifier,
     data: List<Float>
 ) {
-    val totalValue by remember { mutableFloatStateOf(data.sum()) }
+    val totalValue by remember(data) { mutableFloatStateOf(data.sum()) }
 
     Canvas(
         modifier = modifier
@@ -417,7 +424,7 @@ fun BarChart(
     modifier: Modifier = Modifier,
     data: List<Long>
 ) {
-    val maxDataValue by remember { mutableLongStateOf(data.max()) }
+    val maxDataValue by remember(data) { mutableLongStateOf(data.max()) }
     val day = remember { listOf("일", "월", "화", "수", "목", "금", "토") }
 
     Box {
@@ -425,7 +432,7 @@ fun BarChart(
             modifier = modifier.fillMaxWidth()
         ) {
             val (text0, text1, text2, text3, text4, text5, text6) = createRefs()
-            val divider = remember { maxDataValue / 6 }
+            val divider = remember(data) { maxDataValue / 6 }
             val decimalFormat = DecimalFormat("#0")
 
             Text(

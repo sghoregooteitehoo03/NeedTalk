@@ -91,7 +91,7 @@ class ClientTimerViewModel @Inject constructor(
 
     private fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        for (i in 1 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
+        for (i in 0 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
             insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
         }
     }

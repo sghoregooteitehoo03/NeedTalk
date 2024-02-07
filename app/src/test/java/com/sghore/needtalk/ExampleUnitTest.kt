@@ -138,7 +138,8 @@ class ExampleUnitTest {
 
     @Test
     fun test() {
-        val li = listOf(3600000L, 3600000L)
-        println(li.sum())
+        val list = listOf(1)
+
+        println(list.subList(0, 1))
     }
 }

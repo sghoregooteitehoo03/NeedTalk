@@ -27,6 +27,9 @@ interface TalkDao {
     )
     fun getTalkEntity(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
 
+    @Query("SELECT * FROM TalkEntity WHERE createTimeStamp BETWEEN :startTime AND :endTime")
+    suspend fun getTalkEntity(startTime: Long, endTime: Long): List<TalkEntity>
+
     @Insert
     suspend fun insertTalkEntity(talkEntity: TalkEntity)
 

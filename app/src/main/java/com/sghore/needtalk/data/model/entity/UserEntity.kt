@@ -10,5 +10,6 @@ data class UserEntity(
     @PrimaryKey
     val userId: String,
     val name: String,
-    val color: Int
+    val color: Int,
+    val createTime: Long = System.currentTimeMillis()
 )
