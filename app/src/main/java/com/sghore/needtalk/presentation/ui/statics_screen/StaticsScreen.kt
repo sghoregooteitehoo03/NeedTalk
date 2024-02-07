@@ -60,9 +60,11 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// TODO: 빈 데이터 UI 처리
 @Composable
 fun StaticsScreen(
-    uiState: StaticsUiState
+    uiState: StaticsUiState,
+    onEvent: (StaticsUiEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -76,7 +78,7 @@ fun StaticsScreen(
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(24.dp)
-                    .clickable { },
+                    .clickable { onEvent(StaticsUiEvent.ClickBackArrow) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
                 tint = MaterialTheme.colors.onPrimary
@@ -94,9 +96,10 @@ fun StaticsScreen(
                     .fillMaxWidth()
                     .padding(14.dp),
                 baseDate = uiState.baseDate,
-                startDate = uiState.userEntity?.createTime ?: 0L,
-                onLeftClick = {},
-                onRightClick = {}
+                startDate = getFirstTime(uiState.userEntity?.createTime ?: 0L),
+                onDateChange = { startTime, endTime ->
+                    onEvent(StaticsUiEvent.ClickChangeDate(startTime, endTime))
+                }
             )
             TotalTalkTime(
                 modifier = Modifier
@@ -113,7 +116,7 @@ fun StaticsScreen(
                     .fillMaxWidth()
                     .padding(top = 24.dp, bottom = 14.dp, start = 14.dp, end = 14.dp),
                 data = uiState.talkStatics?.dayOfWeekTalkTime
-                    ?: listOf(3600000, 3600000, 3600000, 3600000, 3600000, 3600000, 3600000)
+                    ?: listOf(0, 0, 0, 0, 0, 0, 0)
             )
             Divider(
                 color = colorResource(id = R.color.light_gray),
@@ -136,7 +139,7 @@ fun StaticsScreen(
                     start = 14.dp,
                     end = 14.dp
                 ),
-                rate = uiState.talkStatics?.numberOfPeopleRate ?: listOf(10f, 10f, 10f)
+                rate = uiState.talkStatics?.numberOfPeopleRate ?: listOf(0f, 0f, 0f)
             )
         }
     }
@@ -147,8 +150,7 @@ fun DatePage(
     modifier: Modifier = Modifier,
     baseDate: Long,
     startDate: Long,
-    onLeftClick: (Long) -> Unit,
-    onRightClick: (Long) -> Unit
+    onDateChange: (Long, Long) -> Unit
 ) {
     val currentTime = getFirstTime(System.currentTimeMillis())
 
@@ -163,7 +165,8 @@ fun DatePage(
                 .size(24.dp)
                 .clickable {
                     if (baseDate > startDate) {
-                        onLeftClick(baseDate - 1000L)
+                        val changeDate = getFirstTime(baseDate) - 1000L
+                        onDateChange(getFirstTime(changeDate), getLastTime(changeDate))
                     }
                 },
             painter = painterResource(id = R.drawable.ic_arrow_left),
@@ -182,10 +185,12 @@ fun DatePage(
         Spacer(modifier = Modifier.width(14.dp))
         Icon(
             modifier = Modifier
+                .clip(CircleShape)
                 .size(24.dp)
                 .clickable {
                     if (baseDate < currentTime) {
-                        onRightClick(getLastTime(baseDate) + 1000L)
+                        val changeDate = getLastTime(baseDate) + 1000L
+                        onDateChange(getFirstTime(changeDate), getLastTime(changeDate))
                     }
                 },
             painter = painterResource(id = R.drawable.ic_arrow_right),
@@ -424,7 +429,12 @@ fun BarChart(
     modifier: Modifier = Modifier,
     data: List<Long>
 ) {
-    val maxDataValue by remember(data) { mutableLongStateOf(data.max()) }
+    val maxDataValue by remember(data) {
+        mutableLongStateOf(
+            if (data.max() == 0L) 1500000L
+            else data.max()
+        )
+    }
     val day = remember { listOf("일", "월", "화", "수", "목", "금", "토") }
 
     Box {
@@ -629,8 +639,7 @@ fun DatePagePreview() {
         DatePage(
             baseDate = baseDate,
             startDate = getFirstTime(1705923975000L),
-            onLeftClick = { baseDate = getFirstTime(it) },
-            onRightClick = { baseDate = getFirstTime(it) }
+            onDateChange = { _, _ -> }
         )
     }
 }

@@ -120,7 +120,9 @@ fun AppNavHost(
             route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",
             arguments = listOf(navArgument("userEntity") { type = NavType.StringType })
         ) {
-            StaticsRoute()
+            StaticsRoute(
+                navigateUp = navController::navigateUp
+            )
         }
     }
 }

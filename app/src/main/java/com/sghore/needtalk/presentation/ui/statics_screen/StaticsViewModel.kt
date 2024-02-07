@@ -11,6 +11,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -23,10 +24,16 @@ class StaticsViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(StaticsUiState())
+    private val _uiEvent = MutableSharedFlow<StaticsUiEvent>()
+
     val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
         StaticsUiState()
+    )
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        SharingStarted.Eagerly
     )
 
     init {
@@ -38,7 +45,7 @@ class StaticsViewModel @Inject constructor(
 
             _uiState.update {// UI 업데이트
                 it.copy(
-                    userEntity = userEntity,
+                    userEntity = userEntity.copy(createTime = 1706670212000), // TODO: 테스트 값 나중에 지우기
                     baseDate = baseDate
                 )
             }
@@ -64,8 +71,16 @@ class StaticsViewModel @Inject constructor(
             )
 
             _uiState.update {
-                it.copy(talkStatics = statics, isLoading = false)
+                it.copy(
+                    baseDate = startTime,
+                    talkStatics = statics,
+                    isLoading = false
+                )
             }
         }
+    }
+
+    fun handelEvent(event: StaticsUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
     }
 }
