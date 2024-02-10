@@ -26,7 +26,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -60,7 +59,6 @@ import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// TODO: 빈 데이터 UI 처리
 @Composable
 fun StaticsScreen(
     uiState: StaticsUiState,
@@ -266,27 +264,50 @@ fun TopParticipants(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Row {
-            repeat(participantCount.size) { index ->
+            if (participantCount.isEmpty()) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NameTag(
-                        name = participantCount[index].userEntity.name,
-                        color = Color.Blue,
-                        interval = 6.dp,
-                        colorSize = 20.dp,
-                        textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
+                    Box(
+                        modifier = Modifier
+                            .clip(CircleShape)
+                            .background(
+                                color = colorResource(id = R.color.light_gray),
+                                shape = CircleShape
+                            )
+                            .width(70.dp)
+                            .height(20.dp)
                     )
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "${participantCount[index].count}번",
+                        text = "0번",
                         style = MaterialTheme.typography.h3.copy(
                             fontSize = 32.sp,
                             color = MaterialTheme.colors.onPrimary
                         )
                     )
                 }
+            } else {
+                repeat(participantCount.size) { index ->
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        NameTag(
+                            name = participantCount[index].userEntity.name,
+                            color = Color.Blue,
+                            interval = 6.dp,
+                            colorSize = 20.dp,
+                            textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "${participantCount[index].count}번",
+                            style = MaterialTheme.typography.h3.copy(
+                                fontSize = 32.sp,
+                                color = MaterialTheme.colors.onPrimary
+                            )
+                        )
+                    }
 
-                if (index < participantCount.size - 1)
-                    Spacer(modifier = Modifier.width(42.dp))
+                    if (index < participantCount.size - 1)
+                        Spacer(modifier = Modifier.width(42.dp))
+                }
             }
         }
         Spacer(modifier = Modifier.height(24.dp))
@@ -405,21 +426,33 @@ fun DonutChart(
         val radius = size.minDimension / 2 - 19.dp.toPx()
 
         var startAngle = -90f
-        data.forEachIndexed { index, value ->
-            val sweepAngle = 360 * (value / totalValue)
-
-            // Draw each section of the chart
+        if (data.filter { it == 0f }.size == 3) {
             drawArc(
-                color = getRandomColor(index), // Function to generate distinct colors
+                color = Color.LightGray,
                 startAngle = startAngle,
-                sweepAngle = sweepAngle,
+                sweepAngle = 360f,
                 useCenter = false,
                 style = Stroke(38.dp.toPx()),
                 size = Size(radius * 2, radius * 2),
                 topLeft = Offset(centerX - radius, centerY - radius)
             )
+        } else {
+            data.forEachIndexed { index, value ->
+                val sweepAngle = 360 * (value / totalValue)
 
-            startAngle += sweepAngle
+                // Draw each section of the chart
+                drawArc(
+                    color = getRandomColor(index), // Function to generate distinct colors
+                    startAngle = startAngle,
+                    sweepAngle = sweepAngle,
+                    useCenter = false,
+                    style = Stroke(38.dp.toPx()),
+                    size = Size(radius * 2, radius * 2),
+                    topLeft = Offset(centerX - radius, centerY - radius)
+                )
+
+                startAngle += sweepAngle
+            }
         }
     }
 }
@@ -634,7 +667,7 @@ fun BarChart(
 fun DatePagePreview() {
     NeedTalkTheme {
         val currentTime = getFirstTime(System.currentTimeMillis())
-        var baseDate by remember { mutableLongStateOf(getFirstTime(currentTime)) }
+        val baseDate by remember { mutableLongStateOf(getFirstTime(currentTime)) }
 
         DatePage(
             baseDate = baseDate,
@@ -711,7 +744,7 @@ fun NumberOfPeopleRatePreview() {
     NeedTalkTheme {
         NumberOfPeopleRate(
             modifier = Modifier.padding(top = 14.dp, bottom = 14.dp),
-            rate = listOf(60f, 20f, 20f)
+            rate = listOf(20f, 20f, 60f)
         )
     }
 }

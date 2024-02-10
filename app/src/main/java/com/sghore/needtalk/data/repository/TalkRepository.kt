@@ -86,7 +86,12 @@ class TalkRepository @Inject constructor(
                 participantList.subList(0, participantList.size)
             else
                 participantList.subList(0, count),
-            numberOfPeopleRate = numberData.map { (it.toFloat() / talkHistory.size) * 100 }
+            numberOfPeopleRate = numberData.map {
+                if (it == 0)
+                    0f
+                else
+                    (it.toFloat() / talkHistory.size) * 100
+            }
         )
     }
 
