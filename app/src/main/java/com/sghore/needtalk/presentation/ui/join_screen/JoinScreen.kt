@@ -49,6 +49,9 @@ import com.sghore.needtalk.util.parseMinuteSecond
 
 // TODO:
 //  . 재연결 UI 구현
+//  . 인원 모두 가득찼을 때
+//  . 대화가 이미 시작 중 일 때
+//  . 연결이 끝나지 않았는데 참가하기 버튼을 누르는거 방지
 
 @Composable
 fun JoinScreen(

@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.home_screen
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -42,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.paging.compose.LazyPagingItems
 import com.sghore.needtalk.R
@@ -109,15 +111,19 @@ fun HomeScreen(
                 }
             )
             pagingItems?.let { talkHistory ->
-                LazyColumn {
-                    items(talkHistory.itemCount) { index ->
-                        TalkHistoryItem(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            owner = user,
-                            talkHistory = talkHistory[index]
-                        )
+                if (talkHistory.itemCount == 0) {
+                    TalkHistoryNotExist(modifier = Modifier.fillMaxSize())
+                } else {
+                    LazyColumn {
+                        items(talkHistory.itemCount) { index ->
+                            TalkHistoryItem(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp),
+                                owner = user,
+                                talkHistory = talkHistory[index]
+                            )
+                        }
                     }
                 }
             }
@@ -371,6 +377,37 @@ fun SetName(
             paddingValues = PaddingValues(14.dp),
             enable = name.isNotEmpty() && name != userName,
             onClick = { onEditClick(name) }
+        )
+    }
+}
+
+@Composable
+fun TalkHistoryNotExist(modifier: Modifier = Modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            modifier = Modifier.size(160.dp),
+            painter = painterResource(id = R.drawable.ic_talk),
+            contentDescription = "",
+            tint = colorResource(id = R.color.gray)
+        )
+        Spacer(modifier = Modifier.height(28.dp))
+        Text(
+            text = "대화에 집중한 기록이 없습니다.",
+            style = MaterialTheme.typography.h3.copy(
+                fontSize = 24.sp,
+                color = colorResource(id = R.color.gray)
+            )
+        )
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = "인원들과 대화를 시작하는것이 어떨까요?",
+            style = MaterialTheme.typography.h5.copy(
+                color = colorResource(id = R.color.gray)
+            )
         )
     }
 }
