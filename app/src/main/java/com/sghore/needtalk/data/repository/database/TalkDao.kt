@@ -4,7 +4,6 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
@@ -38,13 +37,4 @@ interface TalkDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTimerSettingEntity(timerSettingEntity: TimerSettingEntity)
-
-    @Query("SELECT * FROM MusicEntity ORDER BY timestamp ASC")
-    fun getAllMusicEntity(): Flow<List<MusicEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertMusicEntity(musicEntity: MusicEntity)
-
-    @Query("DELETE FROM MusicEntity WHERE id == :musicId")
-    suspend fun removeMusicEntity(musicId: String)
 }

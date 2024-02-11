@@ -1,7 +1,5 @@
 package com.sghore.needtalk.presentation.ui
 
-import com.sghore.needtalk.data.model.entity.MusicEntity
-
 sealed class UiScreen(val route: String) {
     data object HomeScreen : UiScreen(route = "Home")
     data object CreateScreen : UiScreen(route = "Create")
@@ -14,9 +12,6 @@ sealed class UiScreen(val route: String) {
 sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
     data object DialogSetName : DialogScreen
-    data object DialogCreateMusic : DialogScreen
-
-    data class DialogRemoveMusic(val musicEntity: MusicEntity) : DialogScreen
 
     data class DialogWarning(val message: String, val isError: Boolean = false) : DialogScreen
     data object DialogTimerReady : DialogScreen

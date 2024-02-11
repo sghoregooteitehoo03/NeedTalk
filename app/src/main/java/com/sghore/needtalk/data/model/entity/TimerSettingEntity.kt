@@ -11,7 +11,5 @@ data class TimerSettingEntity(
     val userId: String,
     val talkTime: Long,
     val isStopwatch: Boolean,
-    val selectMusicId: String,
-    val allowRepeatMusic: Boolean,
     val numberOfPeople: Int
 )

@@ -16,22 +16,15 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
@@ -44,7 +37,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
-import coil.compose.rememberAsyncImagePainter
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
@@ -55,7 +47,6 @@ import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.Green50
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
-import com.sghore.needtalk.util.calcDominantColor
 import com.sghore.needtalk.util.parseMinuteSecond
 
 // TODO:
@@ -69,19 +60,7 @@ fun TimerScreen(
     isHost: Boolean
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp),
-            contentAlignment = Alignment.Center
-        ) {
-            val musicInfo = uiState.timerCommunicateInfo?.musicInfo
-            MusicInfo(
-                thumbnailImage = musicInfo?.thumbnailImage ?: "",
-                title = musicInfo?.title ?: ""
-            )
-        }
-
+        Spacer(modifier = Modifier.height(32.dp))
         ConstraintLayout(
             modifier = Modifier
                 .fillMaxSize()
@@ -194,81 +173,6 @@ fun TimerScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-fun MusicInfo(
-    modifier: Modifier = Modifier,
-    thumbnailImage: String,
-    title: String
-) {
-    val defaultColor = MaterialTheme.colors.onPrimary
-    var dominantColor by remember {
-        mutableStateOf(defaultColor)
-    }
-    val painter = if (thumbnailImage.isEmpty()) {
-        dominantColor = colorResource(id = R.color.light_gray_200)
-        painterResource(id = R.drawable.ic_no_music)
-    } else {
-        rememberAsyncImagePainter(
-            model = thumbnailImage,
-            onSuccess = { result ->
-                calcDominantColor(result.result.drawable) { color ->
-                    dominantColor = color
-                }
-            }
-        )
-    }
-
-    Row(
-        modifier = modifier,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        if (thumbnailImage.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .size(26.dp)
-                    .clip(RoundedCornerShape(8.dp))
-                    .background(
-                        color = colorResource(id = R.color.light_gray_200),
-                        shape = RoundedCornerShape(8.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(18.dp),
-                    painter = painter,
-                    contentDescription = "NoMusic",
-                    tint = Color.White
-                )
-            }
-        } else {
-            Image(
-                modifier = Modifier
-                    .size(26.dp)
-                    .clip(RoundedCornerShape(8.dp)),
-                painter = painter,
-                contentDescription = thumbnailImage,
-                contentScale = ContentScale.Crop
-            )
-        }
-        Spacer(modifier = Modifier.width(6.dp))
-        Text(
-            modifier = Modifier.drawBehind {
-                val strokeWidthPx = 2.dp.toPx()
-                val verticalOffset = size.height
-                drawLine(
-                    color = dominantColor,
-                    strokeWidth = strokeWidthPx,
-                    cap = StrokeCap.Round,
-                    start = Offset(0f, verticalOffset),
-                    end = Offset(size.width - 3, verticalOffset)
-                )
-            },
-            text = title,
-            style = MaterialTheme.typography.h5.copy(color = dominantColor)
-        )
     }
 }
 
@@ -602,17 +506,6 @@ fun GroupMemberPreview() {
             currentUser = testUserList[1].userEntity,
             participantInfoList = testUserList,
             maxMember = 4
-        )
-    }
-}
-
-@Preview
-@Composable
-fun MusicInfoPreview() {
-    NeedTalkTheme {
-        MusicInfo(
-            thumbnailImage = "https://i.ytimg.com/vi/jfKfPfyJRdk/hq720.jpg?sqp=-oaymwEcCOgCEMoBSFXyq4qpAw4IARUAAIhCGAFwAcABBg==&rs=AOn4CLBAP74LKwgeVlcaO8dzN4FJFRwTVw",
-            title = "로파이 뮤직"
         )
     }
 }

@@ -1,14 +1,11 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,11 +14,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -38,22 +32,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import coil.compose.rememberAsyncImagePainter
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.entity.MusicEntity
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Orange80
@@ -128,34 +116,12 @@ fun CreateScreen(
                 )
                 OptionLayout(
                     modifier = Modifier.fillMaxWidth(),
-                    optionTitle = "음악"
+                    optionTitle = "인원 수"
                 ) {
-                    MusicSelectPager(
-                        musics = uiState.musics,
-                        initialMusicId = uiState.initialMusicId,
-                        changeInitialMusicId = { musicId ->
-                            onEvent(CreateUiEvent.ChangeInitialMusicId(musicId))
-                        },
-                        onRemoveClick = { music ->
-                            onEvent(CreateUiEvent.ClickRemoveMusic(music))
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OptionItem(
-                        text = "음악 추가하기",
-                        onClick = { onEvent(CreateUiEvent.ClickAddMusic) }
-                    )
-                    OptionItemWithSwitch(
-                        text = "음악 반복",
-                        subText = "음악이 끝나도 계속해서 반복됩니다.",
-                        isChecked = uiState.allowRepeatMusic,
-                        onCheckedChange = { isAllow ->
-                            onEvent(
-                                CreateUiEvent.ClickAllowRepeatMusic(
-                                    isAllow
-                                )
-                            )
-                        }
+                    SelectNumberOfPeople(
+                        modifier = Modifier.fillMaxWidth(),
+                        numberOfPeople = uiState.numberOfPeople,
+                        onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
                     )
                 }
                 Divider(
@@ -165,13 +131,9 @@ fun CreateScreen(
                 )
                 OptionLayout(
                     modifier = Modifier.fillMaxWidth(),
-                    optionTitle = "인원 수"
+                    optionTitle = "대화 주제"
                 ) {
-                    SelectNumberOfPeople(
-                        modifier = Modifier.fillMaxWidth(),
-                        numberOfPeople = uiState.numberOfPeople,
-                        onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
-                    )
+
                 }
             }
         }
@@ -376,133 +338,6 @@ fun SetTimer(
 
 }
 
-// TODO: 사이즈 커지고 작아지는 애니메이션 추가
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun MusicSelectPager(
-    modifier: Modifier = Modifier,
-    musics: List<MusicEntity>,
-    initialMusicId: String,
-    changeInitialMusicId: (String) -> Unit,
-    onRemoveClick: (MusicEntity) -> Unit
-) {
-    val initialIndex = remember { musics.map { it.id }.indexOf(initialMusicId) }
-    val pagerState = rememberPagerState(
-        initialPage = if (initialIndex < 0) 0 else initialIndex,
-        pageCount = { musics.size }
-    )
-    val currentPage = pagerState.currentPage
-    val maxWidth = LocalConfiguration.current.screenWidthDp
-
-    if (musics.isNotEmpty()) {
-        changeInitialMusicId(musics[currentPage].id)
-    }
-    HorizontalPager(
-        modifier = modifier,
-        state = pagerState,
-        contentPadding = PaddingValues(
-            start = (maxWidth.dp - 140.dp) / 2,
-            end = (maxWidth.dp - 140.dp) / 2
-        ),
-        verticalAlignment = Alignment.Bottom
-    ) { index ->
-        MusicItem(
-            modifier = Modifier.width(140.dp),
-            thumbnailImage = musics[index].thumbnailImage,
-            musicTitle = musics[index].title,
-            isSelected = index == currentPage,
-            onRemoveClick = {
-                onRemoveClick(musics[index])
-            }
-        )
-    }
-}
-
-@Composable
-fun MusicItem(
-    modifier: Modifier = Modifier,
-    thumbnailImage: String,
-    musicTitle: String,
-    isSelected: Boolean,
-    onRemoveClick: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .alpha(if (isSelected) 1f else 0.4f),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        if (thumbnailImage.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .size(if (isSelected) 140.dp else 110.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        color = colorResource(id = R.color.light_gray_200),
-                        shape = RoundedCornerShape(20.dp)
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(80.dp),
-                    painter = painterResource(id = R.drawable.ic_no_music),
-                    contentDescription = "NoMusic",
-                    tint = Color.White
-                )
-            }
-        } else {
-            Box {
-                Image(
-                    modifier = Modifier
-                        .size(if (isSelected) 140.dp else 110.dp)
-                        .clip(RoundedCornerShape(20.dp)),
-                    painter = rememberAsyncImagePainter(
-                        model = thumbnailImage
-                    ),
-                    contentDescription = thumbnailImage,
-                    contentScale = ContentScale.Crop
-                )
-                if (isSelected) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.TopEnd)
-                            .padding(top = 10.dp, end = 10.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = Color.White.copy(alpha = 0.6f),
-                                shape = CircleShape
-                            )
-                            .size(20.dp)
-                            .clickable {
-                                onRemoveClick()
-                            },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            modifier = Modifier.size(16.dp),
-                            painter = painterResource(id = R.drawable.ic_close),
-                            contentDescription = "RemoveMusic",
-                            tint = Color.Red
-                        )
-                    }
-                }
-            }
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = musicTitle,
-            style = if (isSelected) {
-                MaterialTheme.typography.body1
-                    .copy(color = MaterialTheme.colors.onPrimary)
-            } else {
-                MaterialTheme.typography.body2
-                    .copy(color = MaterialTheme.colors.onPrimary)
-            },
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
 // TODO: 클릭 효과 없애기, 레이아웃만 클릭 되게 끔
 @Composable
 fun SelectNumberOfPeople(
@@ -607,39 +442,6 @@ fun SetTimerPreview() {
                 time = it
             },
             isStopwatch = true
-        )
-    }
-}
-
-@Preview
-@Composable
-fun MusicSelectPagerPreview() {
-    NeedTalkTheme {
-        val testList = listOf(
-            MusicEntity(
-                id = "1",
-                thumbnailImage = "",
-                "음악 1",
-                timestamp = System.currentTimeMillis()
-            ),
-            MusicEntity(
-                id = "2",
-                thumbnailImage = "",
-                "음악 2",
-                timestamp = System.currentTimeMillis()
-            ),
-            MusicEntity(
-                id = "3",
-                thumbnailImage = "",
-                "음악 3",
-                timestamp = System.currentTimeMillis()
-            )
-        )
-        MusicSelectPager(
-            musics = testList,
-            initialMusicId = "2",
-            changeInitialMusicId = {},
-            onRemoveClick = {}
         )
     }
 }
