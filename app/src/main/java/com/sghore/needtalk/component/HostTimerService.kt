@@ -22,7 +22,6 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
-import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
@@ -39,6 +38,7 @@ import javax.inject.Inject
 // TODO:
 //  . NullPointer 처리
 //  . flow를 이용하는 방법 생각해보기
+//  . 스톱워치 기능 제대로 구현
 
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
@@ -129,7 +129,7 @@ class HostTimerService : LifecycleService() {
                                     // 대화가 시작이 되었고, 참여하는 인원이 호스트밖에 없을 시
                                     if (
                                         participantInfoList.size == 1
-                                        && timerCmInfo?.timerActionState != TimerActionState.TimerWaiting
+                                        && timerCmInfo?.timerActionState != TimerActionState.TimerFinished
                                     ) {
                                         stopSensor()
                                         timerPause()
@@ -222,7 +222,8 @@ class HostTimerService : LifecycleService() {
                                                                     timerCmInfo?.currentTime ?: 0L
                                                                 )
                                                             )
-                                                        } else { // 타이머 동작이 끝이난 경우
+                                                        } else {
+                                                            // 타이머 동작이 끝이난 경우
                                                             timerCmInfo = timerCmInfo?.copy(
                                                                 currentTime = updateTime,
                                                                 timerActionState = TimerActionState.TimerFinished
@@ -243,14 +244,12 @@ class HostTimerService : LifecycleService() {
                                                 onNotifyUpdate(
                                                     parseMinuteSecond(
                                                         timerCmInfo?.currentTime ?: 0L
-                                                    )
-                                                            + " (일시 정지)"
+                                                    ) + " (일시 정지)"
                                                 )
                                             }
                                         )
 
                                         onUpdateUiState(timerCmInfo)
-
                                         sendUpdateTimerCmInfo(
                                             updateTimerCmInfo = timerCmInfo,
                                             onFailure = {}
@@ -480,7 +479,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 1000L
+                    time += 60000L
                     onUpdateTime(time)
                 }
             } else {

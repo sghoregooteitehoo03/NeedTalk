@@ -81,11 +81,17 @@ fun HostTimerRoute(
             viewModel.uiEvent.collectLatest { event ->
                 when (event) {
                     is TimerUiEvent.ClickExit -> {
-                        viewModel.setDialogScreen(
-                            DialogScreen.DialogWarning(
+                        val message = when (uiState.timerCommunicateInfo?.timerActionState) {
+                            is TimerActionState.TimerWaiting, TimerActionState.TimerReady ->
                                 "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
-                            )
-                        )
+
+                            is TimerActionState.TimerRunning, TimerActionState.TimerStop ->
+                                "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+
+                            else -> ""
+                        }
+
+                        viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                     }
 
                     is TimerUiEvent.ClickStart -> {

@@ -36,6 +36,8 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
+// TODO:
+//  . 스톱워치 기능 제대로 구현
 @AndroidEntryPoint
 class ClientTimerService : LifecycleService() {
     @Inject
@@ -136,6 +138,9 @@ class ClientTimerService : LifecycleService() {
                     // host와 연결이 끊어졌을 때
                     is ClientEvent.Disconnect -> {
                         if (timerCmInfo?.timerActionState != TimerActionState.TimerFinished) {
+                            stopSensor()
+                            timerPause()
+
                             onOpenDialog(
                                 DialogScreen.DialogWarning(
                                     message = "호스트와 연결이 끊어졌습니다.\n" +
