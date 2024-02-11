@@ -145,7 +145,7 @@ class JoinViewModel @Inject constructor(
                                 val timerInfo = TimerInfo(
                                     hostUser = payloadType.timerCommunicateInfo
                                         .participantInfoList[0]
-                                        !!.userEntity,
+                                    !!.userEntity,
                                     timerTime = payloadType.timerCommunicateInfo.maxTime,
                                     currentMember = payloadType.timerCommunicateInfo.participantInfoList.size,
                                     maxMember = payloadType.timerCommunicateInfo.maxMember,
@@ -181,6 +181,14 @@ class JoinViewModel @Inject constructor(
                     else -> {}
                 }
             }
+    }
+
+    fun researchDevice(packageName: String) {
+        _uiState.update {
+            it.copy(searchNearDevice = SearchNearDevice.Searching(false))
+        }
+
+        startDiscovery(packageName)
     }
 
     fun handelEvent(event: JoinUiEvent) = viewModelScope.launch {

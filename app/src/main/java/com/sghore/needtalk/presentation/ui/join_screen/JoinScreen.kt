@@ -29,8 +29,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
@@ -47,20 +50,12 @@ import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.parseMinuteSecond
 
-// TODO:
-//  . 재연결 UI 구현
-//  . 인원 모두 가득찼을 때
-//  . 대화가 이미 시작 중 일 때
-//  . 연결이 끝나지 않았는데 참가하기 버튼을 누르는거 방지
-
 @Composable
 fun JoinScreen(
     uiState: JoinUiState,
     onEvent: (JoinUiEvent) -> Unit
 ) {
-    ConstraintLayout(
-        modifier = Modifier.fillMaxSize()
-    ) {
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (toolbar, layout) = createRefs()
         Box(
             modifier = Modifier
@@ -110,6 +105,8 @@ fun JoinScreen(
                 }
 
                 is SearchNearDevice.Load -> {
+                    val researchColor = colorResource(id = R.color.teal_200)
+
                     TimerInfoPager(
                         timerInfoList = uiState.searchNearDevice.timerInfoList,
                         loadTimerInfo = { onEvent(JoinUiEvent.LoadTimerInfo(it)) },
@@ -119,6 +116,24 @@ fun JoinScreen(
                     Text(
                         text = "근처에 있는 사용자를 발견했어요!",
                         style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        modifier = Modifier
+                            .drawBehind {
+                                val strokeWidthPx = 2.dp.toPx()
+                                val verticalOffset = size.height
+                                drawLine(
+                                    color = researchColor,
+                                    strokeWidth = strokeWidthPx,
+                                    cap = StrokeCap.Round,
+                                    start = Offset(0f, verticalOffset),
+                                    end = Offset(size.width - 3, verticalOffset)
+                                )
+                            }
+                            .clickable { onEvent(JoinUiEvent.ClickResearch) },
+                        text = "재탐색",
+                        style = MaterialTheme.typography.h5.copy(color = researchColor),
                     )
                 }
             }

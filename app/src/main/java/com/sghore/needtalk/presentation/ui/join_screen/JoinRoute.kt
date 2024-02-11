@@ -4,6 +4,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.domain.model.TimerInfo
@@ -17,6 +18,7 @@ fun JoinRoute(
     showSnackBar: suspend (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val context = LocalContext.current
 
     LaunchedEffect(
         key1 = viewModel.uiEvent,
@@ -29,6 +31,10 @@ fun JoinRoute(
 
                     is JoinUiEvent.ClickJoin -> {
                         navigateToTimerScreen(event.timerInfo)
+                    }
+
+                    is JoinUiEvent.ClickResearch -> {
+                        viewModel.researchDevice(context.packageName)
                     }
 
                     is JoinUiEvent.LoadTimerInfo -> {
