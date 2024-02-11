@@ -6,6 +6,7 @@ import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -14,8 +15,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
@@ -23,25 +28,33 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.RadioButton
 import androidx.compose.material.Switch
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Orange80
@@ -81,60 +94,79 @@ fun CreateScreen(
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
         ) {
-            if (uiState.userEntity != null) {
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionTitle = "대화시간 설정"
-                ) {
-                    SetTimer(
-                        currentTime = uiState.talkTime,
-                        onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
-                        isStopwatch = uiState.isStopwatch
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    OptionItemWithSwitch(
-                        text = "스톱워치 모드",
-                        isChecked = uiState.isStopwatch,
-                        onCheckedChange = { isAllow ->
-                            onEvent(
-                                CreateUiEvent.ClickStopWatchMode(
-                                    isAllow
+            item {
+                if (uiState.userEntity != null) {
+                    OptionLayout(optionTitle = "대화시간 설정") {
+                        SetTimer(
+                            currentTime = uiState.talkTime,
+                            onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                            isStopwatch = uiState.isStopwatch
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        OptionItemWithSwitch(
+                            text = "스톱워치 모드",
+                            isChecked = uiState.isStopwatch,
+                            onCheckedChange = { isAllow ->
+                                onEvent(
+                                    CreateUiEvent.ClickStopWatchMode(
+                                        isAllow
+                                    )
                                 )
-                            )
-                        }
-                    )
-                }
-                Divider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = colorResource(id = R.color.light_gray),
-                    thickness = 8.dp
-                )
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionTitle = "인원 수"
-                ) {
-                    SelectNumberOfPeople(
+                            }
+                        )
+                    }
+                    Divider(
                         modifier = Modifier.fillMaxWidth(),
-                        numberOfPeople = uiState.numberOfPeople,
-                        onClickNumber = { number -> onEvent(CreateUiEvent.ClickNumberOfPeople(number)) }
+                        color = colorResource(id = R.color.light_gray),
+                        thickness = 8.dp
                     )
+                    OptionLayout(optionTitle = "인원 수") {
+                        SelectNumberOfPeople(
+                            modifier = Modifier.fillMaxWidth(),
+                            numberOfPeople = uiState.numberOfPeople,
+                            onClickNumber = { number ->
+                                onEvent(
+                                    CreateUiEvent.ClickNumberOfPeople(
+                                        number
+                                    )
+                                )
+                            }
+                        )
+                    }
+                    Divider(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = colorResource(id = R.color.light_gray),
+                        thickness = 8.dp
+                    )
+                    Box {
+                        OptionLayout(
+                            modifier = Modifier.align(Alignment.CenterStart),
+                            optionTitle = "대화 주제"
+                        ) {}
+                        Icon(
+                            modifier = Modifier
+                                .padding(end = 14.dp)
+                                .clip(CircleShape)
+                                .size(20.dp)
+                                .align(Alignment.CenterEnd)
+                                .clickable { onEvent(CreateUiEvent.ClickAddTopic) },
+                            painter = painterResource(id = R.drawable.ic_add),
+                            contentDescription = "",
+                            tint = MaterialTheme.colors.onPrimary
+                        )
+                    }
                 }
-                Divider(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = colorResource(id = R.color.light_gray),
-                    thickness = 8.dp
-                )
-                OptionLayout(
-                    modifier = Modifier.fillMaxWidth(),
-                    optionTitle = "대화 주제"
-                ) {
+            }
 
-                }
+            items(uiState.talkTopics) { topic ->
+                TalkTopicItem(
+                    talkTopic = topic,
+                    onDeleteTopic = { onEvent(CreateUiEvent.ClickRemoveTopic(it)) }
+                )
             }
         }
     }
@@ -147,7 +179,7 @@ fun OptionLayout(
     content: @Composable () -> Unit
 ) {
     Column(
-        modifier = modifier
+        modifier = modifier.fillMaxWidth()
     ) {
         Text(
             modifier = Modifier.padding(start = 14.dp, top = 14.dp),
@@ -406,6 +438,117 @@ fun SelectNumberOfPeopleItem(
                 }
             }
         )
+    }
+}
+
+@Composable
+fun TalkTopicItem(
+    modifier: Modifier = Modifier,
+    talkTopic: TalkTopicEntity,
+    onDeleteTopic: (TalkTopicEntity) -> Unit
+) {
+    Box(modifier = modifier.fillMaxWidth()) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(54.dp)
+                .padding(start = 14.dp, end = 14.dp),
+        ) {
+            Text(
+                modifier = Modifier.align(Alignment.CenterStart),
+                text = talkTopic.topic,
+                style = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray)),
+                maxLines = 2
+            )
+            if (talkTopic.createTime != 0L) {
+                Spacer(modifier = Modifier.width(14.dp))
+                Icon(
+                    modifier = Modifier
+                        .align(Alignment.CenterEnd)
+                        .clip(CircleShape)
+                        .size(20.dp)
+                        .clickable { onDeleteTopic(talkTopic) },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "",
+                    tint = colorResource(id = R.color.gray)
+                )
+            }
+        }
+        Divider(
+            modifier = Modifier.align(Alignment.BottomStart),
+            color = colorResource(id = R.color.light_gray),
+            thickness = 2.dp
+        )
+    }
+}
+
+@Composable
+fun DialogAddTopic(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onAddClick: (TalkTopicEntity) -> Unit
+) {
+    var talkTopic by remember { mutableStateOf("") }
+
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .then(modifier)
+        ) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    modifier = Modifier.align(Alignment.CenterStart),
+                    text = "대화주제 추가",
+                    style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .clickable { onDismiss() }
+                        .align(Alignment.CenterEnd),
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            TextField(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(4.dp),
+                value = talkTopic,
+                onValueChange = { talkTopic = it },
+                placeholder = {
+                    Text(text = "대화주제 입력")
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                colors = TextFieldDefaults.textFieldColors(
+                    backgroundColor = colorResource(id = R.color.light_gray),
+                    focusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent,
+                    cursorColor = MaterialTheme.colors.onPrimary
+                )
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            RoundedButton(
+                modifier = Modifier.fillMaxWidth(),
+                text = "추가하기",
+                color = Orange50,
+                textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
+                paddingValues = PaddingValues(14.dp),
+                enable = talkTopic.isNotEmpty(),
+                onClick = {
+                    onAddClick(
+                        TalkTopicEntity(
+                            topic = talkTopic,
+                            createTime = System.currentTimeMillis()
+                        )
+                    )
+                    onDismiss()
+                }
+            )
+        }
     }
 }
 

@@ -1,10 +1,12 @@
 package com.sghore.needtalk.data.repository.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +33,15 @@ interface TalkDao {
 
     @Insert
     suspend fun insertTalkEntity(talkEntity: TalkEntity)
+
+    @Query("SELECT * FROM TalkTopicEntity")
+    fun getTalkTopicEntity(): Flow<List<TalkTopicEntity>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
+
+    @Delete
+    suspend fun deleteTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
 
     @Query("SELECT * FROM TimerSettingEntity")
     fun getTimerSettingEntity(): Flow<TimerSettingEntity?>

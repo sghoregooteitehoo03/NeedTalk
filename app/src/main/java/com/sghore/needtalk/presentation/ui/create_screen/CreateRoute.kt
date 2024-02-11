@@ -2,7 +2,6 @@ package com.sghore.needtalk.presentation.ui.create_screen
 
 import android.widget.Toast
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
@@ -11,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -51,6 +51,17 @@ fun CreateRoute(
                     viewModel.changeNumberOfPeople(event.number)
                 }
 
+                is CreateUiEvent.ClickAddTopic -> {
+                    viewModel.setDialogScreen(DialogScreen.DialogAddTopic)
+                }
+
+                is CreateUiEvent.ClickRemoveTopic -> {
+                    viewModel.insertOrRemoveTalkTopic(
+                        talkTopicEntity = event.talkTopicEntity,
+                        isRemove = true
+                    )
+                }
+
                 is CreateUiEvent.ErrorMessage -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT)
                         .show()
@@ -66,7 +77,24 @@ fun CreateRoute(
         )
 
         when (uiState.dialogScreen) {
-
+            is DialogScreen.DialogAddTopic -> {
+                DialogAddTopic(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .padding(14.dp),
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    onAddClick = {
+                        viewModel.insertOrRemoveTalkTopic(
+                            talkTopicEntity = it,
+                            isRemove = false
+                        )
+                    }
+                )
+            }
 
             else -> {}
         }

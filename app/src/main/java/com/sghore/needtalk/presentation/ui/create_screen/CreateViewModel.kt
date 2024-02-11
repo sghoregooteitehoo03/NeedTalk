@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui.create_screen
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantInfo
@@ -10,13 +11,14 @@ import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.GetTimerSettingUseCase
 import com.sghore.needtalk.domain.usecase.InsertTimerSettingUseCase
+import com.sghore.needtalk.domain.usecase.InsertTalkTopicUseCase
+import com.sghore.needtalk.domain.usecase.RemoveTalkTopicUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collect
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -27,6 +29,8 @@ import javax.inject.Inject
 @HiltViewModel
 class CreateViewModel @Inject constructor(
     private val getTimerSettingUseCase: GetTimerSettingUseCase,
+    private val insertTalkTopicUseCase: InsertTalkTopicUseCase,
+    private val removeTalkTopicUseCase: RemoveTalkTopicUseCase,
     private val insertTimerSettingUseCase: InsertTimerSettingUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -54,7 +58,12 @@ class CreateViewModel @Inject constructor(
     }
 
     private fun initState(userEntity: UserEntity) = viewModelScope.launch {
-        getTimerSettingUseCase().collectLatest { timerSettingEntity ->
+        getTimerSettingUseCase { timerSettingEntity, talkTopicEntities ->
+            val defaultTalkTopic = listOf(
+                TalkTopicEntity("여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?", 0L),
+                TalkTopicEntity("최근에 있었던 이슈들을 말해주세요.", 0L)
+            )
+
             if (timerSettingEntity != null) { // 저장된 데이터가 있다면
                 _uiState.update {
                     it.copy(
@@ -62,6 +71,7 @@ class CreateViewModel @Inject constructor(
                         isLoading = false,
                         talkTime = timerSettingEntity.talkTime,
                         isStopwatch = timerSettingEntity.isStopwatch,
+                        talkTopics = defaultTalkTopic + talkTopicEntities,
                         numberOfPeople = timerSettingEntity.numberOfPeople
                     )
                 }
@@ -70,10 +80,11 @@ class CreateViewModel @Inject constructor(
                     it.copy(
                         userEntity = userEntity,
                         isLoading = false,
+                        talkTopics = defaultTalkTopic + talkTopicEntities
                     )
                 }
             }
-        }
+        }.collect()
     }
 
     // 타이머 정보 저장
@@ -140,6 +151,16 @@ class CreateViewModel @Inject constructor(
         _uiState.update {
             it.copy(dialogScreen = dialogScreen)
         }
+    }
+
+    fun insertOrRemoveTalkTopic(
+        talkTopicEntity: TalkTopicEntity,
+        isRemove: Boolean
+    ) = viewModelScope.launch {
+        if (isRemove)
+            removeTalkTopicUseCase(talkTopicEntity)
+        else
+            insertTalkTopicUseCase(talkTopicEntity)
     }
 
     fun handelEvent(event: CreateUiEvent) = viewModelScope.launch {

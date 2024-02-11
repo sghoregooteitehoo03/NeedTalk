@@ -3,6 +3,7 @@ package com.sghore.needtalk.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
@@ -35,6 +36,7 @@ class TalkRepository @Inject constructor(
     suspend fun getTalkEntities(startTime: Long, endTime: Long) =
         dao.getTalkEntity(startTime, endTime)
 
+    // 대화 통계 데이터 반환
     suspend fun getTalkStatics(
         currentUser: UserEntity,
         talkHistory: List<TalkHistory>,
@@ -94,6 +96,17 @@ class TalkRepository @Inject constructor(
             }
         )
     }
+
+    // 대화 주제 리스트 반환
+    fun getTalkTopicEntity() = dao.getTalkTopicEntity()
+
+    // 대화 주제 삽입
+    suspend fun insertTalkTopic(talkTopicEntity: TalkTopicEntity) =
+        dao.insertTalkTopicEntity(talkTopicEntity)
+
+    // 대화 주제 삭제
+    suspend fun deleteTalkTopic(talkTopicEntity: TalkTopicEntity) =
+        dao.deleteTalkTopicEntity(talkTopicEntity)
 
     // 대화 기록 삽입
     suspend fun insertTalkEntity(talkEntity: TalkEntity) {
