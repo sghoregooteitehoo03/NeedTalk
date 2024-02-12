@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.IBinder
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -85,29 +86,44 @@ fun ClientTimerRoute(
             viewModel.uiEvent.collectLatest { event ->
                 when (event) {
                     is TimerUiEvent.ClickExit -> {
-                        val message = when (uiState.timerCommunicateInfo?.timerActionState) {
-                            is TimerActionState.TimerWaiting, TimerActionState.TimerReady ->
-                                "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+                        val message =
+                            when (uiState.timerCommunicateInfo?.timerActionState) {
+                                is TimerActionState.TimerWaiting,
+                                is TimerActionState.TimerReady ->
+                                    "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
 
-                            is TimerActionState.TimerRunning, TimerActionState.TimerStop ->
-                                "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+                                is TimerActionState.TimerRunning,
+                                is TimerActionState.TimerStop,
+                                is TimerActionState.StopWatchStop ->
+                                    "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
 
-                            else -> ""
-                        }
+                                else -> ""
+                            }
 
                         viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                     }
 
                     is TimerUiEvent.ClickFinished -> {
-                        navigateUp()
+                        if (uiState.timerCommunicateInfo?.isStopWatch == true) {
+                            viewModel.setDialogScreen(
+                                DialogScreen.DialogWarning(
+                                    "아직 대화중인 인원들이 있어요\n" +
+                                            "정말로 나가시겠습니까?"
+                                )
+                            )
+                        } else {
+                            viewModel.saveTalkHistory {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                            navigateUp()
+                        }
                     }
                 }
             }
         })
 
-    BackHandler {
-        viewModel.handelEvent(TimerUiEvent.ClickExit)
-    }
+    BackHandler {}
 
     Surface {
         TimerScreen(
@@ -130,6 +146,11 @@ fun ClientTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
+                            viewModel.saveTalkHistory {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             navigateUp()
                         },
@@ -147,6 +168,11 @@ fun ClientTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
+                            viewModel.saveTalkHistory {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             navigateUp()
                         },

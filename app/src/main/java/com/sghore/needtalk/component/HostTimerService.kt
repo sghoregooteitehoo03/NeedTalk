@@ -38,7 +38,6 @@ import javax.inject.Inject
 // TODO:
 //  . NullPointer 처리
 //  . flow를 이용하는 방법 생각해보기
-//  . 스톱워치 기능 제대로 구현
 
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
@@ -109,8 +108,9 @@ class HostTimerService : LifecycleService() {
 
                         // 어떤 기기와 연결이 끊어진 경우
                         is ConnectionEvent.Disconnected -> {
+                            val timerState = timerCmInfo?.timerActionState
                             // 타이머 동작이 끝난 상태가 아닌 경우
-                            if (timerCmInfo?.timerActionState != TimerActionState.TimerFinished) {
+                            if (timerState != TimerActionState.TimerFinished) {
                                 val participantInfoList = timerCmInfo
                                     ?.participantInfoList
                                     ?.toMutableList()
@@ -129,7 +129,7 @@ class HostTimerService : LifecycleService() {
                                     // 대화가 시작이 되었고, 참여하는 인원이 호스트밖에 없을 시
                                     if (
                                         participantInfoList.size == 1
-                                        && timerCmInfo?.timerActionState != TimerActionState.TimerFinished
+                                        && timerState != TimerActionState.TimerWaiting
                                     ) {
                                         stopSensor()
                                         timerPause()
@@ -206,48 +206,7 @@ class HostTimerService : LifecycleService() {
 
                                         timerCmInfo =
                                             timerCmInfo?.copy(participantInfoList = updateParticipantInfo)
-                                        isAvailableTimerStart(
-                                            startTimer = {
-                                                timerStart(
-                                                    startTime = timerCmInfo?.currentTime ?: 0L,
-                                                    onUpdateTime = { updateTime ->
-                                                        if (updateTime != 0L) { // 타이머 동작 중
-                                                            timerCmInfo =
-                                                                timerCmInfo?.copy(currentTime = updateTime)
-                                                            onUpdateUiState(timerCmInfo)
-
-                                                            // foreground로 동작 시 알림 업데이트
-                                                            onNotifyUpdate(
-                                                                parseMinuteSecond(
-                                                                    timerCmInfo?.currentTime ?: 0L
-                                                                )
-                                                            )
-                                                        } else {
-                                                            // 타이머 동작이 끝이난 경우
-                                                            timerCmInfo = timerCmInfo?.copy(
-                                                                currentTime = updateTime,
-                                                                timerActionState = TimerActionState.TimerFinished
-                                                            )
-
-                                                            onUpdateUiState(timerCmInfo)
-                                                            onNotifyFinished() // foreground로 동작 시 알림 업데이트
-
-                                                            // 모든 동작 정지
-                                                            stopSensor()
-                                                        }
-                                                    },
-                                                    isStopwatch = timerCmInfo?.maxTime == -1L
-                                                )
-                                            },
-                                            stopTimer = {
-                                                timerPause()
-                                                onNotifyUpdate(
-                                                    parseMinuteSecond(
-                                                        timerCmInfo?.currentTime ?: 0L
-                                                    ) + " (일시 정지)"
-                                                )
-                                            }
-                                        )
+                                        isAvailableTimerStart(onUpdateUiState = onUpdateUiState)
 
                                         onUpdateUiState(timerCmInfo)
                                         sendUpdateTimerCmInfo(
@@ -382,35 +341,7 @@ class HostTimerService : LifecycleService() {
                                 ?: listOf()
                         )
                     isAvailableTimerStart(
-                        startTimer = {
-                            timerStart(
-                                startTime = timerCmInfo?.currentTime ?: 0L,
-                                onUpdateTime = { updateTime ->
-                                    if (updateTime != 0L) { // 타이머 동작 중
-                                        timerCmInfo = timerCmInfo?.copy(currentTime = updateTime)
-                                        onUpdateUiState(timerCmInfo)
-
-                                        // foreground로 동작 시 알림 업데이트
-                                        onNotifyUpdate(
-                                            parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
-                                        )
-                                    } else { // 타이머 동작이 끝이난 경우
-                                        timerCmInfo = timerCmInfo?.copy(
-                                            currentTime = updateTime,
-                                            timerActionState = TimerActionState.TimerFinished
-                                        )
-
-                                        onUpdateUiState(timerCmInfo)
-                                        onNotifyFinished() // foreground로 동작 시 알림 업데이트
-
-                                        // 모든 동작 정지
-                                        stopSensor()
-                                    }
-                                },
-                                isStopwatch = timerCmInfo?.maxTime == -1L
-                            )
-                        },
-                        stopTimer = {}
+                        onUpdateUiState = onUpdateUiState
                     )
 
                     onUpdateUiState(timerCmInfo)
@@ -427,16 +358,7 @@ class HostTimerService : LifecycleService() {
                                 ?: listOf()
                         )
 
-                    isAvailableTimerStart(
-                        startTimer = {},
-                        stopTimer = {
-                            timerPause()
-                            onNotifyUpdate(
-                                parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
-                                        + " (일시 정지)"
-                            )
-                        }
-                    )
+                    isAvailableTimerStart(onUpdateUiState = onUpdateUiState)
 
                     onUpdateUiState(timerCmInfo)
                     sendUpdateTimerCmInfo(
@@ -479,7 +401,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 60000L
+                    time += 10000L
                     onUpdateTime(time)
                 }
             } else {
@@ -487,7 +409,7 @@ class HostTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 60000L
+                    time -= 10000L
                     onUpdateTime(time)
                 }
             }
@@ -550,17 +472,62 @@ class HostTimerService : LifecycleService() {
     }
 
     private fun isAvailableTimerStart(
-        startTimer: () -> Unit,
-        stopTimer: () -> Unit
+        onUpdateUiState: (TimerCommunicateInfo?) -> Unit
     ) {
         val participantInfoList = timerCmInfo?.participantInfoList
+        val isStopwatch = timerCmInfo?.isStopWatch ?: false
 
         if (participantInfoList?.none { it?.isReady != true } == true) {
-            timerCmInfo = timerCmInfo?.copy(timerActionState = TimerActionState.TimerRunning)
-            startTimer()
-        } else if (timerCmInfo?.timerActionState == TimerActionState.TimerRunning) {
-            timerCmInfo = timerCmInfo?.copy(timerActionState = TimerActionState.TimerStop)
-            stopTimer()
+            val timerActionState =
+                if (isStopwatch) TimerActionState.StopWatchRunning else TimerActionState.TimerRunning
+
+            timerCmInfo = timerCmInfo?.copy(timerActionState = timerActionState)
+
+            timerStart(
+                startTime = timerCmInfo?.currentTime ?: 0L,
+                onUpdateTime = { updateTime ->
+                    if (updateTime != 0L) { // 타이머 동작 중
+                        timerCmInfo =
+                            timerCmInfo?.copy(currentTime = updateTime)
+                        onUpdateUiState(timerCmInfo)
+
+                        // foreground로 동작 시 알림 업데이트
+                        onNotifyUpdate(
+                            parseMinuteSecond(
+                                timerCmInfo?.currentTime ?: 0L
+                            )
+                        )
+                    } else {
+                        // 타이머 동작이 끝이난 경우
+                        timerCmInfo = timerCmInfo?.copy(
+                            currentTime = updateTime,
+                            timerActionState = TimerActionState.TimerFinished
+                        )
+
+                        onUpdateUiState(timerCmInfo)
+                        onNotifyFinished() // foreground로 동작 시 알림 업데이트
+
+                        // 모든 동작 정지
+                        stopSensor()
+                    }
+                },
+                isStopwatch = isStopwatch
+            )
+        } else if (timerCmInfo?.timerActionState == TimerActionState.TimerRunning ||
+            timerCmInfo?.timerActionState == TimerActionState.StopWatchRunning
+        ) {
+            val timerActionState = if (isStopwatch) {
+                val isFinished = (timerCmInfo?.currentTime ?: 0L) >= 60000
+                TimerActionState.StopWatchStop(isFinished = isFinished)
+            } else TimerActionState.TimerStop
+
+            timerCmInfo = timerCmInfo?.copy(timerActionState = timerActionState)
+
+            timerPause()
+            onNotifyUpdate(
+                parseMinuteSecond(timerCmInfo?.currentTime ?: 0L)
+                        + " (일시 정지)"
+            )
         }
     }
 

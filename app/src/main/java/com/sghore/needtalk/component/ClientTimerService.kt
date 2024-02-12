@@ -321,7 +321,7 @@ class ClientTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 1000L
+                    time += 10000L
                     onUpdateTime(time)
                 }
             } else {
@@ -329,7 +329,7 @@ class ClientTimerService : LifecycleService() {
                     delay(1000)
 
                     // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 60000L
+                    time -= 10000L
                     onUpdateTime(time)
                 }
             }
@@ -368,7 +368,7 @@ class ClientTimerService : LifecycleService() {
                 }
             }
 
-            is TimerActionState.TimerRunning -> {
+            is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                 timerStart(
                     startTime = timerCmInfo?.currentTime ?: 0L,
                     onUpdateTime = { updateTime ->
@@ -395,11 +395,11 @@ class ClientTimerService : LifecycleService() {
                             stopSensor()
                         }
                     },
-                    isStopwatch = timerCmInfo?.maxTime == -1L
+                    isStopwatch = timerCmInfo?.isStopWatch ?: false
                 )
             }
 
-            is TimerActionState.TimerStop -> {
+            is TimerActionState.TimerStop, is TimerActionState.StopWatchStop -> {
                 timerPause()
                 onNotifyUpdate(
                     parseMinuteSecond(

@@ -31,6 +31,7 @@ class ClientTimerViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
+    private var userList = listOf<UserEntity?>()
 
     val uiState = _uiState.stateIn(
         viewModelScope,
@@ -65,10 +66,6 @@ class ClientTimerViewModel @Inject constructor(
                     saveOtherUserData()
             }
 
-            is TimerActionState.TimerFinished -> {
-                saveTalkHistory(timerCommunicateInfo)
-            }
-
             else -> {}
         }
 
@@ -91,20 +88,35 @@ class ClientTimerViewModel @Inject constructor(
 
     private fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
+        userList = timerCmInfo?.participantInfoList?.map { it?.userEntity } ?: listOf()
+
         for (i in 0 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
             insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
         }
     }
 
     // 타이머 끝났을 떄 취하는 동작
-    private fun saveTalkHistory(updateTimerInfo: TimerCommunicateInfo?) = viewModelScope.launch {
-        val talkHistory = TalkHistory(
-            talkTime = updateTimerInfo?.maxTime ?: 0L,
-            users = updateTimerInfo?.participantInfoList?.map { it?.userEntity } ?: listOf(),
-            createTimeStamp = System.currentTimeMillis()
-        )
+    fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
+        val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
-        // 대화 정보를 저장함
-        insertTalkEntityUseCase(talkHistory)
+        if (updateTimerInfo?.timerActionState != TimerActionState.TimerWaiting) {
+            val talkTime = if (updateTimerInfo?.isStopWatch == true)
+                updateTimerInfo.currentTime
+            else
+                (updateTimerInfo?.maxTime ?: 0L) - (updateTimerInfo?.currentTime ?: 0L)
+
+            if (talkTime >= 60000) {
+                val talkHistory = TalkHistory(
+                    talkTime = talkTime,
+                    users = userList,
+                    createTimeStamp = System.currentTimeMillis()
+                )
+
+                // 대화 정보를 저장함
+                insertTalkEntityUseCase(talkHistory)
+            } else {
+                showToastBar("1분 이하의 대화는 기록되지 않습니다.")
+            }
+        }
     }
 }

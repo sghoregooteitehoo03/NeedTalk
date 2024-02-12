@@ -45,7 +45,7 @@ class StaticsViewModel @Inject constructor(
 
             _uiState.update {// UI 업데이트
                 it.copy(
-                    userEntity = userEntity.copy(createTime = 1706670212000), // TODO: 테스트 값 나중에 지우기
+                    userEntity = userEntity,
                     baseDate = baseDate
                 )
             }
@@ -64,6 +64,7 @@ class StaticsViewModel @Inject constructor(
         val userEntity = _uiState.value.userEntity
 
         if (userEntity != null) {
+            // TODO: .fix 유저 퍼스널 컬러 불일치 버그
             val statics = getTalkStaticsUseCase(
                 currentUser = userEntity,
                 startTime = startTime,

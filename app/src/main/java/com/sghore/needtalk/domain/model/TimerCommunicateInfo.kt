@@ -1,5 +1,6 @@
 package com.sghore.needtalk.domain.model
 
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -8,7 +9,9 @@ data class TimerCommunicateInfo(
     val participantInfoList: List<ParticipantInfo?>,
     val currentTime: Long,
     val maxTime: Long,
+    val isStopWatch: Boolean,
     val maxMember: Int,
+    val talkTopics: List<TalkTopicEntity>,
     val timerActionState: TimerActionState
 )
 
@@ -29,6 +32,14 @@ sealed interface TimerActionState {
     @Serializable
     @SerialName("TimerRunning")
     data object TimerRunning : TimerActionState
+
+    @Serializable
+    @SerialName("StopWatchStop")
+    data class StopWatchStop(val isFinished: Boolean) : TimerActionState
+
+    @Serializable
+    @SerialName("StopWatchRunning")
+    data object StopWatchRunning : TimerActionState
 
     @Serializable
     @SerialName("TimerFinished")

@@ -20,7 +20,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -50,8 +49,6 @@ import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.parseMinuteSecond
 
 // TODO:
-//  . 음악 기능 제거
-//  . 타이머 끝났을 때 보여줄 화면 구현
 //  . 대화 주제
 @Composable
 fun TimerScreen(
@@ -89,7 +86,9 @@ fun TimerScreen(
                 },
                 currentTime = timerCmInfo?.currentTime ?: 0L,
                 maxTime = timerCmInfo?.maxTime ?: 0L,
-                isRunning = timerCmInfo?.timerActionState != TimerActionState.TimerStop
+                isStopWatch = timerCmInfo?.isStopWatch ?: false,
+                isRunning = timerCmInfo?.timerActionState == TimerActionState.TimerRunning ||
+                        timerCmInfo?.timerActionState == TimerActionState.StopWatchRunning
             )
             when (timerCmInfo?.timerActionState) {
                 is TimerActionState.TimerWaiting -> {
@@ -138,26 +137,52 @@ fun TimerScreen(
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom, margin = 32.dp)
             }) {
-                if (timerCmInfo?.timerActionState == TimerActionState.TimerFinished
-                    || (timerCmInfo?.maxTime == -1L && timerCmInfo.currentTime >= 300000L)
-                ) {
-                    RoundedButton(
-                        modifier = Modifier.width(110.dp),
-                        text = "끝내기",
-                        color = MaterialTheme.colors.secondary,
-                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                        paddingValues = PaddingValues(14.dp),
-                        onClick = { onEvent(TimerUiEvent.ClickFinished) }
-                    )
-                } else {
-                    RoundedButton(
-                        modifier = Modifier.width(110.dp),
-                        text = "나가기",
-                        color = colorResource(id = R.color.light_gray_200),
-                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                        paddingValues = PaddingValues(14.dp),
-                        onClick = { onEvent(TimerUiEvent.ClickExit) }
-                    )
+                when (val state = timerCmInfo?.timerActionState) {
+                    is TimerActionState.TimerFinished -> {
+                        RoundedButton(
+                            modifier = Modifier.width(110.dp),
+                            text = "끝내기",
+                            color = MaterialTheme.colors.secondary,
+                            textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                            paddingValues = PaddingValues(14.dp),
+                            onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                        )
+                    }
+
+                    is TimerActionState.StopWatchStop -> {
+                        if (state.isFinished) {
+                            RoundedButton(
+                                modifier = Modifier.width(110.dp),
+                                text = "끝내기",
+                                color = MaterialTheme.colors.secondary,
+                                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                                paddingValues = PaddingValues(14.dp),
+                                onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                            )
+                        } else {
+                            RoundedButton(
+                                modifier = Modifier.width(110.dp),
+                                text = "나가기",
+                                color = colorResource(id = R.color.light_gray_200),
+                                textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                                paddingValues = PaddingValues(14.dp),
+                                onClick = { onEvent(TimerUiEvent.ClickExit) }
+                            )
+                        }
+                    }
+
+                    is TimerActionState.TimerWaiting, TimerActionState.TimerStop -> {
+                        RoundedButton(
+                            modifier = Modifier.width(110.dp),
+                            text = "나가기",
+                            color = colorResource(id = R.color.light_gray_200),
+                            textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                            paddingValues = PaddingValues(14.dp),
+                            onClick = { onEvent(TimerUiEvent.ClickExit) }
+                        )
+                    }
+
+                    else -> {}
                 }
 
                 if (isHost && timerCmInfo?.timerActionState == TimerActionState.TimerWaiting) {
@@ -261,11 +286,11 @@ fun TimerContent(
     modifier: Modifier = Modifier,
     currentTime: Long,
     maxTime: Long,
+    isStopWatch: Boolean,
     isRunning: Boolean
 ) {
-    val isStopwatch = remember { maxTime == -1L }
     val maxWidth = LocalConfiguration.current.screenWidthDp
-    val progress = if (isStopwatch) {
+    val progress = if (isStopWatch) {
         1f
     } else {
         (currentTime / maxTime.toFloat())
@@ -517,7 +542,8 @@ fun TimerContentPreview() {
         TimerContent(
             currentTime = 3600000,
             maxTime = 3600000,
-            isRunning = true
+            isRunning = true,
+            isStopWatch = false
         )
     }
 }
