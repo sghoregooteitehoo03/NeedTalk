@@ -167,29 +167,45 @@ class HostTimerService : LifecycleService() {
                                 when (payloadType) {
                                     // 다른 유저가 생성한 타이머에 참가하였을 때
                                     is PayloadType.ClientJoinTimer -> {
-                                        val participantInfoList = timerCmInfo
-                                            ?.participantInfoList
-                                            ?.toMutableList()
-                                            ?: mutableListOf()
-
-                                        // 참가자 인원 리스트 추가
-                                        participantInfoList.add(
-                                            ParticipantInfo(
-                                                userEntity = payloadType.user,
+                                        if (timerCmInfo?.participantInfoList?.size == timerCmInfo?.maxMember) {
+                                            // 참가자가 모두 참여한 상태에서 참가요청을 보내는 경우
+                                            sendRejectMessage(
+                                                rejectMessage = "인원이 모두 가득찼습니다.",
                                                 endpointId = event.endpointId,
-                                                isReady = null
+                                                onFailure = {}
                                             )
-                                        )
-                                        // 인원이 추가된 데이터로 업데이트함
-                                        timerCmInfo = timerCmInfo
-                                            ?.copy(participantInfoList = participantInfoList)
-                                        onUpdateUiState(timerCmInfo)
+                                        } else if (timerCmInfo?.timerActionState != TimerActionState.TimerWaiting) {
+                                            // 타이머가 시작이 된 상태에서 참가요청이 온 경우
+                                            sendRejectMessage(
+                                                rejectMessage = "대화가 이미 시작되었습니다.",
+                                                endpointId = event.endpointId,
+                                                onFailure = {}
+                                            )
+                                        } else {
+                                            val participantInfoList = timerCmInfo
+                                                ?.participantInfoList
+                                                ?.toMutableList()
+                                                ?: mutableListOf()
 
-                                        // 업데이트 된 데이터를 참가자들에게 전달
-                                        sendUpdateTimerCmInfo(
-                                            updateTimerCmInfo = timerCmInfo,
-                                            onFailure = {}
-                                        )
+                                            // 참가자 인원 리스트 추가
+                                            participantInfoList.add(
+                                                ParticipantInfo(
+                                                    userEntity = payloadType.user,
+                                                    endpointId = event.endpointId,
+                                                    isReady = null
+                                                )
+                                            )
+                                            // 인원이 추가된 데이터로 업데이트함
+                                            timerCmInfo = timerCmInfo
+                                                ?.copy(participantInfoList = participantInfoList)
+                                            onUpdateUiState(timerCmInfo)
+
+                                            // 업데이트 된 데이터를 참가자들에게 전달
+                                            sendUpdateTimerCmInfo(
+                                                updateTimerCmInfo = timerCmInfo,
+                                                onFailure = {}
+                                            )
+                                        }
                                     }
 
                                     is PayloadType.ClientReady -> {
@@ -469,6 +485,25 @@ class HostTimerService : LifecycleService() {
                 )
             }
         }
+    }
+
+    private fun sendRejectMessage(
+        rejectMessage: String,
+        endpointId: String,
+        onFailure: (Exception) -> Unit
+    ) {
+        val sendPayloadType = PayloadType.RejectJoin(rejectMessage)
+        val sendPayloadTypeJson =
+            Json.encodeToString(
+                PayloadType.serializer(),
+                sendPayloadType
+            )
+
+        sendPayloadUseCase(
+            bytes = sendPayloadTypeJson.toByteArray(),
+            endpointId = endpointId,
+            onFailure = onFailure
+        )
     }
 
     private fun isAvailableTimerStart(

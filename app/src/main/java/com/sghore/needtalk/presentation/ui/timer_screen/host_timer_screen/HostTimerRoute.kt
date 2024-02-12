@@ -99,6 +99,10 @@ fun HostTimerRoute(
                         viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                     }
 
+                    is TimerUiEvent.ChangeTalkTopic -> {
+                        viewModel.changeTalkTopic()
+                    }
+
                     is TimerUiEvent.ClickStart -> {
                         if (event.isEnabled) {
                             viewModel.saveOtherUserData()

@@ -4,4 +4,6 @@ interface TimerUiEvent {
     data object ClickExit : TimerUiEvent
     data class ClickStart(val isEnabled: Boolean) : TimerUiEvent
     data object ClickFinished : TimerUiEvent
+
+    data object ChangeTalkTopic : TimerUiEvent
 }

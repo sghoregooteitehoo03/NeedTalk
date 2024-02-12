@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -48,8 +49,6 @@ import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.parseMinuteSecond
 
-// TODO:
-//  . 대화 주제
 @Composable
 fun TimerScreen(
     uiState: TimerUiState,
@@ -57,100 +56,89 @@ fun TimerScreen(
     isHost: Boolean
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        Spacer(modifier = Modifier.height(32.dp))
-        ConstraintLayout(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 14.dp, bottom = 14.dp)
-        ) {
-            val (groupMember, timer, explainText, btnLayout) = createRefs()
-            val timerCmInfo = uiState.timerCommunicateInfo
-            val isEnabled = timerCmInfo?.participantInfoList?.size == timerCmInfo?.maxMember
+        if (uiState.timerCommunicateInfo != null) {
+            Spacer(modifier = Modifier.height(32.dp))
+            ConstraintLayout(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 14.dp, bottom = 14.dp)
+            ) {
+                val (groupMember, timer, explainText, btnLayout) = createRefs()
+                val timerCmInfo = uiState.timerCommunicateInfo
+                val isEnabled = timerCmInfo.participantInfoList.size == timerCmInfo.maxMember
 
-            GroupMember(
-                modifier = Modifier.constrainAs(groupMember) {
-                    top.linkTo(parent.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                },
-                currentUser = uiState.userEntity,
-                participantInfoList = timerCmInfo?.participantInfoList ?: listOf(),
-                maxMember = timerCmInfo?.maxMember ?: 0
-            )
-            TimerContent(
-                modifier = Modifier.constrainAs(timer) {
-                    top.linkTo(groupMember.top)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(explainText.bottom)
-                },
-                currentTime = timerCmInfo?.currentTime ?: 0L,
-                maxTime = timerCmInfo?.maxTime ?: 0L,
-                isStopWatch = timerCmInfo?.isStopWatch ?: false,
-                isRunning = timerCmInfo?.timerActionState == TimerActionState.TimerRunning ||
-                        timerCmInfo?.timerActionState == TimerActionState.StopWatchRunning
-            )
-            when (timerCmInfo?.timerActionState) {
-                is TimerActionState.TimerWaiting -> {
-                    TimerExplain(
-                        modifier = Modifier.constrainAs(explainText) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(btnLayout.top, margin = 46.dp)
-                        },
-                        title = if (isEnabled) {
-                            "멤버가 모두 들어왔어요.\n대화를시작해보세요!"
-                        } else {
-                            "멤버가 모두 들어올 때 까지\n잠시 기다려주세요."
-                        }
-                    )
-                }
-
-                is TimerActionState.TimerStop -> {
-                    TimerExplain(
-                        modifier = Modifier.constrainAs(explainText) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(btnLayout.top, margin = 46.dp)
-                        },
-                        title = "현재 타이머가 정지되어있습니다.",
-                        content = "모든 사용자가 휴대폰을 내려놓으면\n타이머가 다시 동작됩니다."
-                    )
-                }
-
-                else -> {
-                    TimerExplainWithButton(
-                        modifier = Modifier.constrainAs(explainText) {
-                            start.linkTo(parent.start)
-                            end.linkTo(parent.end)
-                            bottom.linkTo(btnLayout.top, margin = 46.dp)
-                        },
-                        title = "이런 대화는 어떠세요?",
-                        content = "여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?",
-                        buttonIcon = painterResource(id = R.drawable.ic_refresh),
-                        onClick = {}
-                    )
-                }
-            }
-            Row(modifier = Modifier.constrainAs(btnLayout) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom, margin = 32.dp)
-            }) {
-                when (val state = timerCmInfo?.timerActionState) {
-                    is TimerActionState.TimerFinished -> {
-                        RoundedButton(
-                            modifier = Modifier.width(110.dp),
-                            text = "끝내기",
-                            color = MaterialTheme.colors.secondary,
-                            textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                            paddingValues = PaddingValues(14.dp),
-                            onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                GroupMember(
+                    modifier = Modifier.constrainAs(groupMember) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    },
+                    currentUser = uiState.userEntity,
+                    participantInfoList = timerCmInfo.participantInfoList,
+                    maxMember = timerCmInfo.maxMember ?: 0
+                )
+                TimerContent(
+                    modifier = Modifier.constrainAs(timer) {
+                        top.linkTo(groupMember.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(explainText.bottom)
+                    },
+                    currentTime = timerCmInfo.currentTime ?: 0L,
+                    maxTime = timerCmInfo.maxTime ?: 0L,
+                    isStopWatch = timerCmInfo.isStopWatch ?: false,
+                    isRunning = timerCmInfo.timerActionState == TimerActionState.TimerRunning ||
+                            timerCmInfo.timerActionState == TimerActionState.StopWatchRunning
+                )
+                when (timerCmInfo.timerActionState) {
+                    is TimerActionState.TimerWaiting -> {
+                        TimerExplain(
+                            modifier = Modifier.constrainAs(explainText) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(btnLayout.top, margin = 46.dp)
+                            },
+                            title = if (isEnabled) {
+                                "멤버가 모두 들어왔어요.\n대화를시작해보세요!"
+                            } else {
+                                "멤버가 모두 들어올 때 까지\n잠시 기다려주세요."
+                            }
                         )
                     }
 
-                    is TimerActionState.StopWatchStop -> {
-                        if (state.isFinished) {
+                    is TimerActionState.TimerStop, is TimerActionState.StopWatchStop -> {
+                        TimerExplain(
+                            modifier = Modifier.constrainAs(explainText) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(btnLayout.top, margin = 46.dp)
+                            },
+                            title = "현재 타이머가 정지되어있습니다.",
+                            content = "모든 사용자가 휴대폰을 내려놓으면\n타이머가 다시 동작됩니다."
+                        )
+                    }
+
+                    else -> {
+                        TimerExplainWithButton(
+                            modifier = Modifier.constrainAs(explainText) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
+                                bottom.linkTo(btnLayout.top, margin = 46.dp)
+                            },
+                            title = "이런 대화는 어떠세요?",
+                            content = uiState.talkTopic,
+                            buttonIcon = painterResource(id = R.drawable.ic_refresh),
+                            onClick = { onEvent(TimerUiEvent.ChangeTalkTopic) }
+                        )
+                    }
+                }
+                Row(modifier = Modifier.constrainAs(btnLayout) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom, margin = 32.dp)
+                }) {
+                    when (val state = timerCmInfo.timerActionState) {
+                        is TimerActionState.TimerFinished -> {
                             RoundedButton(
                                 modifier = Modifier.width(110.dp),
                                 text = "끝내기",
@@ -159,7 +147,31 @@ fun TimerScreen(
                                 paddingValues = PaddingValues(14.dp),
                                 onClick = { onEvent(TimerUiEvent.ClickFinished) }
                             )
-                        } else {
+                        }
+
+                        is TimerActionState.StopWatchStop -> {
+                            if (state.isFinished) {
+                                RoundedButton(
+                                    modifier = Modifier.width(110.dp),
+                                    text = "끝내기",
+                                    color = MaterialTheme.colors.secondary,
+                                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                                    paddingValues = PaddingValues(14.dp),
+                                    onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                                )
+                            } else {
+                                RoundedButton(
+                                    modifier = Modifier.width(110.dp),
+                                    text = "나가기",
+                                    color = colorResource(id = R.color.light_gray_200),
+                                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                                    paddingValues = PaddingValues(14.dp),
+                                    onClick = { onEvent(TimerUiEvent.ClickExit) }
+                                )
+                            }
+                        }
+
+                        is TimerActionState.TimerWaiting, TimerActionState.TimerStop -> {
                             RoundedButton(
                                 modifier = Modifier.width(110.dp),
                                 text = "나가기",
@@ -169,33 +181,29 @@ fun TimerScreen(
                                 onClick = { onEvent(TimerUiEvent.ClickExit) }
                             )
                         }
+
+                        else -> {}
                     }
 
-                    is TimerActionState.TimerWaiting, TimerActionState.TimerStop -> {
+                    if (isHost && timerCmInfo.timerActionState == TimerActionState.TimerWaiting) {
+                        Spacer(modifier = Modifier.width(20.dp))
                         RoundedButton(
                             modifier = Modifier.width(110.dp),
-                            text = "나가기",
-                            color = colorResource(id = R.color.light_gray_200),
+                            text = "시작하기",
+                            color = MaterialTheme.colors.secondary,
                             textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
                             paddingValues = PaddingValues(14.dp),
-                            onClick = { onEvent(TimerUiEvent.ClickExit) }
+                            onClick = { onEvent(TimerUiEvent.ClickStart(isEnabled)) }
                         )
                     }
-
-                    else -> {}
                 }
-
-                if (isHost && timerCmInfo?.timerActionState == TimerActionState.TimerWaiting) {
-                    Spacer(modifier = Modifier.width(20.dp))
-                    RoundedButton(
-                        modifier = Modifier.width(110.dp),
-                        text = "시작하기",
-                        color = MaterialTheme.colors.secondary,
-                        textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
-                        paddingValues = PaddingValues(14.dp),
-                        onClick = { onEvent(TimerUiEvent.ClickStart(isEnabled)) }
-                    )
-                }
+            }
+        } else {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator()
             }
         }
     }
@@ -402,6 +410,7 @@ fun TimerExplainWithButton(
         Spacer(modifier = Modifier.height(12.dp))
         Icon(
             modifier = Modifier
+                .clip(CircleShape)
                 .size(24.dp)
                 .clickable { onClick() },
             painter = buttonIcon,

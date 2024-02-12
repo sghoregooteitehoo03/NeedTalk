@@ -62,8 +62,10 @@ class ClientTimerViewModel @Inject constructor(
     fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
         when (timerCommunicateInfo?.timerActionState) {
             is TimerActionState.TimerReady -> {
-                if (_uiState.value.timerCommunicateInfo?.timerActionState == TimerActionState.TimerWaiting)
+                if (_uiState.value.timerCommunicateInfo?.timerActionState == TimerActionState.TimerWaiting) {
                     saveOtherUserData()
+                    _uiState.update { it.copy(talkTopic = timerCommunicateInfo.talkTopics.random().topic) }
+                }
             }
 
             else -> {}
@@ -72,6 +74,11 @@ class ClientTimerViewModel @Inject constructor(
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
+    }
+
+    fun changeTalkTopic() {
+        val talkTopics = _uiState.value.timerCommunicateInfo?.talkTopics ?: listOf()
+        _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
     }
 
     fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
@@ -99,11 +106,11 @@ class ClientTimerViewModel @Inject constructor(
     fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
-        if (updateTimerInfo?.timerActionState != TimerActionState.TimerWaiting) {
-            val talkTime = if (updateTimerInfo?.isStopWatch == true)
+        if (updateTimerInfo != null && updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
+            val talkTime = if (updateTimerInfo.isStopWatch)
                 updateTimerInfo.currentTime
             else
-                (updateTimerInfo?.maxTime ?: 0L) - (updateTimerInfo?.currentTime ?: 0L)
+                updateTimerInfo.maxTime - updateTimerInfo.currentTime
 
             if (talkTime >= 60000) {
                 val talkHistory = TalkHistory(

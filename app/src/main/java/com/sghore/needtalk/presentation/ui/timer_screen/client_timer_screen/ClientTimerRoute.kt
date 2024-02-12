@@ -32,9 +32,6 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO:
-//  . 인원 모두 가득찼을 때
-//  . 대화가 이미 시작 중 일 때
 @Composable
 fun ClientTimerRoute(
     viewModel: ClientTimerViewModel = hiltViewModel(),
@@ -101,6 +98,10 @@ fun ClientTimerRoute(
                             }
 
                         viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
+                    }
+
+                    is TimerUiEvent.ChangeTalkTopic -> {
+                        viewModel.changeTalkTopic()
                     }
 
                     is TimerUiEvent.ClickFinished -> {

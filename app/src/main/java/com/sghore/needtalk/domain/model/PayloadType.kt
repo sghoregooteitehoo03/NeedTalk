@@ -17,4 +17,8 @@ sealed interface PayloadType {
     @Serializable
     @SerialName("ClientReady")
     data class ClientReady(val isReady: Boolean, val participantIndex: Int) : PayloadType
+
+    @Serializable
+    @SerialName("RejectJoin")
+    data class RejectJoin(val rejectMessage: String) : PayloadType
 }

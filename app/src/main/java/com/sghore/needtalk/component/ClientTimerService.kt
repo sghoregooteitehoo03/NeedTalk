@@ -36,8 +36,6 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO:
-//  . 스톱워치 기능 제대로 구현
 @AndroidEntryPoint
 class ClientTimerService : LifecycleService() {
     @Inject
@@ -97,23 +95,36 @@ class ClientTimerService : LifecycleService() {
                                 payloadTypeJson
                             )
 
-                            if (payloadType is PayloadType.UpdateTimerCmInfo) {
-                                timerCmInfo = payloadType.timerCommunicateInfo
-                                if (participantInfoIndex == -1) {
-                                    timerCmInfo?.participantInfoList
-                                        ?.forEachIndexed { index, participantInfo ->
-                                            if (participantInfo?.userEntity?.userId == userEntity?.userId)
-                                                participantInfoIndex = index
-                                        }
+                            when (payloadType) {
+                                is PayloadType.UpdateTimerCmInfo -> {
+                                    timerCmInfo = payloadType.timerCommunicateInfo
+                                    if (participantInfoIndex == -1) {
+                                        timerCmInfo?.participantInfoList
+                                            ?.forEachIndexed { index, participantInfo ->
+                                                if (participantInfo?.userEntity?.userId == userEntity?.userId)
+                                                    participantInfoIndex = index
+                                            }
+                                    }
+
+                                    onUpdateUiState(timerCmInfo)
+                                    manageTimerActionState(
+                                        timerActionState = timerCmInfo?.timerActionState,
+                                        hostEndpointId = hostEndpointId,
+                                        onUpdateUiState = onUpdateUiState,
+                                        onOpenDialog = onOpenDialog
+                                    )
                                 }
 
-                                onUpdateUiState(timerCmInfo)
-                                manageTimerActionState(
-                                    timerActionState = timerCmInfo?.timerActionState,
-                                    hostEndpointId = hostEndpointId,
-                                    onUpdateUiState = onUpdateUiState,
-                                    onOpenDialog = onOpenDialog
-                                )
+                                is PayloadType.RejectJoin -> {
+                                    onOpenDialog(
+                                        DialogScreen.DialogWarning(
+                                            payloadType.rejectMessage,
+                                            isError = true
+                                        )
+                                    )
+                                }
+
+                                else -> {}
                             }
                         }
                     }

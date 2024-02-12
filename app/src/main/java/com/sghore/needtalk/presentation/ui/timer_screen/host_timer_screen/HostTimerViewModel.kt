@@ -55,7 +55,8 @@ class HostTimerViewModel @Inject constructor(
             _uiState.update {
                 it.copy(
                     userEntity = userEntity,
-                    timerCommunicateInfo = timerCmInfo
+                    timerCommunicateInfo = timerCmInfo,
+                    talkTopic = timerCmInfo.talkTopics.random().topic
                 )
             }
         }
@@ -65,6 +66,11 @@ class HostTimerViewModel @Inject constructor(
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
+    }
+
+    fun changeTalkTopic() {
+        val talkTopics = _uiState.value.timerCommunicateInfo?.talkTopics ?: listOf()
+        _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
     }
 
     fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
