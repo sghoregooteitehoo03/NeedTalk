@@ -1,5 +1,11 @@
 package com.sghore.needtalk.presentation.ui.join_screen
 
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -25,11 +31,13 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -49,6 +57,7 @@ import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.parseMinuteSecond
+import kotlinx.coroutines.launch
 
 @Composable
 fun JoinScreen(
@@ -148,31 +157,57 @@ fun FoundingNearDevice(
     isFound: Boolean
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp - 56.dp
-    Box(
-        modifier = modifier
-            .width(maxWidth)
-            .height(maxWidth)
-            .clip(CircleShape)
-            .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.2f)),
-        contentAlignment = Alignment.Center
-    ) {
+    val scaleAnim1 = remember { Animatable(1f) }
+    val scaleAnim2 = remember { Animatable(1f) }
+
+    LaunchedEffect(Unit) {
+        launch {
+            scaleAnim1.animateTo(
+                targetValue = 1.18f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1200, easing = LinearOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        }
+        launch {
+            scaleAnim2.animateTo(
+                targetValue = 1.12f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1200, easing = LinearOutSlowInEasing),
+                    repeatMode = RepeatMode.Reverse
+                )
+            )
+        }
+    }
+
+    Box(contentAlignment = Alignment.Center) {
+        Box(
+            modifier = modifier
+                .width(maxWidth)
+                .height(maxWidth)
+                .scale(scaleAnim1.value)
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.2f))
+        )
         Box(
             modifier = Modifier
                 .width(maxWidth - 80.dp)
                 .height(maxWidth - 80.dp)
+                .scale(scaleAnim2.value)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.3f)),
+                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.3f))
+        )
+        Box(
+            modifier = Modifier
+                .width(maxWidth - 160.dp)
+                .height(maxWidth - 160.dp)
+                .clip(CircleShape)
+                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .width(maxWidth - 160.dp)
-                    .height(maxWidth - 160.dp)
-                    .clip(CircleShape)
-                    .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.4f)),
-                contentAlignment = Alignment.Center
-            ) {
-                val iconResource = if (isFound) {
+            Crossfade(targetState = isFound, label = "", animationSpec = tween(300)) {
+                val iconResource = if (it) {
                     R.drawable.ic_check
                 } else {
                     R.drawable.ic_search

@@ -100,7 +100,7 @@ class JoinViewModel @Inject constructor(
                     }
 
                     Log.i("Check", "endpointList: $endpointList")
-                    delay(1000)
+                    delay(1300)
 
                     _uiState.update {
                         it.copy(
