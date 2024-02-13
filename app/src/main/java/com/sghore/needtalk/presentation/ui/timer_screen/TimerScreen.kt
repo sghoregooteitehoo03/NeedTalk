@@ -1,5 +1,7 @@
 package com.sghore.needtalk.presentation.ui.timer_screen
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,6 +23,11 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -48,6 +55,7 @@ import com.sghore.needtalk.presentation.ui.theme.Green50
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.parseMinuteSecond
+import kotlinx.coroutines.delay
 
 @Composable
 fun TimerScreen(
@@ -75,7 +83,7 @@ fun TimerScreen(
                     },
                     currentUser = uiState.userEntity,
                     participantInfoList = timerCmInfo.participantInfoList,
-                    maxMember = timerCmInfo.maxMember ?: 0
+                    maxMember = timerCmInfo.maxMember
                 )
                 TimerContent(
                     modifier = Modifier.constrainAs(timer) {
@@ -84,9 +92,9 @@ fun TimerScreen(
                         end.linkTo(parent.end)
                         bottom.linkTo(explainText.bottom)
                     },
-                    currentTime = timerCmInfo.currentTime ?: 0L,
-                    maxTime = timerCmInfo.maxTime ?: 0L,
-                    isStopWatch = timerCmInfo.isStopWatch ?: false,
+                    currentTime = timerCmInfo.currentTime,
+                    maxTime = timerCmInfo.maxTime,
+                    isStopWatch = timerCmInfo.isStopWatch,
                     isRunning = timerCmInfo.timerActionState == TimerActionState.TimerRunning ||
                             timerCmInfo.timerActionState == TimerActionState.StopWatchRunning
                 )
@@ -203,7 +211,21 @@ fun TimerScreen(
                 modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.size(54.dp),
+                    color = MaterialTheme.colors.onPrimary
+                )
+                RoundedButton(
+                    modifier = Modifier
+                        .width(110.dp)
+                        .align(Alignment.BottomCenter)
+                        .padding(bottom = 32.dp),
+                    text = "나가기",
+                    color = colorResource(id = R.color.light_gray_200),
+                    textStyle = MaterialTheme.typography.body1.copy(color = Color.White),
+                    paddingValues = PaddingValues(14.dp),
+                    onClick = { onEvent(TimerUiEvent.ClickFinished) }
+                )
             }
         }
     }
@@ -327,6 +349,7 @@ fun TimerContent(
             verticalAlignment = Alignment.CenterVertically
         ) {
             val repeatTime = maxWidth / 8
+            val heightList = remember { 26..56 }
 
             repeat(repeatTime + 1) { index ->
                 Box(
@@ -334,16 +357,41 @@ fun TimerContent(
                         .width(4.dp)
                         .then(
                             if ((8.5.dp.value) * (index + 1) <= progress * maxWidth) {
-                                Modifier
-                                    .height(26.dp)
-                                    .background(
-                                        color = if (isRunning) {
-                                            Orange50
-                                        } else {
-                                            colorResource(id = R.color.gray)
-                                        },
-                                        shape = CircleShape
-                                    )
+                                val heightAnim = remember { Animatable(26f) }
+
+                                if (isRunning) {
+                                    LaunchedEffect(Unit) {
+                                        while (true) {
+                                            heightAnim.animateTo(
+                                                targetValue = heightList
+                                                    .random()
+                                                    .toFloat(),
+                                                animationSpec = tween(100)
+                                            )
+                                        }
+                                    }
+
+                                    Modifier
+                                        .height(heightAnim.value.dp)
+                                        .background(
+                                            color = Orange50,
+                                            shape = CircleShape
+                                        )
+                                } else {
+                                    LaunchedEffect(Unit) {
+                                        heightAnim.animateTo(
+                                            targetValue = 26f,
+                                            animationSpec = tween(300)
+                                        )
+                                    }
+
+                                    Modifier
+                                        .height(heightAnim.value.dp)
+                                        .background(
+                                            color = colorResource(id = R.color.gray),
+                                            shape = CircleShape
+                                        )
+                                }
                             } else {
                                 Modifier
                                     .height(26.dp)
@@ -548,8 +596,17 @@ fun GroupMemberPreview() {
 @Composable
 fun TimerContentPreview() {
     NeedTalkTheme {
+        var time by remember { mutableLongStateOf(3600000L) }
+
+        LaunchedEffect(Unit) {
+            while (time > 0) {
+                delay(1000)
+                time -= 60000
+            }
+        }
+
         TimerContent(
-            currentTime = 3600000,
+            currentTime = time,
             maxTime = 3600000,
             isRunning = true,
             isStopWatch = false

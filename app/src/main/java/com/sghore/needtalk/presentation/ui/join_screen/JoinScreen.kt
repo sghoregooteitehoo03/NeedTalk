@@ -150,7 +150,6 @@ fun JoinScreen(
     }
 }
 
-// TODO: 애니메이션 구현
 @Composable
 fun FoundingNearDevice(
     modifier: Modifier = Modifier,
