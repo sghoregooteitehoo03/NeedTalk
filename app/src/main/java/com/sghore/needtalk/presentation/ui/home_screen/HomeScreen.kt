@@ -1,5 +1,8 @@
 package com.sghore.needtalk.presentation.ui.home_screen
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -19,7 +22,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Divider
-import androidx.compose.material.ExtendedFloatingActionButton
 import androidx.compose.material.FloatingActionButton
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -27,13 +29,16 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.pointer.pointerInput
@@ -69,6 +74,7 @@ fun HomeScreen(
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (layoutRef, subLayoutRef, startCloseBtnRef, createBtnRef,
             joinBtnRef, createExplainRef, joinExplainRef) = createRefs()
+
         Column(modifier = Modifier
             .fillMaxSize()
             .constrainAs(layoutRef) {
@@ -128,28 +134,30 @@ fun HomeScreen(
                 }
             }
         }
-        Box(
-            modifier = if (uiState.isStart) {
-                Modifier
-                    .constrainAs(subLayoutRef) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(parent.bottom)
-                    }
-                    .fillMaxSize()
-                    .background(color = Color.Black.copy(alpha = 0.4f))
-                    .pointerInput(Unit) {
-                        onEvent(HomeUiEvent.ClickStartAndClose)
-                    }
-            } else {
-                Modifier.size(0.dp)
-            }
-        )
+        ButtonBackground(
+            modifier = Modifier.constrainAs(subLayoutRef) {
+                top.linkTo(parent.top)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+            },
+            isStart = uiState.isStart,
+            onClick = {
+                onEvent(HomeUiEvent.ClickStartAndClose)
+            })
 
         if (uiState.isStart) {
+            val alphaAnimatable1 = remember { Animatable(0f) }
+            val alphaAnimatable2 = remember { Animatable(0f) }
+
+            LaunchedEffect(true) {
+                alphaAnimatable1.animateTo(1f, tween(100))
+                alphaAnimatable2.animateTo(1f, tween(100))
+            }
+
             FloatingActionButton(
                 modifier = Modifier
+                    .alpha(alphaAnimatable1.value)
                     .size(40.dp)
                     .constrainAs(createBtnRef) {
                         start.linkTo(startCloseBtnRef.start)
@@ -165,11 +173,13 @@ fun HomeScreen(
                 )
             }
             RoundedButton(
-                modifier = Modifier.constrainAs(createExplainRef) {
-                    top.linkTo(createBtnRef.top)
-                    end.linkTo(createBtnRef.start, margin = 8.dp)
-                    bottom.linkTo(createBtnRef.bottom)
-                },
+                modifier = Modifier
+                    .alpha(alphaAnimatable1.value)
+                    .constrainAs(createExplainRef) {
+                        top.linkTo(createBtnRef.top)
+                        end.linkTo(createBtnRef.start, margin = 8.dp)
+                        bottom.linkTo(createBtnRef.bottom)
+                    },
                 text = "생성하기",
                 color = MaterialTheme.colors.secondary,
                 textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
@@ -183,6 +193,7 @@ fun HomeScreen(
             )
             FloatingActionButton(
                 modifier = Modifier
+                    .alpha(alphaAnimatable2.value)
                     .size(40.dp)
                     .constrainAs(joinBtnRef) {
                         start.linkTo(startCloseBtnRef.start)
@@ -198,11 +209,13 @@ fun HomeScreen(
                 )
             }
             RoundedButton(
-                modifier = Modifier.constrainAs(joinExplainRef) {
-                    top.linkTo(joinBtnRef.top)
-                    end.linkTo(joinBtnRef.start, margin = 8.dp)
-                    bottom.linkTo(joinBtnRef.bottom)
-                },
+                modifier = Modifier
+                    .alpha(alphaAnimatable2.value)
+                    .constrainAs(joinExplainRef) {
+                        top.linkTo(joinBtnRef.top)
+                        end.linkTo(joinBtnRef.start, margin = 8.dp)
+                        bottom.linkTo(joinBtnRef.bottom)
+                    },
                 text = "참가하기",
                 color = MaterialTheme.colors.secondary,
                 textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
@@ -213,45 +226,18 @@ fun HomeScreen(
                     bottom = 6.dp
                 ),
                 onClick = {})
-
-            FloatingActionButton(
-                modifier = Modifier
-                    .constrainAs(startCloseBtnRef) {
-                        end.linkTo(parent.end, margin = 14.dp)
-                        bottom.linkTo(parent.bottom, margin = 14.dp)
-                    }
-                    .size(48.dp),
-                onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = R.drawable.ic_close),
-                    contentDescription = "Close"
-                )
-            }
-        } else {
-            ExtendedFloatingActionButton(
-                modifier = Modifier
-                    .constrainAs(startCloseBtnRef) {
-                        end.linkTo(parent.end, margin = 14.dp)
-                        bottom.linkTo(parent.bottom, margin = 14.dp)
-                    },
-                icon = {
-                    Icon(
-                        modifier = Modifier.size(24.dp),
-                        painter = painterResource(id = R.drawable.ic_add),
-                        contentDescription = "Add"
-                    )
-                },
-                text = {
-                    Text(
-                        text = "시작하기",
-                        style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary)
-                    )
-                },
-                onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
-            )
         }
+
+        JoinOrCloseFloatingButton(
+            modifier = Modifier
+                .constrainAs(startCloseBtnRef) {
+                    end.linkTo(parent.end, margin = 14.dp)
+                    bottom.linkTo(parent.bottom, margin = 14.dp)
+                },
+            text = "시작하기",
+            isExpanded = !uiState.isStart,
+            onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
+        )
     }
 }
 
@@ -277,7 +263,7 @@ fun TalkHistoryItem(
             // TODO: 텍스트 형식 바꾸기
             Text(
                 text = SimpleDateFormat(
-                    "H시간 m분",
+                    "HH:mm:ss",
                     Locale.KOREA
                 ).format(talkHistory?.talkTime?.minus(32400000)),
                 style = MaterialTheme.typography.h2
@@ -411,6 +397,79 @@ fun TalkHistoryNotExist(modifier: Modifier = Modifier) {
             )
         )
     }
+}
+
+@Composable
+fun JoinOrCloseFloatingButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    isExpanded: Boolean,
+    onClick: () -> Unit
+) {
+    val rotateState by animateFloatAsState(
+        targetValue = if (isExpanded) 0f else 45f,
+        animationSpec = tween(200), label = ""
+    )
+    val widthState by animateFloatAsState(
+        targetValue = if (isExpanded) 120.dp.value else 48.dp.value,
+        animationSpec = tween(200), label = ""
+    )
+
+    Row(
+        modifier = modifier
+            .clip(CircleShape)
+            .background(color = MaterialTheme.colors.secondary, shape = CircleShape)
+            .height(48.dp)
+            .width(widthState.dp)
+            .clickable { onClick() },
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(24.dp)
+                .rotate(rotateState),
+            painter = painterResource(id = R.drawable.ic_add),
+            contentDescription = "Add",
+            tint = MaterialTheme.colors.onSecondary
+        )
+        if (isExpanded) {
+            Spacer(modifier = Modifier.width(14.dp))
+            Text(
+                text = text,
+                style = MaterialTheme.typography.body1.copy(
+                    color = MaterialTheme.colors.onSecondary
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun ButtonBackground(
+    modifier: Modifier = Modifier,
+    isStart: Boolean,
+    onClick: () -> Unit
+) {
+    val alphaState by animateFloatAsState(
+        targetValue = if (isStart) 1f else 0f,
+        animationSpec = tween(200), label = ""
+    )
+
+    Box(
+        modifier = modifier
+            .alpha(alphaState)
+            .then(if (isStart) {
+                Modifier
+                    .fillMaxSize()
+                    .background(color = Color.Black.copy(alpha = 0.4f))
+                    .pointerInput(Unit) {
+                        onClick()
+                    }
+            } else {
+                Modifier.size(0.dp)
+            })
+    )
 }
 
 @Preview

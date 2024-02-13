@@ -24,7 +24,6 @@ import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO: 리스트 다시 갱신 기능 추가
 @SuppressLint("HardwareIds")
 @Composable
 fun HomeRoute(
