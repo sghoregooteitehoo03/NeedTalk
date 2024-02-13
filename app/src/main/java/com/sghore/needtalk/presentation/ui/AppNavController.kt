@@ -1,5 +1,10 @@
 package com.sghore.needtalk.presentation.ui
 
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -30,7 +35,11 @@ fun AppNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.HomeScreen.route
+        startDestination = UiScreen.HomeScreen.route,
+        enterTransition = { enterTransition() },
+        exitTransition = { exitTransition() },
+        popEnterTransition = { popEnterTransition() },
+        popExitTransition = { popExitTransition() }
     ) {
         composable(UiScreen.HomeScreen.route) {
             HomeRoute(
@@ -196,3 +205,29 @@ private fun navigateToClientTimerScreen(
 private fun navigateToHome(navController: NavHostController) {
     navController.popBackStack(route = UiScreen.HomeScreen.route, inclusive = false)
 }
+
+private fun enterTransition() =
+    fadeIn(animationSpec = tween(300)) +
+            slideInHorizontally(
+                animationSpec = tween(300)
+            ) {
+                it / 2
+            }
+
+private fun popEnterTransition() =
+    fadeIn(animationSpec = tween(300)) +
+            slideInHorizontally(
+                animationSpec = tween(300)
+            )
+
+private fun exitTransition() =
+    fadeOut(animationSpec = tween(300)) +
+            slideOutHorizontally(
+                animationSpec = tween(300)
+            )
+
+private fun popExitTransition() =
+    fadeOut(animationSpec = tween(300)) +
+            slideOutHorizontally(animationSpec = tween(300)) {
+                it / 2
+            }
