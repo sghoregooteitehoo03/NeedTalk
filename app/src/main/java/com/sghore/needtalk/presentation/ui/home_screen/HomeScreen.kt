@@ -60,7 +60,6 @@ import com.sghore.needtalk.presentation.ui.TopBar
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Purple
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -359,7 +358,7 @@ fun SetName(
         RoundedButton(
             modifier = Modifier.fillMaxWidth(),
             text = "수정하기",
-            color = Orange50,
+            color = MaterialTheme.colors.secondary,
             textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
             paddingValues = PaddingValues(14.dp),
             enable = name.isNotEmpty() && name != userName,

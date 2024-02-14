@@ -53,7 +53,6 @@ import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.Green50
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.parseMinuteSecond
 import kotlinx.coroutines.delay
 
@@ -335,7 +334,7 @@ fun TimerContent(
             text = parseMinuteSecond(timeStamp = currentTime),
             style = MaterialTheme.typography.h1.copy(
                 if (isRunning) {
-                    Orange50
+                    MaterialTheme.colors.secondary
                 } else {
                     colorResource(id = R.color.gray)
                 }
@@ -374,7 +373,7 @@ fun TimerContent(
                                     Modifier
                                         .height(heightAnim.value.dp)
                                         .background(
-                                            color = Orange50,
+                                            color = MaterialTheme.colors.secondary,
                                             shape = CircleShape
                                         )
                                 } else {

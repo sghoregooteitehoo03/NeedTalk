@@ -131,11 +131,12 @@ fun NameTag(
         Spacer(modifier = Modifier.width(interval))
         Text(
             modifier = if (isBorder) {
+                val lineColor = MaterialTheme.colors.onPrimary
                 Modifier.drawBehind {
                     val strokeWidthPx = 2.dp.toPx()
                     val verticalOffset = size.height
                     drawLine(
-                        color = Color.Black,
+                        color = lineColor,
                         strokeWidth = strokeWidthPx,
                         cap = StrokeCap.Round,
                         start = Offset(0f, verticalOffset),

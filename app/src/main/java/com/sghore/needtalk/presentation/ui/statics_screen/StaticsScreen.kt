@@ -54,7 +54,6 @@ import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.util.getFirstTime
 import com.sghore.needtalk.util.getLastTime
 import com.sghore.needtalk.util.getRandomColor
@@ -662,7 +661,7 @@ fun BarChart(
                             .width(14.dp)
                             .height(barHeight.dp)
                             .clip(CircleShape)
-                            .background(Orange50, CircleShape)
+                            .background(MaterialTheme.colors.secondary, CircleShape)
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(

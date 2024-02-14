@@ -3,6 +3,6 @@
 
     <style name="Theme.NeedTalk" parent="android:Theme.Material.Light.NoActionBar">
         <item name="android:statusBarColor">@color/status_color</item>
-        <item name="android:windowLightStatusBar">true</item>
+        <item name="android:windowLightStatusBar">false</item>
     </style>
 </resources>

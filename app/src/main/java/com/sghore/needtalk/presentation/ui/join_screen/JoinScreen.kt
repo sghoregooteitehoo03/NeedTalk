@@ -314,12 +314,16 @@ fun TimerInfoItem(
     Box(
         modifier = Modifier
             .width(260.dp)
-            .shadow(6.dp, RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
             .background(
                 color = MaterialTheme.colors.background,
                 shape = RoundedCornerShape(20.dp)
             )
-            .clip(RoundedCornerShape(20.dp))
+            .border(
+                2.dp,
+                color = colorResource(id = R.color.light_gray),
+                RoundedCornerShape(20.dp)
+            )
             .then(modifier),
         contentAlignment = Alignment.Center
     ) {

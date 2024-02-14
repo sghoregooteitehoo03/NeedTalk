@@ -59,8 +59,6 @@ import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Orange50
-import com.sghore.needtalk.presentation.ui.theme.Orange80
 
 @Composable
 fun CreateScreen(
@@ -364,11 +362,7 @@ fun SetTimer(
                                 Modifier
                                     .height(randomDp)
                                     .background(
-                                        color = if (isStopwatch) {
-                                            Orange80
-                                        } else {
-                                            Orange50
-                                        },
+                                        color = MaterialTheme.colors.secondary,
                                         shape = CircleShape
                                     )
                             } else {
@@ -552,7 +546,7 @@ fun DialogAddTopic(
             RoundedButton(
                 modifier = Modifier.fillMaxWidth(),
                 text = "추가하기",
-                color = Orange50,
+                color = MaterialTheme.colors.secondary,
                 textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
                 paddingValues = PaddingValues(14.dp),
                 enable = talkTopic.isNotEmpty(),
