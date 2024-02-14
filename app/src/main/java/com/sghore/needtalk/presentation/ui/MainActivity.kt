@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
@@ -16,6 +17,9 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
+import com.google.android.gms.ads.MobileAds
+import com.google.android.gms.ads.initialization.InitializationStatus
+import com.google.android.gms.ads.initialization.OnInitializationCompleteListener
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
@@ -27,12 +31,29 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         createChannel() // Notification channel 생성
+        AdInitialize()
 
         setContent {
             val launcher = rememberLauncherForActivityResult(
                 contract = ActivityResultContracts.RequestMultiplePermissions()
             ) { result ->
                 // TODO: 권한 처리 구현
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false ||
+                        result[Manifest.permission.POST_NOTIFICATIONS] == false ||
+                        result[Manifest.permission.NEARBY_WIFI_DEVICES] == false
+                    ) {
+                        Toast.makeText(this, "권한이 모두 허용해주세요.", Toast.LENGTH_SHORT)
+                            .show()
+                        finish()
+                    }
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false) {
+                        Toast.makeText(this, "권한이 모두 허용해주세요.", Toast.LENGTH_SHORT)
+                            .show()
+                        finish()
+                    }
+                }
             }
             val scaffoldState = rememberScaffoldState()
 
@@ -57,6 +78,14 @@ class MainActivity : ComponentActivity() {
                     )
                 }
             }
+        }
+    }
+
+    private fun AdInitialize() {
+        MobileAds.initialize(
+            this
+        ) {
+
         }
     }
 

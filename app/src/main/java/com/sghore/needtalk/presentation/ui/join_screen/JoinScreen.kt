@@ -53,6 +53,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
@@ -65,7 +66,7 @@ fun JoinScreen(
     onEvent: (JoinUiEvent) -> Unit
 ) {
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (toolbar, layout) = createRefs()
+        val (toolbar, layout, adview) = createRefs()
         Box(
             modifier = Modifier
                 .constrainAs(toolbar) {
@@ -88,6 +89,10 @@ fun JoinScreen(
                 tint = MaterialTheme.colors.onPrimary
             )
         }
+
+        AdmobBanner(modifier = Modifier.constrainAs(adview) {
+            bottom.linkTo(parent.bottom)
+        })
 
         Column(
             modifier = Modifier

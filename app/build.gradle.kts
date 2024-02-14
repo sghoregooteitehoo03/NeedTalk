@@ -80,6 +80,9 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    // Admob
+    implementation("com.google.android.gms:play-services-ads:22.6.0")
+
     // BottomSheet
     implementation("com.holix.android:bottomsheetdialog-compose:1.3.1")
 

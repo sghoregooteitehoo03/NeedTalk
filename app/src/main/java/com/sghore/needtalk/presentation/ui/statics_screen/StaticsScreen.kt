@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -43,10 +44,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.google.android.gms.ads.AdSize
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantCount
 import com.sghore.needtalk.domain.model.TalkHistory
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.presentation.ui.theme.Green
@@ -105,6 +108,20 @@ fun StaticsScreen(
                     .padding(top = 10.dp, bottom = 14.dp),
                 totalTime = uiState.talkStatics?.totalTalkTime ?: 0L
             )
+            Divider(
+                color = colorResource(id = R.color.light_gray),
+                thickness = 8.dp
+            )
+            Column {
+                Spacer(modifier = Modifier.height(8.dp))
+                AdmobBanner(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .sizeIn(minHeight = 40.dp),
+                    adSize = AdSize.LARGE_BANNER
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+            }
             Divider(
                 color = colorResource(id = R.color.light_gray),
                 thickness = 8.dp

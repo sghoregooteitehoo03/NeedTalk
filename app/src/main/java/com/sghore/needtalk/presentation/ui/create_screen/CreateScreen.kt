@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -51,9 +52,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.google.android.gms.ads.AdSize
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Orange50
@@ -136,6 +139,21 @@ fun CreateScreen(
                                 )
                             }
                         )
+                    }
+                    Divider(
+                        modifier = Modifier.fillMaxWidth(),
+                        color = colorResource(id = R.color.light_gray),
+                        thickness = 8.dp
+                    )
+                    Column {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        AdmobBanner(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .sizeIn(minHeight = 40.dp),
+                            adSize = AdSize.LARGE_BANNER
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
                     }
                     Divider(
                         modifier = Modifier.fillMaxWidth(),
