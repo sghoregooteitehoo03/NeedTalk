@@ -62,14 +62,14 @@ class HostTimerViewModel @Inject constructor(
         }
     }
 
-    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
+    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo) {
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
         }
     }
 
     fun changeTalkTopic() {
-        val talkTopics = _uiState.value.timerCommunicateInfo?.talkTopics ?: listOf()
+        val talkTopics = _uiState.value.timerCommunicateInfo.talkTopics
         _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
     }
 
@@ -88,10 +88,10 @@ class HostTimerViewModel @Inject constructor(
     // 참여한 인원들에 대한 정보를 저장함
     fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        userList = timerCmInfo?.participantInfoList?.map { it?.userEntity } ?: listOf()
+        userList = timerCmInfo.participantInfoList.map { it?.userEntity }
 
-        for (i in 1 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
-            insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
+        for (i in 1 until timerCmInfo.participantInfoList.size) {
+            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userEntity)
         }
     }
 
@@ -99,11 +99,11 @@ class HostTimerViewModel @Inject constructor(
     fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
-        if (updateTimerInfo?.timerActionState != TimerActionState.TimerWaiting) {
-            val talkTime = if (updateTimerInfo?.isStopWatch == true)
+        if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
+            val talkTime = if (updateTimerInfo.isStopWatch)
                 updateTimerInfo.currentTime
             else
-                (updateTimerInfo?.maxTime ?: 0L) - (updateTimerInfo?.currentTime ?: 0L)
+                updateTimerInfo.maxTime - updateTimerInfo.currentTime
 
             if (talkTime >= 60000) {
                 val talkHistory = TalkHistory(

@@ -6,7 +6,7 @@ import com.sghore.needtalk.presentation.ui.DialogScreen
 
 data class TimerUiState(
     val userEntity: UserEntity? = null,
-    val timerCommunicateInfo: TimerCommunicateInfo? = null,
+    val timerCommunicateInfo: TimerCommunicateInfo = TimerCommunicateInfo(),
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss,
     val hostEndpointId: String = "",
     val talkTopic: String = ""

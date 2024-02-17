@@ -16,7 +16,9 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -31,23 +33,23 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @Composable
 fun ClientTimerRoute(
     viewModel: ClientTimerViewModel = hiltViewModel(),
     navigateUp: () -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var service: ClientTimerService? by remember { mutableStateOf(null) }
 
-    var service: ClientTimerService? = remember { null }
     val connection = object : ServiceConnection {
         override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
             service = (binder as ClientTimerService.LocalBinder).getService()
             service?.connectToHost(
                 userEntity = uiState.userEntity,
                 hostEndpointId = uiState.hostEndpointId,
-                onUpdateUiState = viewModel::updateTimerCommunicateInfo,
                 onOpenDialog = viewModel::setDialogScreen,
                 onError = {}
             )
@@ -78,48 +80,55 @@ fun ClientTimerRoute(
     )
 
     LaunchedEffect(
-        key1 = viewModel.uiEvent,
+        key1 = service,
         block = {
-            viewModel.uiEvent.collectLatest { event ->
-                when (event) {
-                    is TimerUiEvent.ClickExit -> {
-                        val message =
-                            when (uiState.timerCommunicateInfo?.timerActionState) {
-                                is TimerActionState.TimerWaiting,
-                                is TimerActionState.TimerReady ->
-                                    "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+            launch {
+                viewModel.uiEvent.collectLatest { event ->
+                    when (event) {
+                        is TimerUiEvent.ClickExit -> {
+                            val message =
+                                when (uiState.timerCommunicateInfo.timerActionState) {
+                                    is TimerActionState.TimerWaiting,
+                                    is TimerActionState.TimerReady ->
+                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
 
-                                is TimerActionState.TimerRunning,
-                                is TimerActionState.TimerStop,
-                                is TimerActionState.StopWatchStop ->
-                                    "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+                                    is TimerActionState.TimerRunning,
+                                    is TimerActionState.TimerStop,
+                                    is TimerActionState.StopWatchStop ->
+                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
 
-                                else -> ""
-                            }
+                                    else -> ""
+                                }
 
-                        viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
-                    }
+                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
+                        }
 
-                    is TimerUiEvent.ChangeTalkTopic -> {
-                        viewModel.changeTalkTopic()
-                    }
+                        is TimerUiEvent.ChangeTalkTopic -> {
+                            viewModel.changeTalkTopic()
+                        }
 
-                    is TimerUiEvent.ClickFinished -> {
-                        if (uiState.timerCommunicateInfo?.isStopWatch == true) {
-                            viewModel.setDialogScreen(
-                                DialogScreen.DialogWarning(
-                                    "아직 대화중인 인원들이 있어요\n" +
-                                            "정말로 나가시겠습니까?"
+                        is TimerUiEvent.ClickFinished -> {
+                            if (uiState.timerCommunicateInfo.isStopWatch) {
+                                viewModel.setDialogScreen(
+                                    DialogScreen.DialogWarning(
+                                        "아직 대화중인 인원들이 있어요\n" +
+                                                "정말로 나가시겠습니까?"
+                                    )
                                 )
-                            )
-                        } else {
-                            viewModel.saveTalkHistory {
-                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
-                                    .show()
+                            } else {
+                                viewModel.saveTalkHistory {
+                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                        .show()
+                                }
+                                navigateUp()
                             }
-                            navigateUp()
                         }
                     }
+                }
+            }
+            launch {
+                service?.timerCmInfo?.collectLatest {
+                    viewModel.updateTimerCommunicateInfo(it)
                 }
             }
         })

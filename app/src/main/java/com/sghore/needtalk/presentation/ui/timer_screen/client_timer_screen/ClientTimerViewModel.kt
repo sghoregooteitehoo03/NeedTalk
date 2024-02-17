@@ -59,10 +59,10 @@ class ClientTimerViewModel @Inject constructor(
         }
     }
 
-    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo?) {
-        when (timerCommunicateInfo?.timerActionState) {
+    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo) {
+        when (timerCommunicateInfo.timerActionState) {
             is TimerActionState.TimerReady -> {
-                if (_uiState.value.timerCommunicateInfo?.timerActionState == TimerActionState.TimerWaiting) {
+                if (_uiState.value.timerCommunicateInfo.timerActionState == TimerActionState.TimerWaiting) {
                     saveOtherUserData()
                     _uiState.update { it.copy(talkTopic = timerCommunicateInfo.talkTopics.random().topic) }
                 }
@@ -77,7 +77,7 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     fun changeTalkTopic() {
-        val talkTopics = _uiState.value.timerCommunicateInfo?.talkTopics ?: listOf()
+        val talkTopics = _uiState.value.timerCommunicateInfo.talkTopics
         _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
     }
 
@@ -95,10 +95,10 @@ class ClientTimerViewModel @Inject constructor(
 
     private fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        userList = timerCmInfo?.participantInfoList?.map { it?.userEntity } ?: listOf()
+        userList = timerCmInfo.participantInfoList.map { it?.userEntity }
 
-        for (i in 0 until (timerCmInfo?.participantInfoList?.size ?: 0)) {
-            insertUserEntityUseCase(timerCmInfo?.participantInfoList?.get(i)!!.userEntity)
+        for (i in 0 until timerCmInfo.participantInfoList.size) {
+            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userEntity)
         }
     }
 
@@ -106,7 +106,7 @@ class ClientTimerViewModel @Inject constructor(
     fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
-        if (updateTimerInfo != null && updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
+        if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
             val talkTime = if (updateTimerInfo.isStopWatch)
                 updateTimerInfo.currentTime
             else

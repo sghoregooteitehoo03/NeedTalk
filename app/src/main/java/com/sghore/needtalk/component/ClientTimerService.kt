@@ -10,19 +10,19 @@ import android.hardware.SensorManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ClientEvent
-import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
-import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
@@ -30,7 +30,9 @@ import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
@@ -50,10 +52,11 @@ class ClientTimerService : LifecycleService() {
     @Inject
     lateinit var sensorManager: SensorManager
 
+    var timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
     private val binder = LocalBinder()
+
     private var baseNotification: NotificationCompat.Builder? = null
     private var sensorListener: SensorEventListener2? = null
-    private var timerCmInfo: TimerCommunicateInfo? = null
     private var timerJob: Job? = null
     private var participantInfoIndex = -1
 
@@ -74,7 +77,6 @@ class ClientTimerService : LifecycleService() {
     fun connectToHost(
         userEntity: UserEntity?,
         hostEndpointId: String,
-        onUpdateUiState: (TimerCommunicateInfo?) -> Unit,
         onOpenDialog: (DialogScreen) -> Unit,
         onError: (String) -> Unit
     ) =
@@ -97,20 +99,19 @@ class ClientTimerService : LifecycleService() {
 
                             when (payloadType) {
                                 is PayloadType.UpdateTimerCmInfo -> {
-                                    timerCmInfo = payloadType.timerCommunicateInfo
+                                    val currentInfo = payloadType.timerCommunicateInfo
                                     if (participantInfoIndex == -1) {
-                                        timerCmInfo?.participantInfoList
-                                            ?.forEachIndexed { index, participantInfo ->
+                                        currentInfo.participantInfoList
+                                            .forEachIndexed { index, participantInfo ->
                                                 if (participantInfo?.userEntity?.userId == userEntity?.userId)
                                                     participantInfoIndex = index
                                             }
                                     }
 
-                                    onUpdateUiState(timerCmInfo)
+                                    timerCmInfo.update { currentInfo }
                                     manageTimerActionState(
-                                        timerActionState = timerCmInfo?.timerActionState,
+                                        timerActionState = timerCmInfo.value.timerActionState,
                                         hostEndpointId = hostEndpointId,
-                                        onUpdateUiState = onUpdateUiState,
                                         onOpenDialog = onOpenDialog
                                     )
                                 }
@@ -148,7 +149,7 @@ class ClientTimerService : LifecycleService() {
 
                     // host와 연결이 끊어졌을 때
                     is ClientEvent.Disconnect -> {
-                        if (timerCmInfo?.timerActionState != TimerActionState.TimerFinished) {
+                        if (timerCmInfo.value.timerActionState != TimerActionState.TimerFinished) {
                             stopSensor()
                             timerPause()
 
@@ -190,7 +191,7 @@ class ClientTimerService : LifecycleService() {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
 
-        when (timerCmInfo?.timerActionState) {
+        when (timerCmInfo.value.timerActionState) {
             is TimerActionState.TimerWaiting -> {
                 baseNotification
                     ?.setContentTitle("인원 대기 중")
@@ -213,7 +214,7 @@ class ClientTimerService : LifecycleService() {
             is TimerActionState.TimerRunning -> {
                 baseNotification
                     ?.setContentTitle("대화에 집중하고 있습니다.")
-                    ?.setContentText(parseMinuteSecond(timerCmInfo?.currentTime ?: 0L))
+                    ?.setContentText(parseMinuteSecond(timerCmInfo.value.currentTime))
 
                 startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
             }
@@ -222,7 +223,7 @@ class ClientTimerService : LifecycleService() {
                 baseNotification
                     ?.setContentTitle("대화에 집중하고 있습니다.")
                     ?.setContentText(
-                        parseMinuteSecond(timerCmInfo?.currentTime ?: 0L) +
+                        parseMinuteSecond(timerCmInfo.value.currentTime) +
                                 " (일시 정지)"
                     )
 
@@ -240,29 +241,27 @@ class ClientTimerService : LifecycleService() {
         }
     }
 
-    private fun startSensor(
-        onUpdateUiState: (TimerCommunicateInfo?) -> Unit,
-        hostEndpointId: String
-    ) {
+    private fun startSensor(onReady: () -> Unit, hostEndpointId: String) {
         val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
         sensorListener = object : SensorEventListener2 {
             override fun onSensorChanged(event: SensorEvent?) {
                 val eventZ = event?.values?.get(2) ?: 0f
-                val participantInfo = timerCmInfo?.participantInfoList?.get(participantInfoIndex)
+                val participantInfo = timerCmInfo.value.participantInfoList[participantInfoIndex]
 
                 // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
                 if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && participantInfo?.isReady != true) {
                     val updateParticipantInfo = participantInfo?.copy(isReady = true)
+                    onReady()
+                    vibrate()
 
-                    // TODO: 진동 기능 추가
-                    timerCmInfo =
-                        timerCmInfo?.copy(
-                            participantInfoList = timerCmInfo?.participantInfoList?.toMutableList()
-                                ?.apply {
+                    timerCmInfo.update {
+                        it.copy(
+                            participantInfoList = it.participantInfoList.toMutableList()
+                                .apply {
                                     set(participantInfoIndex, updateParticipantInfo)
-                                } ?: listOf()
+                                }
                         )
-                    onUpdateUiState(timerCmInfo)
+                    }
 
                     val payloadType = PayloadType.ClientReady(isReady = true, participantInfoIndex)
                     val payloadTypeJson =
@@ -278,13 +277,14 @@ class ClientTimerService : LifecycleService() {
                 } else if (eventZ < 7f && participantInfo?.isReady == true) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
                     val updateParticipantInfo = participantInfo.copy(isReady = false)
 
-                    timerCmInfo = timerCmInfo?.copy(
-                        participantInfoList = timerCmInfo?.participantInfoList?.toMutableList()
-                            ?.apply {
-                                set(participantInfoIndex, updateParticipantInfo)
-                            } ?: listOf()
-                    )
-                    onUpdateUiState(timerCmInfo)
+                    timerCmInfo.update {
+                        it.copy(
+                            participantInfoList = it.participantInfoList.toMutableList()
+                                .apply {
+                                    set(participantInfoIndex, updateParticipantInfo)
+                                }
+                        )
+                    }
 
                     val payloadType = PayloadType.ClientReady(isReady = false, participantInfoIndex)
                     val payloadTypeJson =
@@ -331,16 +331,14 @@ class ClientTimerService : LifecycleService() {
                 while (true) {
                     delay(1000)
 
-                    // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time += 10000L
+                    time += 1000L
                     onUpdateTime(time)
                 }
             } else {
                 while (time > 0L) {
                     delay(1000)
 
-                    // TODO: 테스트 값 집어넣은 상태 나중에 수정할 것
-                    time -= 10000L
+                    time -= 1000L
                     onUpdateTime(time)
                 }
             }
@@ -355,9 +353,8 @@ class ClientTimerService : LifecycleService() {
     }
 
     private fun manageTimerActionState(
-        timerActionState: TimerActionState?,
+        timerActionState: TimerActionState,
         hostEndpointId: String,
-        onUpdateUiState: (TimerCommunicateInfo?) -> Unit,
         onOpenDialog: (DialogScreen) -> Unit
     ) {
         when (timerActionState) {
@@ -365,15 +362,7 @@ class ClientTimerService : LifecycleService() {
                 if (sensorListener == null) {
                     onOpenDialog(DialogScreen.DialogTimerReady)
                     startSensor(
-                        onUpdateUiState = {
-                            val isReady =
-                                it?.participantInfoList?.get(participantInfoIndex)?.isReady
-                            if (isReady == true) {
-                                onOpenDialog(DialogScreen.DialogDismiss)
-                            }
-
-                            onUpdateUiState(it)
-                        },
+                        onReady = { onOpenDialog(DialogScreen.DialogDismiss) },
                         hostEndpointId = hostEndpointId
                     )
                 }
@@ -381,32 +370,27 @@ class ClientTimerService : LifecycleService() {
 
             is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                 timerStart(
-                    startTime = timerCmInfo?.currentTime ?: 0L,
+                    startTime = timerCmInfo.value.currentTime,
                     onUpdateTime = { updateTime ->
                         if (updateTime != 0L) { // 타이머 동작 중
-                            timerCmInfo =
-                                timerCmInfo?.copy(currentTime = updateTime)
-                            onUpdateUiState(timerCmInfo)
+                            timerCmInfo.update { it.copy(currentTime = updateTime) }
 
                             // foreground로 동작 시 알림 업데이트
-                            onNotifyUpdate(
-                                parseMinuteSecond(
-                                    timerCmInfo?.currentTime ?: 0L
-                                )
-                            )
+                            onNotifyUpdate(parseMinuteSecond(updateTime))
                         } else { // 타이머 동작이 끝이난 경우
-                            timerCmInfo = timerCmInfo?.copy(
-                                currentTime = updateTime,
-                                timerActionState = TimerActionState.TimerFinished
-                            )
+                            timerCmInfo.update {
+                                it.copy(
+                                    currentTime = updateTime,
+                                    timerActionState = TimerActionState.TimerFinished
+                                )
+                            }
 
-                            onUpdateUiState(timerCmInfo)
                             onNotifyFinished() // foreground로 동작 시 알림 업데이트
 
                             stopSensor()
                         }
                     },
-                    isStopwatch = timerCmInfo?.isStopWatch ?: false
+                    isStopwatch = timerCmInfo.value.isStopWatch
                 )
             }
 
@@ -414,9 +398,8 @@ class ClientTimerService : LifecycleService() {
                 timerPause()
                 onNotifyUpdate(
                     parseMinuteSecond(
-                        timerCmInfo?.currentTime ?: 0L
-                    )
-                            + " (일시 정지)"
+                        timerCmInfo.value.currentTime
+                    ) + " (일시 정지)"
                 )
             }
 
@@ -469,6 +452,16 @@ class ClientTimerService : LifecycleService() {
                 Constants.NOTIFICATION_ID_TIMER,
                 baseNotification?.build()
             )
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun vibrate() {
+        val vibrator = applicationContext.getSystemService(Vibrator::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator.vibrate(VibrationEffect.createOneShot(200, 100))
+        } else {
+            vibrator.vibrate(200)
         }
     }
 
