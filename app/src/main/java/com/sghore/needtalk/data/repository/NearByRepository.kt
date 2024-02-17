@@ -51,7 +51,6 @@ class NearByRepository @Inject constructor(
                     it.printStackTrace()
                     trySend(ConnectionEvent.AdvertisingFailure)
                 }
-                // TODO: 해당 콜백이 동작이 시작되고 나가거나하면 오류가 발생함
             }
 
             override fun onConnectionResult(
@@ -138,8 +137,7 @@ class NearByRepository @Inject constructor(
         }
 
         awaitClose { // 모든 동작을 취소함
-            // TODO: 화면 이동 시 해당 플로우가 안 닫히는 경우 발생
-            connectionClient.stopAllEndpoints()
+            connectionClient.stopDiscovery()
         }
     }
 
@@ -209,7 +207,7 @@ class NearByRepository @Inject constructor(
         }
 
         awaitClose { // 모든 동작을 취소함
-            connectionClient.stopAllEndpoints()
+            connectionClient.disconnectFromEndpoint(endpointId)
         }
     }
 

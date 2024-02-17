@@ -6,13 +6,13 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class TimerCommunicateInfo(
-    val participantInfoList: List<ParticipantInfo?>,
-    val currentTime: Long,
-    val maxTime: Long,
-    val isStopWatch: Boolean,
-    val maxMember: Int,
-    val talkTopics: List<TalkTopicEntity>,
-    val timerActionState: TimerActionState
+    val participantInfoList: List<ParticipantInfo?> = listOf(),
+    val currentTime: Long = -1L,
+    val maxTime: Long = -1L,
+    val isStopWatch: Boolean = false,
+    val maxMember: Int = -1,
+    val talkTopics: List<TalkTopicEntity> = listOf(),
+    val timerActionState: TimerActionState = TimerActionState.TimerWaiting
 )
 
 @Serializable

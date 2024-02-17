@@ -64,7 +64,6 @@ class StaticsViewModel @Inject constructor(
         val userEntity = _uiState.value.userEntity
 
         if (userEntity != null) {
-            // TODO: .fix 유저 퍼스널 컬러 불일치 버그
             val statics = getTalkStaticsUseCase(
                 currentUser = userEntity,
                 startTime = startTime,

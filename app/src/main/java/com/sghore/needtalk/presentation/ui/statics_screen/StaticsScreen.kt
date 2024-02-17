@@ -306,7 +306,7 @@ fun TopParticipants(
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
                         NameTag(
                             name = participantCount[index].userEntity.name,
-                            color = Color.Blue,
+                            color = Color(participantCount[index].userEntity.color),
                             interval = 6.dp,
                             colorSize = 20.dp,
                             textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)

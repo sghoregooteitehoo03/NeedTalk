@@ -240,7 +240,6 @@ fun OptionItem(
     }
 }
 
-// TODO: 레이아웃만 클릭 되게 끔
 @Composable
 fun OptionItemWithSwitch(
     modifier: Modifier = Modifier,
@@ -382,7 +381,6 @@ fun SetTimer(
 
 }
 
-// TODO: 클릭 효과 없애기, 레이아웃만 클릭 되게 끔
 @Composable
 fun SelectNumberOfPeople(
     modifier: Modifier = Modifier,

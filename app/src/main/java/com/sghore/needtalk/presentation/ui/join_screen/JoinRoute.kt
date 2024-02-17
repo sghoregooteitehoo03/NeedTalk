@@ -10,7 +10,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.domain.model.TimerInfo
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO: .fix 탐색도중 탐색이 완료된 시점에서 호스트가 사라져버리면 문제가 발생함
 @Composable
 fun JoinRoute(
     viewModel: JoinViewModel = hiltViewModel(),
