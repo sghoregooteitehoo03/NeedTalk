@@ -13,6 +13,25 @@ import com.sghore.needtalk.presentation.ui.theme.Sky
 import java.text.DecimalFormat
 import java.util.Calendar
 
+// time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
+fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
+    if (stepTime == 0L) {
+        return time
+    }
+
+    val decimal = time % stepTime
+    val necessaryValue = stepTime - decimal
+
+    return if (decimal == 0L) {
+        time
+    } else {
+        if (decimal > stepTime / 2000) {
+            time + necessaryValue
+        } else {
+            time - decimal
+        }
+    }
+}
 fun parseMinuteSecond(timeStamp: Long): String {
     return if (timeStamp >= 0L) {
         val decimalFormat = DecimalFormat("#00")

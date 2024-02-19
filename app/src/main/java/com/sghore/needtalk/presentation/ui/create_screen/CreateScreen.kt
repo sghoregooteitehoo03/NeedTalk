@@ -18,11 +18,9 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -59,6 +57,7 @@ import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.util.getTimerTimeByStep
 
 @Composable
 fun CreateScreen(
@@ -558,26 +557,6 @@ fun DialogAddTopic(
                     onDismiss()
                 }
             )
-        }
-    }
-}
-
-// time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
-private fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
-    if (stepTime == 0L) {
-        return time
-    }
-
-    val decimal = time % stepTime
-    val necessaryValue = stepTime - decimal
-
-    return if (decimal == 0L) {
-        time
-    } else {
-        if (decimal > stepTime / 2000) {
-            time + necessaryValue
-        } else {
-            time - decimal
         }
     }
 }

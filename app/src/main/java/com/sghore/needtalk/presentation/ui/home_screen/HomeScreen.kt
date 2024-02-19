@@ -30,6 +30,7 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +51,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.paging.LoadState
 import androidx.paging.compose.LazyPagingItems
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
@@ -116,18 +118,22 @@ fun HomeScreen(
                 }
             )
             pagingItems?.let { talkHistory ->
-                if (talkHistory.itemCount == 0) {
-                    TalkHistoryNotExist(modifier = Modifier.fillMaxSize())
-                } else {
-                    LazyColumn {
-                        items(talkHistory.itemCount) { index ->
-                            TalkHistoryItem(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(12.dp),
-                                owner = user,
-                                talkHistory = talkHistory[index]
-                            )
+                val isLoading by derivedStateOf { pagingItems.loadState.refresh is LoadState.Loading }
+
+                if (!isLoading) {
+                    if (talkHistory.itemCount == 0) {
+                        TalkHistoryNotExist(modifier = Modifier.fillMaxSize())
+                    } else {
+                        LazyColumn {
+                            items(talkHistory.itemCount) { index ->
+                                TalkHistoryItem(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    owner = user,
+                                    talkHistory = talkHistory[index]
+                                )
+                            }
                         }
                     }
                 }
@@ -142,7 +148,7 @@ fun HomeScreen(
             },
             isStart = uiState.isStart,
             onClick = {
-                onEvent(HomeUiEvent.ClickStartAndClose)
+                onEvent(HomeUiEvent.ClickStartAndClose(false))
             })
 
         if (uiState.isStart) {
@@ -235,7 +241,7 @@ fun HomeScreen(
                 },
             text = "시작하기",
             isExpanded = !uiState.isStart,
-            onClick = { onEvent(HomeUiEvent.ClickStartAndClose) }
+            onClick = { onEvent(HomeUiEvent.ClickStartAndClose(true)) }
         )
     }
 }

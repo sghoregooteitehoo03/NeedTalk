@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.home_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import androidx.paging.cachedIn
 import com.sghore.needtalk.domain.usecase.GetPagingTalkHistoryUseCase
 import com.sghore.needtalk.domain.usecase.InitUserEntityUseCase
 import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
@@ -25,7 +26,7 @@ class HomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private var _uiState = MutableStateFlow(
-        HomeUiState(talkHistory = getPagingTalkHistoryUseCase())
+        HomeUiState(talkHistory = getPagingTalkHistoryUseCase().cachedIn(viewModelScope))
     )
     private val _uiEvent = MutableSharedFlow<HomeUiEvent>()
 

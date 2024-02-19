@@ -57,6 +57,7 @@ import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.getFirstTime
 import com.sghore.needtalk.util.getLastTime
 import com.sghore.needtalk.util.getRandomColor
+import com.sghore.needtalk.util.getTimerTimeByStep
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -481,7 +482,7 @@ fun BarChart(
     val maxDataValue by remember(data) {
         mutableLongStateOf(
             if (data.max() == 0L) 1500000L
-            else data.max()
+            else getTimerTimeByStep(data.max(), 300000)
         )
     }
     val day = remember { listOf("일", "월", "화", "수", "목", "금", "토") }

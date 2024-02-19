@@ -9,7 +9,7 @@ sealed interface HomeUiEvent {
 
     data object SuccessUpdateUserName : HomeUiEvent
 
-    data object ClickStartAndClose : HomeUiEvent
+    data class ClickStartAndClose(val isStart: Boolean) : HomeUiEvent
 
     data object ClickCreate : HomeUiEvent
 
