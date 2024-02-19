@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
@@ -29,11 +30,12 @@ import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
@@ -239,7 +241,6 @@ class HostTimerService : LifecycleService() {
             }
         }
 
-    // TODO: .fix 포그라운드로 실행 시 타이머가 느려지는 경우 버그 확인
     fun startForegroundService() {
         val actionPendingIntent = PendingIntent.getActivity(
             applicationContext,
@@ -253,7 +254,7 @@ class HostTimerService : LifecycleService() {
         )
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
-                .setAutoCancel(false)
+                .setAutoCancel(true)
                 .setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
@@ -263,8 +264,6 @@ class HostTimerService : LifecycleService() {
                 baseNotification
                     ?.setContentTitle("인원 대기 중")
                     ?.setContentText("인원이 모일 때 가지 잠시 기다려주세요.")
-
-                startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
             }
 
             is TimerActionState.TimerReady -> {
@@ -274,16 +273,12 @@ class HostTimerService : LifecycleService() {
                         "모든 사용자가 휴대폰을 내려놓으면\n" +
                                 "타이머가 시작됩니다."
                     )
-
-                startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
             }
 
             is TimerActionState.TimerRunning -> {
                 baseNotification
                     ?.setContentTitle("대화에 집중하고 있습니다.")
                     ?.setContentText(parseMinuteSecond(timerCmInfo.value.currentTime))
-
-                startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
             }
 
             is TimerActionState.TimerStop -> {
@@ -293,16 +288,18 @@ class HostTimerService : LifecycleService() {
                         parseMinuteSecond(timerCmInfo.value.currentTime) +
                                 " (일시 정지)"
                     )
-
-                startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
             }
 
             else -> {}
         }
+
+        startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
     }
 
     fun stopForegroundService() {
         if (baseNotification != null) {
+            notificationManager.cancel(Constants.NOTIFICATION_ID_TIMER)
+
             baseNotification = null
             stopForeground(STOP_FOREGROUND_REMOVE)
         }
@@ -388,32 +385,47 @@ class HostTimerService : LifecycleService() {
         )
     }
 
-    private fun timerStart(
+    private fun timerStartOrResume(
         startTime: Long,
         onUpdateTime: (Long) -> Unit,
         isStopwatch: Boolean
     ) {
         timerJob?.cancel()
-        timerJob = lifecycleScope.launch {
-            var time = startTime
-            if (isStopwatch) {
-                while (true) {
-                    delay(1000)
+        timerJob =
+            lifecycleScope.launch(context = Dispatchers.Default) {
+                var time = startTime
+                var oldTimeMills = System.currentTimeMillis()
 
-                    time += 1000L
-                    onUpdateTime(time)
-                }
-            } else {
-                while (time > 0L) {
-                    delay(1000)
+                if (isStopwatch) {
+                    while (true) {
+                        if (!isActive)
+                            break
 
-                    time -= 1000L
-                    onUpdateTime(time)
+                        val delayMills = System.currentTimeMillis() - oldTimeMills
+                        if (delayMills >= 1000L) {
+                            time += 1000
+                            oldTimeMills = System.currentTimeMillis()
+
+                            Log.i("CheckTime", "time: $time")
+                            onUpdateTime(time)
+                        }
+                    }
+                } else {
+                    while (time > 0L) {
+                        if (!isActive)
+                            break
+
+                        val delayMills = System.currentTimeMillis() - oldTimeMills
+                        if (delayMills >= 1000L) {
+                            time -= 1000
+                            oldTimeMills = System.currentTimeMillis()
+
+                            Log.i("CheckTime", "time: $time")
+                            onUpdateTime(time)
+                        }
+                    }
                 }
             }
-
-            timerJob = null // 동작이 끝이 나면
-        }
     }
 
     private fun timerPause() {
@@ -500,18 +512,14 @@ class HostTimerService : LifecycleService() {
                 it.copy(timerActionState = timerActionState)
             }
 
-            timerStart(
+            timerStartOrResume(
                 startTime = timerCmInfo.value.currentTime,
                 onUpdateTime = { updateTime ->
                     if (updateTime != 0L) { // 타이머 동작 중
-                        // foreground로 동작 시 알림 업데이트
-                        onNotifyUpdate(
-                            parseMinuteSecond(
-                                updateTime
-                            )
-                        )
-
                         timerCmInfo.update { it.copy(currentTime = updateTime) }
+
+                        // foreground로 동작 시 알림 업데이트
+                        onNotifyUpdate(parseMinuteSecond(updateTime))
                     } else {
                         // 타이머 동작이 끝이난 경우
                         timerCmInfo.update {
@@ -522,9 +530,7 @@ class HostTimerService : LifecycleService() {
                         }
 
                         onNotifyFinished() // foreground로 동작 시 알림 업데이트
-
-                        // 모든 동작 정지
-                        stopSensor()
+                        stopSensor() // 모든 동작 정지
                     }
                 },
                 isStopwatch = isStopwatch
@@ -550,12 +556,12 @@ class HostTimerService : LifecycleService() {
     private fun onNotifyUpdate(
         contentText: String
     ) {
-        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
-            baseNotification?.setContentText(contentText)
-
+        // foreground로 동작 시 알림 업데이트
+        val updateNotification = baseNotification?.setContentText(contentText)?.build()
+        if (updateNotification != null) {
             notificationManager.notify(
                 Constants.NOTIFICATION_ID_TIMER,
-                baseNotification?.build()
+                updateNotification
             )
         }
     }

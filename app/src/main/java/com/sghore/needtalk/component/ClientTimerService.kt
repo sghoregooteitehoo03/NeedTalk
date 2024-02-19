@@ -28,11 +28,12 @@ import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
@@ -186,7 +187,7 @@ class ClientTimerService : LifecycleService() {
         )
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
-                .setAutoCancel(false)
+                .setAutoCancel(true)
                 .setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
@@ -236,6 +237,8 @@ class ClientTimerService : LifecycleService() {
 
     fun stopForegroundService() {
         if (baseNotification != null) {
+            notificationManager.cancel(Constants.NOTIFICATION_ID_TIMER)
+
             baseNotification = null
             stopForeground(STOP_FOREGROUND_REMOVE)
         }
@@ -320,31 +323,45 @@ class ClientTimerService : LifecycleService() {
         )
     }
 
-    private fun timerStart(
+    private fun timerStartOrResume(
         startTime: Long,
         onUpdateTime: (Long) -> Unit,
         isStopwatch: Boolean
     ) {
-        timerJob = lifecycleScope.launch {
-            var time = startTime
-            if (isStopwatch) {
-                while (true) {
-                    delay(1000)
+        timerJob?.cancel()
+        timerJob =
+            lifecycleScope.launch(context = Dispatchers.Default) {
+                var time = startTime
+                var oldTimeMills = System.currentTimeMillis()
 
-                    time += 1000L
-                    onUpdateTime(time)
-                }
-            } else {
-                while (time > 0L) {
-                    delay(1000)
+                if (isStopwatch) {
+                    while (true) {
+                        if (!isActive)
+                            break
 
-                    time -= 1000L
-                    onUpdateTime(time)
+                        val delayMills = System.currentTimeMillis() - oldTimeMills
+                        if (delayMills >= 1000L) {
+                            time += 1000
+                            oldTimeMills = System.currentTimeMillis()
+
+                            onUpdateTime(time)
+                        }
+                    }
+                } else {
+                    while (time > 0L) {
+                        if (!isActive)
+                            break
+
+                        val delayMills = System.currentTimeMillis() - oldTimeMills
+                        if (delayMills >= 1000L) {
+                            time -= 1000
+                            oldTimeMills = System.currentTimeMillis()
+
+                            onUpdateTime(time)
+                        }
+                    }
                 }
             }
-
-            timerJob = null // 동작이 끝이 나면
-        }
     }
 
     private fun timerPause() {
@@ -369,7 +386,7 @@ class ClientTimerService : LifecycleService() {
             }
 
             is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
-                timerStart(
+                timerStartOrResume(
                     startTime = timerCmInfo.value.currentTime,
                     onUpdateTime = { updateTime ->
                         if (updateTime != 0L) { // 타이머 동작 중
@@ -410,12 +427,12 @@ class ClientTimerService : LifecycleService() {
     private fun onNotifyUpdate(
         contentText: String
     ) {
-        if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
-            baseNotification?.setContentText(contentText)
-
+        // foreground로 동작 시 알림 업데이트
+        val updateNotification = baseNotification?.setContentText(contentText)?.build()
+        if (updateNotification != null) {
             notificationManager.notify(
                 Constants.NOTIFICATION_ID_TIMER,
-                baseNotification?.build()
+                updateNotification
             )
         }
     }

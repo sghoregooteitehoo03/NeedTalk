@@ -53,16 +53,18 @@
 
         <service
             android:name=".component.HostTimerService"
+            android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
         <service
             android:name=".component.ClientTimerService"
+            android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="connectedDevice" />
 
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-7835153855071596~5154318787"/>
+            android:value="ca-app-pub-7835153855071596~5154318787" />
     </application>
 
 </manifest>
