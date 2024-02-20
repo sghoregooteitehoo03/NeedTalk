@@ -156,9 +156,11 @@ fun ClientTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
-                            viewModel.saveTalkHistory {
-                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
-                                    .show()
+                            if (!dialogScreen.isReject) {
+                                viewModel.saveTalkHistory {
+                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                        .show()
+                                }
                             }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)

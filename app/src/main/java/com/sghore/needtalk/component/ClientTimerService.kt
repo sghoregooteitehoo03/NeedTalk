@@ -121,7 +121,8 @@ class ClientTimerService : LifecycleService() {
                                     onOpenDialog(
                                         DialogScreen.DialogWarning(
                                             payloadType.rejectMessage,
-                                            isError = true
+                                            isError = true,
+                                            isReject = true
                                         )
                                     )
                                 }

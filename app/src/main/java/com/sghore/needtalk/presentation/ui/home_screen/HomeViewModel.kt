@@ -25,6 +25,7 @@ class HomeViewModel @Inject constructor(
     getPagingTalkHistoryUseCase: GetPagingTalkHistoryUseCase
 ) : ViewModel() {
 
+    // TODO: 대화 기록 업데이트 안됨
     private var _uiState = MutableStateFlow(
         HomeUiState(talkHistory = getPagingTalkHistoryUseCase().cachedIn(viewModelScope))
     )

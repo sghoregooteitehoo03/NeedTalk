@@ -265,7 +265,6 @@ fun TalkHistoryItem(
                 style = MaterialTheme.typography.subtitle1.copy(color = colorResource(id = R.color.gray))
             )
             Spacer(modifier = Modifier.height(14.dp))
-            // TODO: 텍스트 형식 바꾸기
             Text(
                 text = SimpleDateFormat(
                     "HH:mm:ss",

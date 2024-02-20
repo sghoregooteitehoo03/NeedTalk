@@ -165,9 +165,7 @@ class NearByRepository @Inject constructor(
                 ).addOnFailureListener {
                     it.printStackTrace()
                     trySend(
-                        ClientEvent.ClientConnectionFailure(
-                            "연결 과정에서 오류가 발생하였습니다."
-                        )
+                        ClientEvent.ClientConnectionFailure("연결 과정에서 오류가 발생하였습니다.")
                     )
                 }
             }

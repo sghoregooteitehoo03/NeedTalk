@@ -15,6 +15,11 @@ sealed interface DialogScreen {
 
     data object DialogAddTopic : DialogScreen
 
-    data class DialogWarning(val message: String, val isError: Boolean = false) : DialogScreen
+    data class DialogWarning(
+        val message: String,
+        val isError: Boolean = false,
+        val isReject: Boolean = false
+    ) : DialogScreen
+
     data object DialogTimerReady : DialogScreen
 }

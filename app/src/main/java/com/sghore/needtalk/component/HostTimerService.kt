@@ -41,6 +41,7 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
+// TODO: 백그라운드 서비스 앱이 내려갔을 경우에만 동작되게 구현
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -178,7 +179,7 @@ class HostTimerService : LifecycleService() {
                                     } else if (currentInfo.timerActionState != TimerActionState.TimerWaiting) {
                                         // 타이머가 시작이 된 상태에서 참가요청이 온 경우
                                         sendRejectMessage(
-                                            rejectMessage = "대화가 이미 시작되었습니다.",
+                                            rejectMessage = "대화가 이미 진행 중 입니다.",
                                             endpointId = event.endpointId,
                                             onFailure = {}
                                         )
