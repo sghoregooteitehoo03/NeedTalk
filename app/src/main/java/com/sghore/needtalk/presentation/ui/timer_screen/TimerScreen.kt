@@ -44,7 +44,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.holix.android.bottomsheetdialog.compose.BottomSheetBehaviorProperties
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialogProperties
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantInfo
@@ -63,7 +65,7 @@ fun TimerScreen(
     isHost: Boolean
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
-        if (uiState.timerCommunicateInfo != null) {
+        if (uiState.timerCommunicateInfo.participantInfoList.isNotEmpty()) {
             Spacer(modifier = Modifier.height(32.dp))
             ConstraintLayout(
                 modifier = Modifier
@@ -113,7 +115,7 @@ fun TimerScreen(
                         )
                     }
 
-                    is TimerActionState.TimerStop, is TimerActionState.StopWatchStop -> {
+                    is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
                         TimerExplain(
                             modifier = Modifier.constrainAs(explainText) {
                                 start.linkTo(parent.start)
@@ -156,7 +158,7 @@ fun TimerScreen(
                             )
                         }
 
-                        is TimerActionState.StopWatchStop -> {
+                        is TimerActionState.StopWatchPause -> {
                             if (state.isFinished) {
                                 RoundedButton(
                                     modifier = Modifier.width(110.dp),
@@ -178,7 +180,7 @@ fun TimerScreen(
                             }
                         }
 
-                        is TimerActionState.TimerWaiting, TimerActionState.TimerStop -> {
+                        is TimerActionState.TimerWaiting, TimerActionState.TimerPause -> {
                             RoundedButton(
                                 modifier = Modifier.width(110.dp),
                                 text = "나가기",
@@ -309,7 +311,6 @@ fun GroupMember(
     }
 }
 
-// TODO: 프로그래스 움직이는 애니메이션 구현
 @Composable
 fun TimerContent(
     modifier: Modifier = Modifier,
@@ -475,9 +476,15 @@ fun WarningDialog(
     negativeButtonText: String = "",
     onPossibleClick: () -> Unit,
     onNegativeClick: () -> Unit = {},
+    isError: Boolean = false,
     onDismiss: () -> Unit
 ) {
-    BottomSheetDialog(onDismissRequest = onDismiss) {
+    BottomSheetDialog(
+        onDismissRequest = onDismiss,
+        properties = BottomSheetDialogProperties(
+            behaviorProperties = BottomSheetBehaviorProperties(isDraggable = !isError)
+        )
+    ) {
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally
@@ -535,7 +542,12 @@ fun WarningDialog(
 fun TimerReadyDialog(
     modifier: Modifier
 ) {
-    BottomSheetDialog(onDismissRequest = {}) {
+    BottomSheetDialog(
+        onDismissRequest = {},
+        properties = BottomSheetDialogProperties(
+            behaviorProperties = BottomSheetBehaviorProperties(isDraggable = false)
+        )
+    ) {
         Column(
             modifier = modifier,
             horizontalAlignment = Alignment.CenterHorizontally

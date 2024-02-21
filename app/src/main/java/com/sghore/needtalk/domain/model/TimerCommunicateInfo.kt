@@ -26,16 +26,16 @@ sealed interface TimerActionState {
     data object TimerReady : TimerActionState
 
     @Serializable
-    @SerialName("TimerStop")
-    data object TimerStop : TimerActionState
+    @SerialName("TimerPause")
+    data object TimerPause : TimerActionState
 
     @Serializable
     @SerialName("TimerRunning")
     data object TimerRunning : TimerActionState
 
     @Serializable
-    @SerialName("StopWatchStop")
-    data class StopWatchStop(val isFinished: Boolean) : TimerActionState
+    @SerialName("StopWatchPause")
+    data class StopWatchPause(val isFinished: Boolean) : TimerActionState
 
     @Serializable
     @SerialName("StopWatchRunning")

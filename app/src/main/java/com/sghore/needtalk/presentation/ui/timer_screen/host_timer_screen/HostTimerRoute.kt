@@ -92,8 +92,8 @@ fun HostTimerRoute(
                                         "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
 
                                     is TimerActionState.TimerRunning,
-                                    is TimerActionState.TimerStop,
-                                    is TimerActionState.StopWatchStop ->
+                                    is TimerActionState.TimerPause,
+                                    is TimerActionState.StopWatchPause ->
                                         "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
 
                                     else -> ""
@@ -128,6 +128,8 @@ fun HostTimerRoute(
                                     Toast.makeText(context, it, Toast.LENGTH_SHORT)
                                         .show()
                                 }
+
+                                service = null
                                 navigateUp()
                             }
                         }
@@ -171,8 +173,11 @@ fun HostTimerRoute(
                             }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+
+                            service = null
                             navigateUp()
                         },
+                        isError = true,
                         onDismiss = {}
                     )
                 } else {
@@ -193,6 +198,8 @@ fun HostTimerRoute(
                             }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+
+                            service = null
                             navigateUp()
                         },
                         negativeButtonText = "취소",

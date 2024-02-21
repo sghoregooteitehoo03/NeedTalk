@@ -221,6 +221,10 @@ class NearByRepository @Inject constructor(
             }
     }
 
+    fun stopAdvertising() {
+        connectionClient.stopAdvertising()
+    }
+
     fun disconnectOther(endpointId: String) {
         connectionClient.disconnectFromEndpoint(endpointId)
     }

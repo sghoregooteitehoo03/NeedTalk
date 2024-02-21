@@ -40,7 +40,7 @@ class MainActivity : ComponentActivity() {
                         result[Manifest.permission.POST_NOTIFICATIONS] == false ||
                         result[Manifest.permission.NEARBY_WIFI_DEVICES] == false
                     ) {
-                        Toast.makeText(this, "권한이 모두 허용해주세요.", Toast.LENGTH_SHORT)
+                        Toast.makeText(this, "권한을 모두 허용해주세요.", Toast.LENGTH_SHORT)
                             .show()
                         finish()
                     }

@@ -19,6 +19,10 @@ class StopAllConnectionUseCase @Inject constructor(
             is StopCase.StopDiscovery -> {
                 nearByRepository.stopDiscovery()
             }
+
+            is StopCase.StopAdvertising -> {
+                nearByRepository.stopAdvertising()
+            }
         }
     }
 }
@@ -27,4 +31,6 @@ sealed interface StopCase {
     data class DisconnectOther(val endpointId: String) : StopCase
     data object StopConnections : StopCase
     data object StopDiscovery : StopCase
+
+    data object StopAdvertising : StopCase
 }

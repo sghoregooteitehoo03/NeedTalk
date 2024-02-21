@@ -14,6 +14,7 @@ import com.sghore.needtalk.domain.model.TalkStatics
 import kotlinx.coroutines.flow.first
 import java.util.Calendar
 import javax.inject.Inject
+import kotlin.math.roundToInt
 
 class TalkRepository @Inject constructor(
     private val dao: TalkDao
@@ -92,7 +93,7 @@ class TalkRepository @Inject constructor(
                 if (it == 0)
                     0f
                 else
-                    (it.toFloat() / talkHistory.size) * 100
+                    ((it.toFloat() / talkHistory.size) * 100).roundToInt().toFloat()
             }
         )
     }

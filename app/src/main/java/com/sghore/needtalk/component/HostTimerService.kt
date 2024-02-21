@@ -3,6 +3,7 @@ package com.sghore.needtalk.component
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Intent
+import android.content.pm.ServiceInfo
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener2
@@ -14,6 +15,7 @@ import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
 import androidx.core.app.NotificationCompat
+import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sghore.needtalk.R
@@ -25,6 +27,7 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
+import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
@@ -41,7 +44,7 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO: 백그라운드 서비스 앱이 내려갔을 경우에만 동작되게 구현
+// TODO: .fix 포그라운드 서비스 멈추는 경우 발생
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -259,6 +262,7 @@ class HostTimerService : LifecycleService() {
                 .setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
 
         when (timerCmInfo.value.timerActionState) {
             is TimerActionState.TimerWaiting -> {
@@ -276,13 +280,13 @@ class HostTimerService : LifecycleService() {
                     )
             }
 
-            is TimerActionState.TimerRunning -> {
+            is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                 baseNotification
                     ?.setContentTitle("대화에 집중하고 있습니다.")
                     ?.setContentText(parseMinuteSecond(timerCmInfo.value.currentTime))
             }
 
-            is TimerActionState.TimerStop -> {
+            is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
                 baseNotification
                     ?.setContentTitle("대화에 집중하고 있습니다.")
                     ?.setContentText(
@@ -294,7 +298,16 @@ class HostTimerService : LifecycleService() {
             else -> {}
         }
 
-        startForeground(Constants.NOTIFICATION_ID_TIMER, baseNotification!!.build())
+        ServiceCompat.startForeground(
+            this,
+            Constants.NOTIFICATION_ID_TIMER,
+            baseNotification!!.build(),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+            } else {
+                0
+            }
+        )
     }
 
     fun stopForegroundService() {
@@ -302,7 +315,7 @@ class HostTimerService : LifecycleService() {
             notificationManager.cancel(Constants.NOTIFICATION_ID_TIMER)
 
             baseNotification = null
-            stopForeground(STOP_FOREGROUND_REMOVE)
+            ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
 
@@ -319,6 +332,8 @@ class HostTimerService : LifecycleService() {
         )
 
         onOpenDialog(DialogScreen.DialogTimerReady)
+
+        stopAllConnectionUseCase(StopCase.StopAdvertising)
         startSensor(onReady = { onOpenDialog(DialogScreen.DialogDismiss) })
     }
 
@@ -541,8 +556,8 @@ class HostTimerService : LifecycleService() {
         ) {
             val timerActionState = if (isStopwatch) {
                 val isFinished = timerCmInfo.value.currentTime >= 60000
-                TimerActionState.StopWatchStop(isFinished = isFinished)
-            } else TimerActionState.TimerStop
+                TimerActionState.StopWatchPause(isFinished = isFinished)
+            } else TimerActionState.TimerPause
 
             timerCmInfo.update { it.copy(timerActionState = timerActionState) }
 
@@ -558,7 +573,11 @@ class HostTimerService : LifecycleService() {
         contentText: String
     ) {
         // foreground로 동작 시 알림 업데이트
-        val updateNotification = baseNotification?.setContentText(contentText)?.build()
+        val updateNotification = baseNotification
+            ?.setContentTitle("대화에 집중하고 있습니다.")
+            ?.setContentText(contentText)
+            ?.build()
+
         if (updateNotification != null) {
             notificationManager.notify(
                 Constants.NOTIFICATION_ID_TIMER,

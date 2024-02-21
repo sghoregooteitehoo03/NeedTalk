@@ -10,6 +10,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.domain.model.TimerInfo
 import kotlinx.coroutines.flow.collectLatest
 
+// TODO: fix. 여럿이서 참가하기 눌렀을 때 오류 발생
 @Composable
 fun JoinRoute(
     viewModel: JoinViewModel = hiltViewModel(),
