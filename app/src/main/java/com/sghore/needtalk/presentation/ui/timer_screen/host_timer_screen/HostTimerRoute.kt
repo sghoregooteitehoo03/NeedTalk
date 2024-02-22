@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -52,43 +53,48 @@ fun HostTimerRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var service: HostTimerService? by remember { mutableStateOf(null) }
 
-    val connection = object : ServiceConnection {
-        override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
-            service = (binder as HostTimerService.LocalBinder).getService()
-            service?.startAdvertising(
-                initTimerCmInfo = uiState.timerCommunicateInfo,
-                onOpenDialog = viewModel::setDialogScreen,
-                onError = {}
-            )
-        }
+    val connection = remember {
+        object : ServiceConnection {
+            override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
+                service = (binder as HostTimerService.LocalBinder).getService()
+                service?.startAdvertising(
+                    initTimerCmInfo = uiState.timerCommunicateInfo,
+                    onOpenDialog = viewModel::setDialogScreen,
+                    onError = {}
+                )
+            }
 
-        override fun onServiceDisconnected(className: ComponentName?) {
-            service = null
-        }
-    }
-    val sensorListener = object : SensorEventListener2 {
-        override fun onSensorChanged(event: SensorEvent?) {
-            val eventZ = event?.values?.get(2) ?: 0f
-            val timerActionState = uiState.timerCommunicateInfo.timerActionState
-
-            // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
-            if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
-                if (timerActionState is TimerActionState.TimerReady) {
-                    viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                }
-
-                vibrate(context)
-                service?.deviceFlip(true)
-                viewModel.flipState(true)
-            } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
-                service?.deviceFlip(false)
-                viewModel.flipState(false)
+            override fun onServiceDisconnected(className: ComponentName?) {
+                service = null
             }
         }
+    }
+    val sensorListener = remember {
+        object : SensorEventListener2 {
+            override fun onSensorChanged(event: SensorEvent?) {
+                val eventZ = event?.values?.get(2) ?: 0f
+                val timerActionState = uiState.timerCommunicateInfo.timerActionState
+                Log.i("Check", "$eventZ")
 
-        override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+                // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
+                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
+                    if (timerActionState is TimerActionState.TimerReady) {
+                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                    }
 
-        override fun onFlushCompleted(p0: Sensor?) {}
+                    vibrate(context)
+                    service?.deviceFlip(true)
+                    viewModel.flipState(true)
+                } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+                    service?.deviceFlip(false)
+                    viewModel.flipState(false)
+                }
+            }
+
+            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+
+            override fun onFlushCompleted(p0: Sensor?) {}
+        }
     }
 
     DisposableEffectWithLifeCycle(
@@ -110,7 +116,7 @@ fun HostTimerRoute(
         },
         onStop = {
             service?.startForegroundService()
-            stopSensor(context, sensorListener) // TODO: .fix 센서리스너 해제 안되는 버그
+            stopSensor(context, sensorListener)
         },
         onDispose = {
             stopService(context = context, connection = connection)
