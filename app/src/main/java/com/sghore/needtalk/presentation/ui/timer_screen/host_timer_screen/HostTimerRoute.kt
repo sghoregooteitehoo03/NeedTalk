@@ -72,24 +72,17 @@ fun HostTimerRoute(
             val timerActionState = uiState.timerCommunicateInfo.timerActionState
 
             // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
-            if (
-                eventZ > SensorManager.GRAVITY_EARTH * 0.95f &&
-                (timerActionState is TimerActionState.TimerPause ||
-                        timerActionState is TimerActionState.StopWatchPause ||
-                        timerActionState is TimerActionState.TimerReady)
-            ) {
+            if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
                 if (timerActionState is TimerActionState.TimerReady) {
                     viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                 }
 
                 vibrate(context)
                 service?.deviceFlip(true)
-            } else if (
-                eventZ < 7f &&
-                (timerActionState is TimerActionState.TimerRunning ||
-                        timerActionState is TimerActionState.StopWatchRunning)
-            ) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+                viewModel.flipState(true)
+            } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
                 service?.deviceFlip(false)
+                viewModel.flipState(false)
             }
         }
 
@@ -117,7 +110,7 @@ fun HostTimerRoute(
         },
         onStop = {
             service?.startForegroundService()
-            stopSensor(context, sensorListener)
+            stopSensor(context, sensorListener) // TODO: .fix 센서리스너 해제 안되는 버그
         },
         onDispose = {
             stopService(context = context, connection = connection)
@@ -187,6 +180,18 @@ fun HostTimerRoute(
 
             launch {
                 service?.timerCmInfo?.collectLatest {
+                    if (it.timerActionState is TimerActionState.TimerError) {
+                        service?.deviceFlip(false)
+                        stopSensor(context, sensorListener)
+
+                        viewModel.setDialogScreen(
+                            DialogScreen.DialogWarning(
+                                it.timerActionState.errorMsg,
+                                isError = true
+                            )
+                        )
+                    }
+
                     viewModel.updateTimerCommunicateInfo(it)
                 }
             }

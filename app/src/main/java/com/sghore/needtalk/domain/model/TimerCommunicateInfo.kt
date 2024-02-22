@@ -44,4 +44,8 @@ sealed interface TimerActionState {
     @Serializable
     @SerialName("TimerFinished")
     data object TimerFinished : TimerActionState
+
+    @Serializable
+    @SerialName("TimerError")
+    data class TimerError(val errorMsg: String) : TimerActionState
 }

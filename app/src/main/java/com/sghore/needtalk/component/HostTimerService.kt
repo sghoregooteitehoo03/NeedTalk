@@ -43,8 +43,6 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO: .fix 포그라운드 서비스 멈추는 경우 발생 O
-//  . 경고 다이얼로그 표시 시 센서 멈추게 구현
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -134,15 +132,14 @@ class HostTimerService : LifecycleService() {
                                     participantInfoList.size == 1
                                     && currentInfo.timerActionState != TimerActionState.TimerWaiting
                                 ) {
-                                    timerPause()
-
-                                    onOpenDialog(
-                                        DialogScreen.DialogWarning(
-                                            message = "참여하고 있는 인원이 존재하지 않아\n" +
-                                                    "타이머가 중단되었습니다.",
-                                            isError = true
+                                    timerCmInfo.update {
+                                        it.copy(
+                                            timerActionState = TimerActionState.TimerError(
+                                                errorMsg = "참여하고 있는 인원이 존재하지 않아\n" +
+                                                        "타이머가 중단되었습니다."
+                                            )
                                         )
-                                    )
+                                    }
                                 } else {
                                     // 지워진 정보를 업데이트 한 후 다른 기기들 갱신
                                     sendUpdateTimerCmInfo(

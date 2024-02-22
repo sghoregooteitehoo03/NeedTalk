@@ -9,5 +9,6 @@ data class TimerUiState(
     val timerCommunicateInfo: TimerCommunicateInfo = TimerCommunicateInfo(),
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss,
     val hostEndpointId: String = "",
-    val talkTopic: String = ""
+    val talkTopic: String = "",
+    val isFlip: Boolean = false
 )

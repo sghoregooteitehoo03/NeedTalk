@@ -85,6 +85,10 @@ class HostTimerViewModel @Inject constructor(
         }
     }
 
+    fun flipState(isFlip: Boolean) {
+        _uiState.update { it.copy(isFlip = isFlip) }
+    }
+
     // 참여한 인원들에 대한 정보를 저장함
     fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
