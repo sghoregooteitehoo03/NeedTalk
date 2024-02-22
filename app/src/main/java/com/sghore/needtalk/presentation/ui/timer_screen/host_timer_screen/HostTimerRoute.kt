@@ -4,7 +4,14 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
+import android.hardware.Sensor
+import android.hardware.SensorEvent
+import android.hardware.SensorEventListener2
+import android.hardware.SensorManager
+import android.os.Build
 import android.os.IBinder
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -59,6 +66,37 @@ fun HostTimerRoute(
             service = null
         }
     }
+    val sensorListener = object : SensorEventListener2 {
+        override fun onSensorChanged(event: SensorEvent?) {
+            val eventZ = event?.values?.get(2) ?: 0f
+            val timerActionState = uiState.timerCommunicateInfo.timerActionState
+
+            // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
+            if (
+                eventZ > SensorManager.GRAVITY_EARTH * 0.95f &&
+                (timerActionState is TimerActionState.TimerPause ||
+                        timerActionState is TimerActionState.StopWatchPause ||
+                        timerActionState is TimerActionState.TimerReady)
+            ) {
+                if (timerActionState is TimerActionState.TimerReady) {
+                    viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                }
+
+                vibrate(context)
+                service?.deviceFlip(true)
+            } else if (
+                eventZ < 7f &&
+                (timerActionState is TimerActionState.TimerRunning ||
+                        timerActionState is TimerActionState.StopWatchRunning)
+            ) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+                service?.deviceFlip(false)
+            }
+        }
+
+        override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+
+        override fun onFlushCompleted(p0: Sensor?) {}
+    }
 
     DisposableEffectWithLifeCycle(
         onCreate = {
@@ -68,10 +106,18 @@ fun HostTimerRoute(
             )
         },
         onResume = {
+            val timerActionState = uiState.timerCommunicateInfo.timerActionState
             service?.stopForegroundService()
+
+            if (timerActionState != TimerActionState.TimerWaiting
+                && timerActionState != TimerActionState.TimerFinished
+            ) {
+                startSensor(context, sensorListener)
+            }
         },
         onStop = {
             service?.startForegroundService()
+            stopSensor(context, sensorListener)
         },
         onDispose = {
             stopService(context = context, connection = connection)
@@ -109,7 +155,9 @@ fun HostTimerRoute(
                         is TimerUiEvent.ClickStart -> {
                             if (event.isEnabled) {
                                 viewModel.saveOtherUserData()
+
                                 service?.timerReady(onOpenDialog = viewModel::setDialogScreen)
+                                startSensor(context, sensorListener)
                             } else {
                                 showSnackBar("멤버가 모두 모이지 않았습니다.")
                             }
@@ -156,6 +204,8 @@ fun HostTimerRoute(
         when (val dialogScreen = uiState.dialogScreen) {
             is DialogScreen.DialogWarning -> {
                 if (dialogScreen.isError) {
+                    stopSensor(context, sensorListener)
+
                     WarningDialog(
                         modifier = Modifier
                             .background(
@@ -245,4 +295,35 @@ private fun startService(
 
 private fun stopService(context: Context, connection: ServiceConnection) {
     context.unbindService(connection)
+}
+
+private fun startSensor(context: Context, sensorListener: SensorEventListener2) {
+    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+
+    sensorManager.registerListener(
+        sensorListener,
+        sensor,
+        SensorManager.SENSOR_DELAY_NORMAL
+    )
+}
+
+private fun stopSensor(context: Context, sensorListener: SensorEventListener2) {
+    val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
+    val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
+
+    sensorManager.unregisterListener(
+        sensorListener,
+        sensor,
+    )
+}
+
+@Suppress("DEPRECATION")
+private fun vibrate(context: Context) {
+    val vibrator = context.getSystemService(Vibrator::class.java)
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+        vibrator.vibrate(VibrationEffect.createOneShot(200, 100))
+    } else {
+        vibrator.vibrate(200)
+    }
 }

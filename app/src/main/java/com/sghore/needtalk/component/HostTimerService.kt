@@ -1,18 +1,16 @@
 package com.sghore.needtalk.component
 
+import android.annotation.SuppressLint
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener2
 import android.hardware.SensorManager
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.os.VibrationEffect
-import android.os.Vibrator
+import android.os.PowerManager
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
@@ -33,6 +31,7 @@ import com.sghore.needtalk.presentation.ui.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -44,7 +43,8 @@ import kotlinx.serialization.json.Json
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO: .fix 포그라운드 서비스 멈추는 경우 발생
+// TODO: .fix 포그라운드 서비스 멈추는 경우 발생 O
+//  . 경고 다이얼로그 표시 시 센서 멈추게 구현
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -67,8 +67,8 @@ class HostTimerService : LifecycleService() {
 
     private var timerJob: Job? = null
     private var baseNotification: NotificationCompat.Builder? = null
-    private var sensorListener: SensorEventListener2? = null
     private var participantInfoIndex = 0
+    private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -76,13 +76,12 @@ class HostTimerService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        if (sensorListener != null) {
-            stopSensor()
-        }
         timerPause()
+        releaseWakeLock()
 
         super.onDestroy()
     }
+
 
     fun startAdvertising(
         initTimerCmInfo: TimerCommunicateInfo,
@@ -135,7 +134,6 @@ class HostTimerService : LifecycleService() {
                                     participantInfoList.size == 1
                                     && currentInfo.timerActionState != TimerActionState.TimerWaiting
                                 ) {
-                                    stopSensor()
                                     timerPause()
 
                                     onOpenDialog(
@@ -298,6 +296,7 @@ class HostTimerService : LifecycleService() {
             else -> {}
         }
 
+        acquireWakeLock()
         ServiceCompat.startForeground(
             this,
             Constants.NOTIFICATION_ID_TIMER,
@@ -334,70 +333,23 @@ class HostTimerService : LifecycleService() {
         onOpenDialog(DialogScreen.DialogTimerReady)
 
         stopAllConnectionUseCase(StopCase.StopAdvertising)
-        startSensor(onReady = { onOpenDialog(DialogScreen.DialogDismiss) })
     }
 
-    private fun startSensor(onReady: () -> Unit) {
-        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
-        sensorListener = object : SensorEventListener2 {
-            override fun onSensorChanged(event: SensorEvent?) {
-                val eventZ = event?.values?.get(2) ?: 0f
-                val participantInfo = timerCmInfo.value.participantInfoList[participantInfoIndex]
+    fun deviceFlip(isFlip: Boolean) {
+        val participantInfo = timerCmInfo.value.participantInfoList[participantInfoIndex]
+        val updateParticipantInfo = participantInfo?.copy(isReady = isFlip)
 
-                // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
-                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && participantInfo?.isReady != true) {
-                    val updateParticipantInfo = participantInfo?.copy(isReady = true)
-                    onReady()
-                    vibrate()
-
-                    timerCmInfo.update {
-                        it.copy(
-                            participantInfoList = it.participantInfoList.toMutableList()
-                                .apply { set(participantInfoIndex, updateParticipantInfo) }
-                        )
-                    }
-                    isAvailableTimerStart()
-
-                    sendUpdateTimerCmInfo(
-                        updateTimerCmInfo = timerCmInfo.value,
-                        onFailure = {}
-                    )
-                } else if (eventZ < 7f && participantInfo?.isReady == true) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
-                    val updateParticipantInfo = participantInfo.copy(isReady = false)
-                    timerCmInfo.update {
-                        it.copy(
-                            participantInfoList = timerCmInfo.value.participantInfoList.toMutableList()
-                                .apply { set(participantInfoIndex, updateParticipantInfo) }
-                        )
-                    }
-
-                    isAvailableTimerStart()
-
-                    sendUpdateTimerCmInfo(
-                        updateTimerCmInfo = timerCmInfo.value,
-                        onFailure = {}
-                    )
-                }
-            }
-
-            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
-
-            override fun onFlushCompleted(p0: Sensor?) {}
+        timerCmInfo.update {
+            it.copy(
+                participantInfoList = timerCmInfo.value.participantInfoList.toMutableList()
+                    .apply { set(participantInfoIndex, updateParticipantInfo) }
+            )
         }
+        isAvailableTimerStart()
 
-        sensorManager.registerListener(
-            sensorListener,
-            sensor,
-            SensorManager.SENSOR_DELAY_NORMAL
-        )
-    }
-
-    private fun stopSensor() {
-        val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
-
-        sensorManager.unregisterListener(
-            sensorListener,
-            sensor,
+        sendUpdateTimerCmInfo(
+            updateTimerCmInfo = timerCmInfo.value,
+            onFailure = {}
         )
     }
 
@@ -408,7 +360,7 @@ class HostTimerService : LifecycleService() {
     ) {
         timerJob?.cancel()
         timerJob =
-            lifecycleScope.launch(context = Dispatchers.Default) {
+            CoroutineScope(Dispatchers.IO).launch {
                 var time = startTime
                 var oldTimeMills = System.currentTimeMillis()
 
@@ -546,7 +498,6 @@ class HostTimerService : LifecycleService() {
                         }
 
                         onNotifyFinished() // foreground로 동작 시 알림 업데이트
-                        stopSensor() // 모든 동작 정지
                     }
                 },
                 isStopwatch = isStopwatch
@@ -621,13 +572,21 @@ class HostTimerService : LifecycleService() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    private fun vibrate() {
-        val vibrator = applicationContext.getSystemService(Vibrator::class.java)
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            vibrator.vibrate(VibrationEffect.createOneShot(200, 100))
-        } else {
-            vibrator.vibrate(200)
+    @SuppressLint("InvalidWakeLockTag")
+    private fun acquireWakeLock() {
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        wakeLock = powerManager.newWakeLock(
+            PowerManager.PARTIAL_WAKE_LOCK,
+            Constants.WAKE_LOCK_TAG
+        )
+        wakeLock?.acquire()
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.let {
+            if (it.isHeld) {
+                it.release()
+            }
         }
     }
 
