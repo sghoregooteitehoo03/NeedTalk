@@ -107,6 +107,7 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     // 타이머 끝났을 떄 취하는 동작
+    // TODO: .fix 타이머 동작 중 호스트가 끊기게 되면 유저 정보 저장되지 않는 버그 발견
     fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 

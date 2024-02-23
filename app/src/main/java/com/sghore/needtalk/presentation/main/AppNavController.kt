@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui
+package com.sghore.needtalk.presentation.main
 
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -15,6 +15,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
+import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
@@ -43,6 +44,8 @@ fun AppNavHost(
     ) {
         composable(UiScreen.HomeScreen.route) {
             HomeRoute(
+                isRefresh = gViewModel.getIsRefresh(),
+                setRefresh = gViewModel::setIsRefresh,
                 navigateToStaticsScreen = {
                     navigateToStaticsScreen(navController, gViewModel.getUserEntity())
                 },
@@ -106,6 +109,7 @@ fun AppNavHost(
         ) {
             HostTimerRoute(
                 navigateUp = {
+                    gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
                 },
                 showSnackBar = showSnackBar
@@ -121,6 +125,7 @@ fun AppNavHost(
         ) {
             ClientTimerRoute(
                 navigateUp = {
+                    gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
                 }
             )

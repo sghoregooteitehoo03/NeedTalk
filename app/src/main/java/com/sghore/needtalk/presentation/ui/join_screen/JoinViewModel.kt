@@ -10,6 +10,8 @@ import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.TimerInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.StartDiscoveryUseCase
+import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
+import com.sghore.needtalk.domain.usecase.StopCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.FlowPreview
 import kotlinx.coroutines.Job
@@ -31,6 +33,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class JoinViewModel @Inject constructor(
+    private val stopAllConnectionUseCase: StopAllConnectionUseCase,
     private val startDiscoveryUseCase: StartDiscoveryUseCase,
     private val connectToHostUseCase: ConnectToHostUseCase,
     savedStateHandle: SavedStateHandle
@@ -131,6 +134,9 @@ class JoinViewModel @Inject constructor(
                     when (event) {
                         // 상대에게 타이머의 정보가 넘어올 때
                         is ClientEvent.PayloadReceived -> {
+                            stopAllConnectionUseCase(StopCase.DisconnectOther(endpointId))
+                            delay(200)
+
                             val payloadTypeJson =
                                 event.payload.asBytes()?.toString(Charset.defaultCharset())
 

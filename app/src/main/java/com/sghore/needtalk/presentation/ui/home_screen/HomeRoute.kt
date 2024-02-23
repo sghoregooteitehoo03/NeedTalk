@@ -17,17 +17,19 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 
 @SuppressLint("HardwareIds")
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
+    isRefresh: Boolean,
+    setRefresh: (Boolean) -> Unit,
     navigateToStaticsScreen: () -> Unit,
     navigateToCreateScreen: () -> Unit,
     navigateToJoinScreen: () -> Unit,
@@ -35,40 +37,46 @@ fun HomeRoute(
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val pagingItems = uiState.talkHistory?.collectAsLazyPagingItems()
 
-    LaunchedEffect(key1 = viewModel.uiEvent) {
-        viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is HomeUiEvent.UpdateUserEntity -> {
-                    updateUserEntity(event.userEntity)
-                }
+    if (isRefresh) {
+        viewModel.refreshList()
+        setRefresh(false)
+    }
 
-                is HomeUiEvent.ClickNameTag -> {
-                    viewModel.setDialogScreen(DialogScreen.DialogSetName)
-                }
+    LaunchedEffect(viewModel.uiEvent) {
+        launch {
+            viewModel.uiEvent.collectLatest { event ->
+                when (event) {
+                    is HomeUiEvent.UpdateUserEntity -> {
+                        updateUserEntity(event.userEntity)
+                    }
 
-                is HomeUiEvent.ClickStatics -> {
-                    navigateToStaticsScreen()
-                }
+                    is HomeUiEvent.ClickNameTag -> {
+                        viewModel.setDialogScreen(DialogScreen.DialogSetName)
+                    }
 
-                is HomeUiEvent.ClickStartAndClose -> {
-                    viewModel.clickStartAndClose()
-                }
+                    is HomeUiEvent.ClickStatics -> {
+                        navigateToStaticsScreen()
+                    }
 
-                is HomeUiEvent.ClickCreate -> {
-                    viewModel.clickStartAndClose()
-                    navigateToCreateScreen()
-                }
+                    is HomeUiEvent.ClickStartAndClose -> {
+                        viewModel.clickStartAndClose()
+                    }
 
-                is HomeUiEvent.ClickJoin -> {
-                    viewModel.clickStartAndClose()
-                    navigateToJoinScreen()
-                }
+                    is HomeUiEvent.ClickCreate -> {
+                        viewModel.clickStartAndClose()
+                        navigateToCreateScreen()
+                    }
 
-                is HomeUiEvent.SuccessUpdateUserName -> {
-                    pagingItems?.refresh()
-                    viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                    is HomeUiEvent.ClickJoin -> {
+                        viewModel.clickStartAndClose()
+                        navigateToJoinScreen()
+                    }
+
+                    is HomeUiEvent.SuccessUpdateUserName -> {
+                        viewModel.refreshList()
+                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                    }
                 }
             }
         }
@@ -86,7 +94,6 @@ fun HomeRoute(
     Surface {
         HomeScreen(
             uiState = uiState,
-            pagingItems = pagingItems,
             onEvent = viewModel::handelEvent
         )
 

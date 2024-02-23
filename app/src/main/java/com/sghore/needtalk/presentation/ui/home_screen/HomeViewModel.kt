@@ -22,10 +22,9 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val initUserUseCase: InitUserEntityUseCase,
     private val insertUserUseCase: InsertUserEntityUseCase,
-    getPagingTalkHistoryUseCase: GetPagingTalkHistoryUseCase
+    private val getPagingTalkHistoryUseCase: GetPagingTalkHistoryUseCase
 ) : ViewModel() {
 
-    // TODO: 대화 기록 업데이트 안됨
     private var _uiState = MutableStateFlow(
         HomeUiState(talkHistory = getPagingTalkHistoryUseCase().cachedIn(viewModelScope))
     )
@@ -79,6 +78,13 @@ class HomeViewModel @Inject constructor(
         if (updateUserName.isNotEmpty() && user != null) {
             insertUserUseCase(user.copy(name = updateUserName))
             handelEvent(HomeUiEvent.SuccessUpdateUserName)
+        }
+    }
+
+    // 리스트 재구성
+    fun refreshList() {
+        _uiState.update {
+            it.copy(talkHistory = getPagingTalkHistoryUseCase().cachedIn(viewModelScope))
         }
     }
 }

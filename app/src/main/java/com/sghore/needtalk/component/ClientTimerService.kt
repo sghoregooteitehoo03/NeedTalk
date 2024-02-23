@@ -24,7 +24,7 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
-import com.sghore.needtalk.presentation.ui.MainActivity
+import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
@@ -169,7 +169,6 @@ class ClientTimerService : LifecycleService() {
             }
         }
 
-    // TODO: .fix 포그라운드로 실행 시 타이머가 느려지는 경우 버그 확인
     fun startForegroundService() {
         val actionPendingIntent = PendingIntent.getActivity(
             applicationContext,

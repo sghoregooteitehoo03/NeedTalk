@@ -52,7 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.paging.LoadState
-import androidx.paging.compose.LazyPagingItems
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TalkHistory
@@ -69,7 +69,6 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
-    pagingItems: LazyPagingItems<TalkHistory>?,
     onEvent: (HomeUiEvent) -> Unit
 ) {
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
@@ -84,6 +83,7 @@ fun HomeScreen(
                 end.linkTo(parent.end)
                 bottom.linkTo(parent.bottom)
             }) {
+            val pagingItems = uiState.talkHistory?.collectAsLazyPagingItems()
             val user = uiState.user ?: UserEntity("", "", 0)
 
             TopBar(

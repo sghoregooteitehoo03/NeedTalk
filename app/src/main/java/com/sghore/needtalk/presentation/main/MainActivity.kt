@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui
+package com.sghore.needtalk.presentation.main
 
 import android.Manifest
 import android.app.NotificationChannel
@@ -18,6 +18,7 @@ import androidx.compose.material.rememberScaffoldState
 import androidx.compose.ui.Modifier
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.Constants
 import dagger.hilt.android.AndroidEntryPoint

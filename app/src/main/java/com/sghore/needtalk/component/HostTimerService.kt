@@ -27,7 +27,7 @@ import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
 import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
-import com.sghore.needtalk.presentation.ui.MainActivity
+import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
