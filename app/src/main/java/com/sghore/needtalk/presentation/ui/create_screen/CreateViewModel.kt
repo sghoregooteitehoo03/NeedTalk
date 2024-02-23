@@ -61,7 +61,10 @@ class CreateViewModel @Inject constructor(
         getTimerSettingUseCase { timerSettingEntity, talkTopicEntities ->
             val defaultTalkTopic = listOf(
                 TalkTopicEntity("여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?", 0L),
-                TalkTopicEntity("최근에 있었던 이슈들을 말해주세요.", 0L)
+                TalkTopicEntity("최근에 있었던 근황들을 말해주세요.", 0L),
+                TalkTopicEntity("요즘 즐겨듣는 노래가 무엇인가요?", 0L),
+                TalkTopicEntity("서로 같이 했던것들 중 가장 기억에 남는것이 무엇인가요?", 0L),
+                TalkTopicEntity("즐겨하고 있는 취미 생활을 말해주세요.", 0L)
             )
 
             if (timerSettingEntity != null) { // 저장된 데이터가 있다면
@@ -92,6 +95,12 @@ class CreateViewModel @Inject constructor(
         navigateToTimer: (TimerCommunicateInfo) -> Unit
     ) = viewModelScope.launch {
         val stateValue = _uiState.value
+
+        if (stateValue.talkTime == 0L) {
+            handelEvent(CreateUiEvent.ErrorMessage("0분 이상 대화 시간을 설정해주세요."))
+            return@launch
+        }
+
         val timerSetting = TimerSettingEntity(
             userId = stateValue.userEntity?.userId ?: "",
             talkTime = stateValue.talkTime,

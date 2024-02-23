@@ -107,8 +107,8 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     // 타이머 끝났을 떄 취하는 동작
-    // TODO: .fix 타이머 동작 중 호스트가 끊기게 되면 유저 정보 저장되지 않는 버그 발견
     fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
+        // TODO: .fix 타이머 동작 중 호스트가 끊기게 되면 유저 정보 저장되지 않는 버그 발견
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
         if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
@@ -118,14 +118,18 @@ class ClientTimerViewModel @Inject constructor(
                 updateTimerInfo.maxTime - updateTimerInfo.currentTime
 
             if (talkTime >= 60000) {
-                val talkHistory = TalkHistory(
-                    talkTime = talkTime,
-                    users = userList,
-                    createTimeStamp = System.currentTimeMillis()
-                )
+                if (userList.size > 1) {
+                    val talkHistory = TalkHistory(
+                        talkTime = talkTime,
+                        users = userList,
+                        createTimeStamp = System.currentTimeMillis()
+                    )
 
-                // 대화 정보를 저장함
-                insertTalkEntityUseCase(talkHistory)
+                    // 대화 정보를 저장함
+                    insertTalkEntityUseCase(talkHistory)
+                } else {
+                    showToastBar("대화 기록 저장 간 오류가 발생하였습니다.")
+                }
             } else {
                 showToastBar("1분 이하의 대화는 기록되지 않습니다.")
             }
