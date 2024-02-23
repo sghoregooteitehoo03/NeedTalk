@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -59,7 +58,6 @@ fun HostTimerRoute(
                 service = (binder as HostTimerService.LocalBinder).getService()
                 service?.startAdvertising(
                     initTimerCmInfo = uiState.timerCommunicateInfo,
-                    onOpenDialog = viewModel::setDialogScreen,
                     onError = {}
                 )
             }
@@ -74,7 +72,6 @@ fun HostTimerRoute(
             override fun onSensorChanged(event: SensorEvent?) {
                 val eventZ = event?.values?.get(2) ?: 0f
                 val timerActionState = uiState.timerCommunicateInfo.timerActionState
-                Log.i("Check", "$eventZ")
 
                 // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
                 if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
@@ -196,6 +193,8 @@ fun HostTimerRoute(
                                 isError = true
                             )
                         )
+                    } else if (it.timerActionState is TimerActionState.TimerFinished) {
+                        stopSensor(context, sensorListener)
                     }
 
                     viewModel.updateTimerCommunicateInfo(it)

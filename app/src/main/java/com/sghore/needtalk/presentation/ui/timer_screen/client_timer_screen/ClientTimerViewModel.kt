@@ -93,6 +93,10 @@ class ClientTimerViewModel @Inject constructor(
         }
     }
 
+    fun flipState(isFlip: Boolean) {
+        _uiState.update { it.copy(isFlip = isFlip) }
+    }
+
     private fun saveOtherUserData() = viewModelScope.launch {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
         userList = timerCmInfo.participantInfoList.map { it?.userEntity }

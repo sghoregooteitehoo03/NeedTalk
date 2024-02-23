@@ -83,7 +83,6 @@ class HostTimerService : LifecycleService() {
 
     fun startAdvertising(
         initTimerCmInfo: TimerCommunicateInfo,
-        onOpenDialog: (DialogScreen) -> Unit,
         onError: (String) -> Unit
     ) =
         lifecycleScope.launch {
@@ -485,8 +484,7 @@ class HostTimerService : LifecycleService() {
 
                         // foreground로 동작 시 알림 업데이트
                         onNotifyUpdate(parseMinuteSecond(updateTime))
-                    } else {
-                        // 타이머 동작이 끝이난 경우
+                    } else { // 타이머 동작이 끝이난 경우
                         timerCmInfo.update {
                             it.copy(
                                 currentTime = updateTime,
