@@ -237,8 +237,9 @@ class ClientTimerService : LifecycleService() {
     fun stopForegroundService() {
         if (baseNotification != null) {
             notificationManager.cancel(Constants.NOTIFICATION_ID_TIMER)
-
             baseNotification = null
+
+            releaseWakeLock()
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
@@ -405,7 +406,7 @@ class ClientTimerService : LifecycleService() {
         }
     }
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint("InvalidWakeLockTag", "WakelockTimeout")
     private fun acquireWakeLock() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(

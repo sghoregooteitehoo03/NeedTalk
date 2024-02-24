@@ -76,7 +76,6 @@ class HostTimerService : LifecycleService() {
     override fun onDestroy() {
         timerPause()
         releaseWakeLock()
-
         super.onDestroy()
     }
 
@@ -308,8 +307,9 @@ class HostTimerService : LifecycleService() {
     fun stopForegroundService() {
         if (baseNotification != null) {
             notificationManager.cancel(Constants.NOTIFICATION_ID_TIMER)
-
             baseNotification = null
+
+            releaseWakeLock()
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
@@ -567,7 +567,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
-    @SuppressLint("InvalidWakeLockTag")
+    @SuppressLint("InvalidWakeLockTag", "WakelockTimeout")
     private fun acquireWakeLock() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
         wakeLock = powerManager.newWakeLock(

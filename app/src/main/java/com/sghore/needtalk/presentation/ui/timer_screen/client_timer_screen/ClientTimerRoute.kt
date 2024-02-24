@@ -111,6 +111,7 @@ fun ClientTimerRoute(
 
             if (timerActionState != TimerActionState.TimerWaiting
                 && timerActionState != TimerActionState.TimerFinished
+                && timerActionState !is TimerActionState.TimerError
             ) {
                 startSensor(
                     context,
