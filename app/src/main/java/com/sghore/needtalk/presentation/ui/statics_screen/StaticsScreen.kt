@@ -653,7 +653,13 @@ fun BarChart(
                 val barHeight = if (data[it] == 0L) {
                     8f
                 } else {
-                    ((data[it].toFloat() / maxDataValue) * 191)
+                    val result = ((data[it].toFloat() / maxDataValue) * 191)
+
+                    if (result <= 8f) {
+                        result + 8f
+                    } else {
+                        result
+                    }
                 }
 
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {

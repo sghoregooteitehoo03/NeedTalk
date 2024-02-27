@@ -29,7 +29,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.Lifecycle
@@ -40,6 +39,7 @@ import com.google.android.gms.ads.AdView
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Red
+import com.sghore.needtalk.util.Constants
 
 @Composable
 fun DisposableEffectWithLifeCycle(
@@ -197,7 +197,7 @@ fun AdmobBanner(
         factory = { context ->
             AdView(context).apply {
                 setAdSize(adSize)
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                adUnitId = Constants.AD_BANNER_TEST_ID
 
                 loadAd(AdRequest.Builder().build())
             }
