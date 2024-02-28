@@ -153,11 +153,16 @@ class ClientTimerService : LifecycleService() {
                             timerCmInfo.update {
                                 it.copy(
                                     timerActionState = TimerActionState.TimerError(
-                                        errorMsg = "호스트와 연결이 끊어졌습니다.\n" +
-                                                "진행되고 있는 타이머는 중단됩니다."
+                                        errorMsg = "호스트와 연결이 끊어져\n" +
+                                                "타이머가 중단되었습니다."
                                     )
                                 )
                             }
+
+                            onNotifyWarning(
+                                title = "타이머가 중단되었습니다.",
+                                text = "호스트와 연결이 끊어져\n타이머가 중단되었습니다."
+                            )
                         }
                     }
 
@@ -183,6 +188,7 @@ class ClientTimerService : LifecycleService() {
         )
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
+                .setPriority(NotificationCompat.PRIORITY_LOW)
                 .setAutoCancel(true)
                 .setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
@@ -336,7 +342,10 @@ class ClientTimerService : LifecycleService() {
                                 )
                             }
 
-                            onNotifyFinished() // foreground로 동작 시 알림 업데이트
+                            onNotifyWarning(
+                                text = "대화 타이머가 끝났어요.",
+                                title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
+                            ) // foreground로 동작 시 알림 업데이트
                         }
                     },
                     isStopwatch = timerCmInfo.value.isStopWatch
@@ -372,7 +381,7 @@ class ClientTimerService : LifecycleService() {
         }
     }
 
-    private fun onNotifyFinished() {
+    private fun onNotifyWarning(title: String, text: String) {
         if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
             val actionPendingIntent = PendingIntent.getActivity(
                 applicationContext,
@@ -394,11 +403,11 @@ class ClientTimerService : LifecycleService() {
                     Constants.DEFAULT_NOTIFY_CHANNEL
                 )
                     .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentIntent(actionPendingIntent)
-                    .setVibrate(longArrayOf(1000, 2000, 3000, 4000))
-                    .setContentTitle("대화 타이머가 끝났어요.")
-                    .setContentText("즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다.")
+                    .setContentTitle(title)
+                    .setContentText(text)
 
             notificationManager.notify(
                 Constants.NOTIFICATION_ID_TIMER,

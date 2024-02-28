@@ -140,6 +140,11 @@ class HostTimerService : LifecycleService() {
                                             )
                                         )
                                     }
+
+                                    onNotifyWarning(
+                                        title = "타이머가 중단되었습니다.",
+                                        text = "참여하고 있는 인원이 존재하지 않아\n타이머가 중단되었습니다."
+                                    )
                                 } else {
                                     // 지워진 정보를 업데이트 한 후 다른 기기들 갱신
                                     sendUpdateTimerCmInfo(
@@ -329,8 +334,6 @@ class HostTimerService : LifecycleService() {
         )
 
         onOpenDialog(DialogScreen.DialogTimerReady)
-
-        stopAllConnectionUseCase(StopCase.StopAdvertising)
     }
 
     fun deviceFlip(isFlip: Boolean) {
@@ -494,7 +497,11 @@ class HostTimerService : LifecycleService() {
                             )
                         }
 
-                        onNotifyFinished() // foreground로 동작 시 알림 업데이트
+                        // foreground로 동작 시 알림 업데이트
+                        onNotifyWarning(
+                            text = "대화 타이머가 끝났어요.",
+                            title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
+                        )
                     }
                 },
                 isStopwatch = isStopwatch
@@ -534,7 +541,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
-    private fun onNotifyFinished() {
+    private fun onNotifyWarning(title: String, text: String) {
         if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
             val actionPendingIntent = PendingIntent.getActivity(
                 applicationContext,
@@ -556,11 +563,11 @@ class HostTimerService : LifecycleService() {
                     Constants.DEFAULT_NOTIFY_CHANNEL
                 )
                     .setAutoCancel(true)
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentIntent(actionPendingIntent)
-                    .setVibrate(longArrayOf(1000, 2000, 3000, 4000))
-                    .setContentTitle("대화 타이머가 끝났어요.")
-                    .setContentText("즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다.")
+                    .setContentTitle(title)
+                    .setContentText(text)
 
             notificationManager.notify(
                 Constants.NOTIFICATION_ID_TIMER,
