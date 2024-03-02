@@ -9,5 +9,5 @@ object Constants {
     const val NOTIFICATION_ID_TIMER = 1000
 
     const val AD_BANNER_TEST_ID = "ca-app-pub-3940256099942544/6300978111"
-    const val AD_BANNER_ID = "ca-app-pub-7835153855071596/7463134965"
+    const val AD_BANNER_ID = "ca-app-pub-7835153855071596/4861936054"
 }
