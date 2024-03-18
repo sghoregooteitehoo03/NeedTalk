@@ -1,6 +1,8 @@
 package com.sghore.needtalk.presentation.ui.create_screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -18,9 +20,11 @@ import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -43,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -94,93 +99,85 @@ fun CreateScreen(
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            item {
-                if (uiState.userEntity != null) {
-                    OptionLayout(optionTitle = "대화시간 설정") {
-                        SetTimer(
-                            currentTime = uiState.talkTime,
-                            onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
-                            isStopwatch = uiState.isStopwatch
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OptionItemWithSwitch(
-                            text = "스톱워치 모드",
-                            isChecked = uiState.isStopwatch,
-                            onCheckedChange = { isAllow ->
-                                onEvent(
-                                    CreateUiEvent.ClickStopWatchMode(
-                                        isAllow
-                                    )
-                                )
-                            }
-                        )
-                    }
-                    Divider(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = colorResource(id = R.color.light_gray),
-                        thickness = 8.dp
-                    )
-                    OptionLayout(optionTitle = "인원 수") {
-                        SelectNumberOfPeople(
-                            modifier = Modifier.fillMaxWidth(),
-                            numberOfPeople = uiState.numberOfPeople,
-                            onClickNumber = { number ->
-                                onEvent(
-                                    CreateUiEvent.ClickNumberOfPeople(
-                                        number
-                                    )
-                                )
-                            }
-                        )
-                    }
-                    Divider(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = colorResource(id = R.color.light_gray),
-                        thickness = 8.dp
-                    )
-                    Column {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        AdmobBanner(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .sizeIn(minHeight = 40.dp),
-                            adSize = AdSize.LARGE_BANNER
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-                    Divider(
-                        modifier = Modifier.fillMaxWidth(),
-                        color = colorResource(id = R.color.light_gray),
-                        thickness = 8.dp
-                    )
-                    Box {
-                        OptionLayout(
-                            modifier = Modifier.align(Alignment.CenterStart),
-                            optionTitle = "대화 주제"
-                        ) {}
-                        Icon(
-                            modifier = Modifier
-                                .padding(end = 14.dp)
-                                .clip(CircleShape)
-                                .size(20.dp)
-                                .align(Alignment.CenterEnd)
-                                .clickable { onEvent(CreateUiEvent.ClickAddTopic) },
-                            painter = painterResource(id = R.drawable.ic_add),
-                            contentDescription = "",
-                            tint = MaterialTheme.colors.onPrimary
-                        )
-                    }
-                }
-            }
 
-            items(uiState.talkTopics) { topic ->
-                TalkTopicItem(
-                    talkTopic = topic,
-                    onDeleteTopic = { onEvent(CreateUiEvent.ClickRemoveTopic(it)) }
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            if (uiState.userEntity != null) {
+                OptionLayout(optionTitle = "대화시간 설정") {
+                    SetTimer(
+                        currentTime = uiState.talkTime,
+                        onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                        isStopwatch = uiState.isStopwatch
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OptionItemWithSwitch(
+                        text = "스톱워치 모드",
+                        isChecked = uiState.isStopwatch,
+                        onCheckedChange = { isAllow ->
+                            onEvent(
+                                CreateUiEvent.ClickStopWatchMode(
+                                    isAllow
+                                )
+                            )
+                        }
+                    )
+                }
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colorResource(id = R.color.light_gray),
+                    thickness = 8.dp
+                )
+                OptionLayout(optionTitle = "인원 수") {
+                    SelectNumberOfPeople(
+                        modifier = Modifier.fillMaxWidth(),
+                        numberOfPeople = uiState.numberOfPeople,
+                        onClickNumber = { number ->
+                            onEvent(
+                                CreateUiEvent.ClickNumberOfPeople(
+                                    number
+                                )
+                            )
+                        }
+                    )
+                }
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colorResource(id = R.color.light_gray),
+                    thickness = 8.dp
+                )
+                Column {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    AdmobBanner(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .sizeIn(minHeight = 40.dp),
+                        adSize = AdSize.LARGE_BANNER
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                }
+                Divider(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = colorResource(id = R.color.light_gray),
+                    thickness = 8.dp
+                )
+                Box {
+                    OptionLayout(
+                        modifier = Modifier.align(Alignment.CenterStart),
+                        optionTitle = "대화 주제"
+                    ) {}
+                    Icon(
+                        modifier = Modifier
+                            .padding(end = 14.dp)
+                            .clip(CircleShape)
+                            .size(20.dp)
+                            .align(Alignment.CenterEnd)
+                            .clickable { onEvent(CreateUiEvent.ClickAddTopic) },
+                        painter = painterResource(id = R.drawable.ic_add),
+                        contentDescription = "",
+                        tint = MaterialTheme.colors.onPrimary
+                    )
+                }
+                TopicCategory(
+                    onClickCategory = {}
                 )
             }
         }
@@ -451,42 +448,93 @@ fun SelectNumberOfPeopleItem(
 }
 
 @Composable
-fun TalkTopicItem(
+fun TopicCategory(
     modifier: Modifier = Modifier,
-    talkTopic: TalkTopicEntity,
-    onDeleteTopic: (TalkTopicEntity) -> Unit
+    onClickCategory: (groupCode: Int) -> Unit
 ) {
-    Box(modifier = modifier.fillMaxWidth()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(54.dp)
-                .padding(start = 14.dp, end = 14.dp),
-        ) {
-            Text(
-                modifier = Modifier.align(Alignment.CenterStart),
-                text = talkTopic.topic,
-                style = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray)),
-                maxLines = 2
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(start = 14.dp, end = 14.dp)
+    ) {
+        Row {
+            TopicCategoryItem(
+                title = "친구",
+                backgroundImage = painterResource(id = R.drawable.freinds),
+                onClick = { onClickCategory(0) }
             )
-            if (talkTopic.createTime != 0L) {
-                Spacer(modifier = Modifier.width(14.dp))
-                Icon(
-                    modifier = Modifier
-                        .align(Alignment.CenterEnd)
-                        .clip(CircleShape)
-                        .size(20.dp)
-                        .clickable { onDeleteTopic(talkTopic) },
-                    painter = painterResource(id = R.drawable.ic_close),
-                    contentDescription = "",
-                    tint = colorResource(id = R.color.gray)
-                )
-            }
+            Spacer(modifier = Modifier.width(8.dp))
+            TopicCategoryItem(
+                title = "애인",
+                backgroundImage = painterResource(id = R.drawable.couple),
+                onClick = { onClickCategory(1) }
+            )
         }
-        Divider(
-            modifier = Modifier.align(Alignment.BottomStart),
-            color = colorResource(id = R.color.light_gray),
-            thickness = 2.dp
+        Spacer(modifier = Modifier.height(12.dp))
+        Row {
+            TopicCategoryItem(
+                title = "가족",
+                backgroundImage = painterResource(id = R.drawable.family),
+                onClick = { onClickCategory(2) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            TopicCategoryItem(
+                title = "밸런스게임",
+                backgroundImage = painterResource(id = R.drawable.small_talk),
+                onClick = { onClickCategory(3) }
+            )
+        }
+        Spacer(modifier = Modifier.height(12.dp))
+        Row {
+            TopicCategoryItem(
+                title = "스몰토크",
+                backgroundImage = painterResource(id = R.drawable.small_talk),
+                onClick = { onClickCategory(4) }
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            TopicCategoryItem(
+                title = "깊은 대화",
+                backgroundImage = painterResource(id = R.drawable.freinds),
+                onClick = { onClickCategory(5) }
+            )
+        }
+        Spacer(modifier = Modifier.height(14.dp))
+    }
+}
+
+@Composable
+fun TopicCategoryItem(
+    modifier: Modifier = Modifier,
+    title: String,
+    backgroundImage: Painter,
+    onClick: () -> Unit
+) {
+    val maxWidth = LocalConfiguration.current.screenWidthDp
+
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Box(
+            modifier = modifier
+                .width((maxWidth.dp / 2) - 18.dp)
+                .height(96.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .border(
+                    width = 2.dp,
+                    color = colorResource(id = R.color.light_gray),
+                    shape = RoundedCornerShape(6.dp)
+                )
+                .clickable { onClick() }
+        ) {
+            Image(
+                modifier = Modifier.matchParentSize(),
+                painter = backgroundImage,
+                contentDescription = title,
+                contentScale = ContentScale.FillHeight
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        Text(
+            text = title,
+            style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
         )
     }
 }
@@ -498,6 +546,8 @@ fun DialogAddTopic(
     onAddClick: (TalkTopicEntity) -> Unit
 ) {
     var talkTopic by remember { mutableStateOf("") }
+    var selectedGroupCategory by remember { mutableIntStateOf(0) }
+    val maxWidth = LocalConfiguration.current.screenWidthDp
 
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(
@@ -539,6 +589,54 @@ fun DialogAddTopic(
                     cursorColor = MaterialTheme.colors.onPrimary
                 )
             )
+            Spacer(modifier = Modifier.height(12.dp))
+            Column {
+                Row {
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "친구",
+                        isSelected = selectedGroupCategory == 0,
+                        onClick = { selectedGroupCategory = 0 }
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "애인",
+                        isSelected = selectedGroupCategory == 1,
+                        onClick = { selectedGroupCategory = 1 }
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "가족",
+                        isSelected = selectedGroupCategory == 2,
+                        onClick = { selectedGroupCategory = 2 }
+                    )
+                }
+                Spacer(modifier = Modifier.height(8.dp))
+                Row {
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "밸런스게임",
+                        isSelected = selectedGroupCategory == 3,
+                        onClick = { selectedGroupCategory = 3 }
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "스몰토크",
+                        isSelected = selectedGroupCategory == 4,
+                        onClick = { selectedGroupCategory = 4 }
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    SelectTopicItem(
+                        modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
+                        text = "진지한 대화",
+                        isSelected = selectedGroupCategory == 5,
+                        onClick = { selectedGroupCategory = 5 }
+                    )
+                }
+            }
             Spacer(modifier = Modifier.height(24.dp))
             RoundedButton(
                 modifier = Modifier.fillMaxWidth(),
@@ -551,11 +649,53 @@ fun DialogAddTopic(
                     onAddClick(
                         TalkTopicEntity(
                             topic = talkTopic,
-                            createTime = System.currentTimeMillis()
+                            createTime = System.currentTimeMillis(),
+                            groupCode = 0
                         )
                     )
                     onDismiss()
                 }
+            )
+        }
+    }
+}
+
+@Composable
+fun SelectTopicItem(
+    modifier: Modifier = Modifier,
+    text: String,
+    isSelected: Boolean,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(
+                color = if (isSelected)
+                    MaterialTheme.colors.secondary
+                else
+                    colorResource(id = R.color.light_gray_200),
+                shape = RoundedCornerShape(8.dp)
+            )
+            .clickable { onClick() },
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Text(
+            modifier = Modifier.padding(top = 8.dp, bottom = 8.dp),
+            text = text,
+            style = MaterialTheme.typography.body1.copy(
+                color = MaterialTheme.colors.onSecondary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+        if (isSelected) {
+            Spacer(modifier = Modifier.width(8.dp))
+            Icon(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(id = R.drawable.ic_check),
+                contentDescription = "Check",
+                tint = MaterialTheme.colors.onSecondary
             )
         }
     }
@@ -587,6 +727,19 @@ fun SelectNumberOfPeoplePreview() {
             modifier = Modifier.fillMaxWidth(),
             numberOfPeople = number,
             onClickNumber = { number = it }
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun TopicCategoryItemPreview() {
+    NeedTalkTheme {
+        val resource = R.drawable.phone_image
+        TopicCategoryItem(
+            title = "친구",
+            backgroundImage = painterResource(id = resource),
+            onClick = {}
         )
     }
 }
