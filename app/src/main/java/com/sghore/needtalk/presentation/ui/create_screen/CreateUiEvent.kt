@@ -13,6 +13,8 @@ sealed interface CreateUiEvent {
 
     data class ClickNumberOfPeople(val number: Int) : CreateUiEvent
 
+    data class ClickTopicCategory(val topicCategory: String, val groupCode: Int) : CreateUiEvent
+
     data object ClickAddTopic : CreateUiEvent
 
     data class ClickRemoveTopic(val talkTopicEntity: TalkTopicEntity) : CreateUiEvent

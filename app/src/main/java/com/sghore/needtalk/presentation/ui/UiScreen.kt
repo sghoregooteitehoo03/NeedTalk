@@ -13,6 +13,8 @@ sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
     data object DialogSetName : DialogScreen
 
+    data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
+
     data object DialogAddTopic : DialogScreen
 
     data class DialogWarning(

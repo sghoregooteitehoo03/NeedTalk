@@ -51,6 +51,15 @@ fun CreateRoute(
                     viewModel.changeNumberOfPeople(event.number)
                 }
 
+                is CreateUiEvent.ClickTopicCategory -> {
+                    viewModel.setDialogScreen(
+                        DialogScreen.DialogTalkTopics(
+                            event.topicCategory,
+                            event.groupCode
+                        )
+                    )
+                }
+
                 is CreateUiEvent.ClickAddTopic -> {
                     viewModel.setDialogScreen(DialogScreen.DialogAddTopic)
                 }
@@ -76,7 +85,24 @@ fun CreateRoute(
             onEvent = viewModel::handelEvent
         )
 
-        when (uiState.dialogScreen) {
+        when (val dialog = uiState.dialogScreen) {
+            is DialogScreen.DialogTalkTopics -> {
+                DialogTalkTopics(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .padding(14.dp),
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    topicCategory = dialog.topicCategory,
+                    groupCode = dialog.groupCode,
+                    talkTopics = listOf(),
+                    onDeleteTopic = {}
+                )
+            }
+
             is DialogScreen.DialogAddTopic -> {
                 DialogAddTopic(
                     modifier = Modifier

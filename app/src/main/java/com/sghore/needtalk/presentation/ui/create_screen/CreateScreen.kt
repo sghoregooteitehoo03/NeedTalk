@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -177,7 +179,9 @@ fun CreateScreen(
                     )
                 }
                 TopicCategory(
-                    onClickCategory = {}
+                    onClickCategory = { topicCategory, groupCode ->
+                        onEvent(CreateUiEvent.ClickTopicCategory(topicCategory, groupCode))
+                    }
                 )
             }
         }
@@ -450,7 +454,7 @@ fun SelectNumberOfPeopleItem(
 @Composable
 fun TopicCategory(
     modifier: Modifier = Modifier,
-    onClickCategory: (groupCode: Int) -> Unit
+    onClickCategory: (topicCategory: String, groupCode: Int) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -461,13 +465,13 @@ fun TopicCategory(
             TopicCategoryItem(
                 title = "친구",
                 backgroundImage = painterResource(id = R.drawable.freinds),
-                onClick = { onClickCategory(0) }
+                onClick = { onClickCategory("친구", 0) }
             )
             Spacer(modifier = Modifier.width(8.dp))
             TopicCategoryItem(
                 title = "애인",
                 backgroundImage = painterResource(id = R.drawable.couple),
-                onClick = { onClickCategory(1) }
+                onClick = { onClickCategory("애인", 1) }
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -475,13 +479,13 @@ fun TopicCategory(
             TopicCategoryItem(
                 title = "가족",
                 backgroundImage = painterResource(id = R.drawable.family),
-                onClick = { onClickCategory(2) }
+                onClick = { onClickCategory("가족", 2) }
             )
             Spacer(modifier = Modifier.width(8.dp))
             TopicCategoryItem(
                 title = "밸런스게임",
                 backgroundImage = painterResource(id = R.drawable.small_talk),
-                onClick = { onClickCategory(3) }
+                onClick = { onClickCategory("밸런스게임", 3) }
             )
         }
         Spacer(modifier = Modifier.height(12.dp))
@@ -489,13 +493,13 @@ fun TopicCategory(
             TopicCategoryItem(
                 title = "스몰토크",
                 backgroundImage = painterResource(id = R.drawable.small_talk),
-                onClick = { onClickCategory(4) }
+                onClick = { onClickCategory("스몰토크", 4) }
             )
             Spacer(modifier = Modifier.width(8.dp))
             TopicCategoryItem(
                 title = "깊은 대화",
                 backgroundImage = painterResource(id = R.drawable.freinds),
-                onClick = { onClickCategory(5) }
+                onClick = { onClickCategory("깊은 대화", 5) }
             )
         }
         Spacer(modifier = Modifier.height(14.dp))
@@ -535,6 +539,83 @@ fun TopicCategoryItem(
         Text(
             text = title,
             style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
+        )
+    }
+}
+
+@Composable
+fun DialogTalkTopics(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    topicCategory: String,
+    groupCode: Int,
+    talkTopics: List<TalkTopicEntity>,
+    onDeleteTopic: (TalkTopicEntity) -> Unit
+) {
+    val test = listOf(
+        TalkTopicEntity("여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?", 0L, 4),
+        TalkTopicEntity("최근에 있었던 근황들을 말해주세요.", 0L, 4),
+        TalkTopicEntity("요즘 즐겨듣는 노래가 무엇인가요?", 0L, 4),
+        TalkTopicEntity("서로 같이 했던것들 중 가장 기억에 남는것이 무엇인가요?", 0L, 4),
+        TalkTopicEntity("즐겨하고 있는 취미 생활을 말해주세요.", System.currentTimeMillis(), 4)
+    )
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.5f)
+                .then(modifier)
+        ) {
+            Text(
+                text = topicCategory,
+                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn {
+                items(test) {
+                    TalkTopicItem(
+                        talkTopicEntity = it,
+                        onDeleteTopic = onDeleteTopic
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun TalkTopicItem(
+    modifier: Modifier = Modifier,
+    talkTopicEntity: TalkTopicEntity,
+    onDeleteTopic: (TalkTopicEntity) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 54.dp)
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.CenterStart),
+            text = talkTopicEntity.topic,
+            style = MaterialTheme.typography.body1.copy(
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+        if (talkTopicEntity.createTime != 0L) {
+            Icon(
+                modifier = Modifier
+                    .size(20.dp)
+                    .align(Alignment.CenterEnd)
+                    .clickable { onDeleteTopic(talkTopicEntity) },
+                painter = painterResource(id = R.drawable.ic_close),
+                contentDescription = "DeleteTopic",
+                tint = MaterialTheme.colors.onPrimary
+            )
+        }
+        Divider(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            thickness = 2.dp,
+            color = colorResource(id = R.color.light_gray)
         )
     }
 }
