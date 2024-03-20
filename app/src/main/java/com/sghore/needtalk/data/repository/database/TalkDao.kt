@@ -34,8 +34,8 @@ interface TalkDao {
     @Insert
     suspend fun insertTalkEntity(talkEntity: TalkEntity)
 
-    @Query("SELECT * FROM TalkTopicEntity")
-    fun getTalkTopicEntity(): Flow<List<TalkTopicEntity>>
+    @Query("SELECT * FROM TalkTopicEntity WHERE groupCode == :groupCode")
+    fun getTalkTopicEntity(groupCode: Int): Flow<List<TalkTopicEntity>>
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity)

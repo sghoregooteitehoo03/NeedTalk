@@ -10,11 +10,5 @@ class GetTimerSettingUseCase @Inject constructor(
     private val talkRepository: TalkRepository
 ) {
 
-    operator fun invoke(
-        transform: suspend (TimerSettingEntity?, List<TalkTopicEntity>) -> Unit
-    ) = combine(
-        talkRepository.getTimerSettingEntity(),
-        talkRepository.getTalkTopicEntity(),
-        transform
-    )
+    operator fun invoke() = talkRepository.getTimerSettingEntity()
 }

@@ -10,6 +10,5 @@ data class CreateUiState(
     val talkTime: Long = 3600000L,
     val isStopwatch: Boolean = false,
     val numberOfPeople: Int = 2,
-    val talkTopics: List<TalkTopicEntity> = listOf(),
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss
 )

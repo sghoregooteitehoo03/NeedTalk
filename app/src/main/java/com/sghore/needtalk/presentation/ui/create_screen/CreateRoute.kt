@@ -9,12 +9,16 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import kotlinx.coroutines.flow.collectLatest
@@ -36,7 +40,7 @@ fun CreateRoute(
                 }
 
                 is CreateUiEvent.ClickComplete -> {
-                    viewModel.insertTimerSetting(navigateToTimer)
+                    viewModel.completeTimerSetting(navigateToTimer)
                 }
 
                 is CreateUiEvent.ChangeTime -> {
@@ -87,6 +91,19 @@ fun CreateRoute(
 
         when (val dialog = uiState.dialogScreen) {
             is DialogScreen.DialogTalkTopics -> {
+                var talkTopics by remember {
+                    mutableStateOf(listOf<TalkTopicEntity>())
+                }
+
+                if (talkTopics.isEmpty()) {
+                    viewModel.getTalkTopics(
+                        groupCode = dialog.groupCode,
+                        updateTopics = {
+                            talkTopics = it
+                        }
+                    )
+                }
+
                 DialogTalkTopics(
                     modifier = Modifier
                         .background(
@@ -97,9 +114,13 @@ fun CreateRoute(
                         .padding(14.dp),
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
                     topicCategory = dialog.topicCategory,
-                    groupCode = dialog.groupCode,
-                    talkTopics = listOf(),
-                    onDeleteTopic = {}
+                    talkTopics = talkTopics,
+                    onDeleteTopic = { talkTopicEntity ->
+                        viewModel.insertOrRemoveTalkTopic(
+                            talkTopicEntity = talkTopicEntity,
+                            isRemove = true
+                        )
+                    }
                 )
             }
 

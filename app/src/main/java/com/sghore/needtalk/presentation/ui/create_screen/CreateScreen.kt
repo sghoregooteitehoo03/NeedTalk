@@ -515,7 +515,10 @@ fun TopicCategoryItem(
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp
 
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+    Column(
+        modifier = Modifier.clickable { onClick() },
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Box(
             modifier = modifier
                 .width((maxWidth.dp / 2) - 18.dp)
@@ -526,7 +529,6 @@ fun TopicCategoryItem(
                     color = colorResource(id = R.color.light_gray),
                     shape = RoundedCornerShape(6.dp)
                 )
-                .clickable { onClick() }
         ) {
             Image(
                 modifier = Modifier.matchParentSize(),
@@ -548,17 +550,9 @@ fun DialogTalkTopics(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     topicCategory: String,
-    groupCode: Int,
     talkTopics: List<TalkTopicEntity>,
     onDeleteTopic: (TalkTopicEntity) -> Unit
 ) {
-    val test = listOf(
-        TalkTopicEntity("여행 중에 먹은 가장 맛있었던 음식은 무엇이었나요?", 0L, 4),
-        TalkTopicEntity("최근에 있었던 근황들을 말해주세요.", 0L, 4),
-        TalkTopicEntity("요즘 즐겨듣는 노래가 무엇인가요?", 0L, 4),
-        TalkTopicEntity("서로 같이 했던것들 중 가장 기억에 남는것이 무엇인가요?", 0L, 4),
-        TalkTopicEntity("즐겨하고 있는 취미 생활을 말해주세요.", System.currentTimeMillis(), 4)
-    )
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
@@ -572,7 +566,7 @@ fun DialogTalkTopics(
             )
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
-                items(test) {
+                items(talkTopics) {
                     TalkTopicItem(
                         talkTopicEntity = it,
                         onDeleteTopic = onDeleteTopic
@@ -606,6 +600,7 @@ fun TalkTopicItem(
                 modifier = Modifier
                     .size(20.dp)
                     .align(Alignment.CenterEnd)
+                    .clip(CircleShape)
                     .clickable { onDeleteTopic(talkTopicEntity) },
                 painter = painterResource(id = R.drawable.ic_close),
                 contentDescription = "DeleteTopic",
@@ -627,7 +622,7 @@ fun DialogAddTopic(
     onAddClick: (TalkTopicEntity) -> Unit
 ) {
     var talkTopic by remember { mutableStateOf("") }
-    var selectedGroupCategory by remember { mutableIntStateOf(0) }
+    var selectedGroupCode by remember { mutableIntStateOf(0) }
     val maxWidth = LocalConfiguration.current.screenWidthDp
 
     BottomSheetDialog(onDismissRequest = onDismiss) {
@@ -676,22 +671,22 @@ fun DialogAddTopic(
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "친구",
-                        isSelected = selectedGroupCategory == 0,
-                        onClick = { selectedGroupCategory = 0 }
+                        isSelected = selectedGroupCode == 0,
+                        onClick = { selectedGroupCode = 0 }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "애인",
-                        isSelected = selectedGroupCategory == 1,
-                        onClick = { selectedGroupCategory = 1 }
+                        isSelected = selectedGroupCode == 1,
+                        onClick = { selectedGroupCode = 1 }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "가족",
-                        isSelected = selectedGroupCategory == 2,
-                        onClick = { selectedGroupCategory = 2 }
+                        isSelected = selectedGroupCode == 2,
+                        onClick = { selectedGroupCode = 2 }
                     )
                 }
                 Spacer(modifier = Modifier.height(8.dp))
@@ -699,22 +694,22 @@ fun DialogAddTopic(
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "밸런스게임",
-                        isSelected = selectedGroupCategory == 3,
-                        onClick = { selectedGroupCategory = 3 }
+                        isSelected = selectedGroupCode == 3,
+                        onClick = { selectedGroupCode = 3 }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "스몰토크",
-                        isSelected = selectedGroupCategory == 4,
-                        onClick = { selectedGroupCategory = 4 }
+                        isSelected = selectedGroupCode == 4,
+                        onClick = { selectedGroupCode = 4 }
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     SelectTopicItem(
                         modifier = Modifier.width((maxWidth.dp / 3) - 12.dp),
                         text = "진지한 대화",
-                        isSelected = selectedGroupCategory == 5,
-                        onClick = { selectedGroupCategory = 5 }
+                        isSelected = selectedGroupCode == 5,
+                        onClick = { selectedGroupCode = 5 }
                     )
                 }
             }
@@ -731,7 +726,7 @@ fun DialogAddTopic(
                         TalkTopicEntity(
                             topic = talkTopic,
                             createTime = System.currentTimeMillis(),
-                            groupCode = 0
+                            groupCode = selectedGroupCode
                         )
                     )
                     onDismiss()

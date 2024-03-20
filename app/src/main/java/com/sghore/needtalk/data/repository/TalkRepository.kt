@@ -99,7 +99,7 @@ class TalkRepository @Inject constructor(
     }
 
     // 대화 주제 리스트 반환
-    fun getTalkTopicEntity() = dao.getTalkTopicEntity()
+    fun getTalkTopicEntity(groupCode: Int) = dao.getTalkTopicEntity(groupCode)
 
     // 대화 주제 삽입
     suspend fun insertTalkTopic(talkTopicEntity: TalkTopicEntity) =
