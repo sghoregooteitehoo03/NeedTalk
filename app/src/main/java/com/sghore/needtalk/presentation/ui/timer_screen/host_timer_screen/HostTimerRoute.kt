@@ -27,16 +27,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.DialogTalkTopics
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
+import com.sghore.needtalk.presentation.ui.timer_screen.TimerTalkTopicItem
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -145,8 +149,13 @@ fun HostTimerRoute(
                             viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                         }
 
-                        is TimerUiEvent.ChangeTalkTopic -> {
-                            viewModel.changeTalkTopic()
+                        is TimerUiEvent.ClickTopicCategory -> {
+                            viewModel.setDialogScreen(
+                                DialogScreen.DialogTalkTopics(
+                                    event.topicCategory,
+                                    event.groupCode
+                                )
+                            )
                         }
 
                         is TimerUiEvent.ClickStart -> {
@@ -284,6 +293,42 @@ fun HostTimerRoute(
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 24.dp)
                 )
+            }
+
+            is DialogScreen.DialogTalkTopics -> {
+                var talkTopics by remember {
+                    mutableStateOf(listOf<TalkTopicEntity>())
+                }
+
+                if (talkTopics.isEmpty()) {
+                    viewModel.getTalkTopics(
+                        groupCode = dialogScreen.groupCode,
+                        updateTopics = {
+                            talkTopics = it
+                        }
+                    )
+                }
+
+                DialogTalkTopics(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+                        .padding(14.dp),
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    topicCategory = dialogScreen.topicCategory,
+                    talkTopics = talkTopics,
+                    talkTopicItem = { talkTopicEntity ->
+                        TimerTalkTopicItem(
+                            talkTopicEntity = talkTopicEntity,
+                            isPinned = false,
+                            onPinnedTopic = {
+
+                            }
+                        )
+                    })
             }
 
             else -> {}

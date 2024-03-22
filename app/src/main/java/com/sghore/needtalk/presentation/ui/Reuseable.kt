@@ -4,13 +4,18 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -36,7 +41,9 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.presentation.ui.theme.Red
 import com.sghore.needtalk.util.Constants
@@ -203,6 +210,33 @@ fun AdmobBanner(
             }
         }
     )
+}
+
+@Composable
+fun DialogTalkTopics(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    topicCategory: String,
+    talkTopics: List<TalkTopicEntity>,
+    talkTopicItem: @Composable  (TalkTopicEntity) -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .fillMaxHeight(0.5f)
+                .then(modifier)
+        ) {
+            Text(
+                text = topicCategory,
+                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
+            )
+            Spacer(modifier = Modifier.height(8.dp))
+            LazyColumn {
+                items(talkTopics) { talkTopicItem(it) }
+            }
+        }
+    }
 }
 
 @Preview

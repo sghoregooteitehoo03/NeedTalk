@@ -6,19 +6,25 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Divider
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -48,6 +54,7 @@ import com.holix.android.bottomsheetdialog.compose.BottomSheetBehaviorProperties
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialogProperties
 import com.sghore.needtalk.R
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
@@ -128,16 +135,15 @@ fun TimerScreen(
                     }
 
                     else -> {
-                        TimerExplainWithButton(
+                        TimerTalkTopics(
                             modifier = Modifier.constrainAs(explainText) {
-                                start.linkTo(parent.start)
-                                end.linkTo(parent.end)
                                 bottom.linkTo(btnLayout.top, margin = 46.dp)
                             },
-                            title = "이런 대화는 어떠세요?",
-                            content = uiState.talkTopic,
-                            buttonIcon = painterResource(id = R.drawable.ic_refresh),
-                            onClick = { onEvent(TimerUiEvent.ChangeTalkTopic) }
+                            title = "대화주제를 정해보세요!",
+                            isPinned = false,
+                            onClickCategory = { talkCategory, groupCode ->
+                                onEvent(TimerUiEvent.ClickTopicCategory(talkCategory, groupCode))
+                            }
                         )
                     }
                 }
@@ -440,31 +446,140 @@ fun TimerExplain(
 }
 
 @Composable
-fun TimerExplainWithButton(
-    modifier: Modifier,
+fun TimerTalkTopics(
+    modifier: Modifier = Modifier,
     title: String,
-    content: String = "",
-    buttonIcon: Painter,
-    onClick: () -> Unit
+    isPinned: Boolean,
+    onClickCategory: (talkCategory: String, groupCode: Int) -> Unit
 ) {
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        TimerExplain(
-            title = title,
-            content = content,
+        Text(
+            text = title,
+            style = MaterialTheme.typography.h5.copy(
+                fontSize = 18.sp,
+                textAlign = TextAlign.Center,
+                fontWeight = if (isPinned) {
+                    FontWeight.Bold
+                } else {
+                    FontWeight.Medium
+                }
+            )
         )
         Spacer(modifier = Modifier.height(12.dp))
-        Icon(
-            modifier = Modifier
-                .clip(CircleShape)
-                .size(24.dp)
-                .clickable { onClick() },
-            painter = buttonIcon,
-            contentDescription = "",
-            tint = colorResource(id = R.color.gray)
+        if (!isPinned) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 14.dp, end = 14.dp)
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                TimerTopicCategoryItem(
+                    text = "친구",
+                    backgroundImage = painterResource(id = R.drawable.freinds),
+                    onClick = {
+                        onClickCategory("친구", 0)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TimerTopicCategoryItem(
+                    text = "애인",
+                    backgroundImage = painterResource(id = R.drawable.couple),
+                    onClick = {
+                        onClickCategory("애인", 1)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TimerTopicCategoryItem(
+                    text = "가족",
+                    backgroundImage = painterResource(id = R.drawable.family),
+                    onClick = {
+                        onClickCategory("가족", 2)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TimerTopicCategoryItem(
+                    text = "밸런스게임",
+                    backgroundImage = painterResource(id = R.drawable.small_talk),
+                    onClick = {
+                        onClickCategory("밸런스게임", 3)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TimerTopicCategoryItem(
+                    text = "스몰토크",
+                    backgroundImage = painterResource(id = R.drawable.small_talk),
+                    onClick = {
+                        onClickCategory("스몰토크", 4)
+                    }
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                TimerTopicCategoryItem(
+                    text = "깊은 대화",
+                    backgroundImage = painterResource(id = R.drawable.small_talk),
+                    onClick = {
+                        onClickCategory("깊은 대화", 5)
+                    }
+                )
+            }
+        } else {
+            Icon(
+                modifier = Modifier.size(24.dp),
+                painter = painterResource(id = R.drawable.ic_pin),
+                contentDescription = "Pin",
+                tint = MaterialTheme.colors.secondary
+            )
+        }
+    }
+}
+
+@Composable
+fun TimerTopicCategoryItem(
+    modifier: Modifier = Modifier,
+    text: String,
+    backgroundImage: Painter,
+    onClick: () -> Unit
+) {
+    val maxWidth = LocalConfiguration.current.screenWidthDp
+
+    Box(
+        modifier = modifier
+            .width((maxWidth.dp / 2) - 18.dp)
+            .height(96.dp)
+            .clip(RoundedCornerShape(6.dp))
+            .border(
+                width = 2.dp,
+                color = colorResource(id = R.color.light_gray),
+                shape = RoundedCornerShape(6.dp)
+            )
+            .clickable {
+                onClick()
+            }
+    ) {
+        Image(
+            modifier = Modifier.matchParentSize(),
+            painter = backgroundImage,
+            contentDescription = text,
+            contentScale = ContentScale.FillWidth
         )
+        Box(
+            modifier = Modifier
+                .padding(8.dp)
+                .clip(RoundedCornerShape(6.dp))
+                .background(
+                    color = MaterialTheme.colors.onPrimary.copy(alpha = 0.3f),
+                    shape = RoundedCornerShape(6.dp)
+                )
+        ) {
+            Text(
+                modifier = Modifier.padding(start = 6.dp, end = 6.dp, top = 4.dp, bottom = 4.dp),
+                text = text,
+                style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onSecondary)
+            )
+        }
     }
 }
 
@@ -571,6 +686,47 @@ fun TimerReadyDialog(
     }
 }
 
+@Composable
+fun TimerTalkTopicItem(
+    modifier: Modifier = Modifier,
+    talkTopicEntity: TalkTopicEntity,
+    isPinned: Boolean,
+    onPinnedTopic: (TalkTopicEntity) -> Unit
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .defaultMinSize(minHeight = 54.dp)
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.CenterStart),
+            text = talkTopicEntity.topic,
+            style = MaterialTheme.typography.body1.copy(
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+        Icon(
+            modifier = Modifier
+                .size(20.dp)
+                .align(Alignment.CenterEnd)
+                .clip(CircleShape)
+                .clickable { onPinnedTopic(talkTopicEntity) },
+            painter = painterResource(id = R.drawable.ic_pin),
+            contentDescription = "DeleteTopic",
+            tint = if (isPinned) {
+                MaterialTheme.colors.secondary
+            } else {
+                colorResource(id = R.color.light_gray_200)
+            }
+        )
+        Divider(
+            modifier = Modifier.align(Alignment.BottomCenter),
+            thickness = 2.dp,
+            color = colorResource(id = R.color.light_gray)
+        )
+    }
+}
+
 @Preview
 @Composable
 fun GroupMemberPreview() {
@@ -621,6 +777,20 @@ fun TimerContentPreview() {
             maxTime = 3600000,
             isRunning = true,
             isStopWatch = false
+        )
+    }
+}
+
+@Preview
+@Composable
+private fun TimerTalkTopicsPreview() {
+    NeedTalkTheme {
+        TimerTalkTopics(
+            title = "대화주제를 정해보세요!",
+            isPinned = false,
+            onClickCategory = { talkCategory, groupCode ->
+
+            }
         )
     }
 }

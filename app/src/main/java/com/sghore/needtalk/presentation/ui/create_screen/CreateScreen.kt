@@ -546,38 +546,6 @@ fun TopicCategoryItem(
 }
 
 @Composable
-fun DialogTalkTopics(
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit,
-    topicCategory: String,
-    talkTopics: List<TalkTopicEntity>,
-    onDeleteTopic: (TalkTopicEntity) -> Unit
-) {
-    BottomSheetDialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.5f)
-                .then(modifier)
-        ) {
-            Text(
-                text = topicCategory,
-                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn {
-                items(talkTopics) {
-                    TalkTopicItem(
-                        talkTopicEntity = it,
-                        onDeleteTopic = onDeleteTopic
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
 fun TalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopicEntity: TalkTopicEntity,

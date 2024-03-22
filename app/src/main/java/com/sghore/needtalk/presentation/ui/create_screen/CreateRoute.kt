@@ -21,6 +21,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.DialogTalkTopics
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -115,12 +116,17 @@ fun CreateRoute(
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
                     topicCategory = dialog.topicCategory,
                     talkTopics = talkTopics,
-                    onDeleteTopic = { talkTopicEntity ->
-                        viewModel.insertOrRemoveTalkTopic(
+                    talkTopicItem = { talkTopicEntity ->
+                        TalkTopicItem(
                             talkTopicEntity = talkTopicEntity,
-                            isRemove = true
+                            onDeleteTopic = {
+                                viewModel.insertOrRemoveTalkTopic(
+                                    talkTopicEntity = it,
+                                    isRemove = true
+                                )
+                            }
                         )
-                    }
+                    },
                 )
             }
 
