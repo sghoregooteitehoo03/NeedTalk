@@ -7,5 +7,5 @@ interface TimerUiEvent {
 
     data class ClickTopicCategory(val topicCategory: String, val groupCode: Int) : TimerUiEvent
 
-    data object ChangeTalkTopic : TimerUiEvent
+    data object CancelPinnedTopic : TimerUiEvent
 }

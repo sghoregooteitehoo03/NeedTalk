@@ -11,7 +11,6 @@ data class TimerCommunicateInfo(
     val maxTime: Long = -1L,
     val isStopWatch: Boolean = false,
     val maxMember: Int = -1,
-    val talkTopics: List<TalkTopicEntity> = listOf(),
     val timerActionState: TimerActionState = TimerActionState.TimerWaiting
 )
 

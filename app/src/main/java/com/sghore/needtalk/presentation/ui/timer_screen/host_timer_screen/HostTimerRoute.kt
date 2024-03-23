@@ -158,6 +158,10 @@ fun HostTimerRoute(
                             )
                         }
 
+                        is TimerUiEvent.CancelPinnedTopic -> {
+                            viewModel.pinnedTalkTopic("")
+                        }
+
                         is TimerUiEvent.ClickStart -> {
                             if (event.isEnabled) {
                                 viewModel.saveOtherUserData()
@@ -323,9 +327,10 @@ fun HostTimerRoute(
                     talkTopicItem = { talkTopicEntity ->
                         TimerTalkTopicItem(
                             talkTopicEntity = talkTopicEntity,
-                            isPinned = false,
+                            isPinned = uiState.pinnedCategory == talkTopicEntity.topic,
                             onPinnedTopic = {
-
+                                viewModel.pinnedTalkTopic(it)
+                                viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             }
                         )
                     })

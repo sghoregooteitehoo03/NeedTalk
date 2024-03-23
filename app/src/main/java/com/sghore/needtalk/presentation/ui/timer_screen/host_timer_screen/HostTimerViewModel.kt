@@ -71,9 +71,9 @@ class HostTimerViewModel @Inject constructor(
         }
     }
 
-    fun changeTalkTopic() {
-        val talkTopics = _uiState.value.timerCommunicateInfo.talkTopics
-        _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
+    // 대화주제 고정
+    fun pinnedTalkTopic(talkTopic: String) {
+        _uiState.update { it.copy(pinnedCategory = talkTopic) }
     }
 
     // 해당하는 카테고리의 대화 주제들을 가져옴

@@ -129,7 +129,6 @@ class CreateViewModel @Inject constructor(
                 },
                 isStopWatch = timerSetting.isStopwatch,
                 maxMember = timerSetting.numberOfPeople,
-                talkTopics = listOf(),
                 timerActionState = TimerActionState.TimerWaiting
             )
         )

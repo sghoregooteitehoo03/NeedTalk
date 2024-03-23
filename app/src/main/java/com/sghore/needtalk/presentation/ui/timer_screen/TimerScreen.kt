@@ -137,10 +137,13 @@ fun TimerScreen(
                     else -> {
                         TimerTalkTopics(
                             modifier = Modifier.constrainAs(explainText) {
+                                start.linkTo(parent.start)
+                                end.linkTo(parent.end)
                                 bottom.linkTo(btnLayout.top, margin = 46.dp)
                             },
-                            title = "대화주제를 정해보세요!",
-                            isPinned = false,
+                            title = uiState.pinnedCategory.ifEmpty { "대화주제를 정해보세요!" },
+                            isPinned = uiState.pinnedCategory.isNotEmpty(),
+                            onCancelPinned = { onEvent(TimerUiEvent.CancelPinnedTopic) },
                             onClickCategory = { talkCategory, groupCode ->
                                 onEvent(TimerUiEvent.ClickTopicCategory(talkCategory, groupCode))
                             }
@@ -450,7 +453,8 @@ fun TimerTalkTopics(
     modifier: Modifier = Modifier,
     title: String,
     isPinned: Boolean,
-    onClickCategory: (talkCategory: String, groupCode: Int) -> Unit
+    onClickCategory: (talkCategory: String, groupCode: Int) -> Unit,
+    onCancelPinned: () -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -527,7 +531,10 @@ fun TimerTalkTopics(
             }
         } else {
             Icon(
-                modifier = Modifier.size(24.dp),
+                modifier = Modifier
+                    .size(24.dp)
+                    .clip(CircleShape)
+                    .clickable { onCancelPinned() },
                 painter = painterResource(id = R.drawable.ic_pin),
                 contentDescription = "Pin",
                 tint = MaterialTheme.colors.secondary
@@ -691,7 +698,7 @@ fun TimerTalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopicEntity: TalkTopicEntity,
     isPinned: Boolean,
-    onPinnedTopic: (TalkTopicEntity) -> Unit
+    onPinnedTopic: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -710,7 +717,7 @@ fun TimerTalkTopicItem(
                 .size(20.dp)
                 .align(Alignment.CenterEnd)
                 .clip(CircleShape)
-                .clickable { onPinnedTopic(talkTopicEntity) },
+                .clickable { onPinnedTopic(talkTopicEntity.topic) },
             painter = painterResource(id = R.drawable.ic_pin),
             contentDescription = "DeleteTopic",
             tint = if (isPinned) {
@@ -788,6 +795,7 @@ private fun TimerTalkTopicsPreview() {
         TimerTalkTopics(
             title = "대화주제를 정해보세요!",
             isPinned = false,
+            onCancelPinned = {},
             onClickCategory = { talkCategory, groupCode ->
 
             }

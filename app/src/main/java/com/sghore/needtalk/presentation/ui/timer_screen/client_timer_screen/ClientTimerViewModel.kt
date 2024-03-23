@@ -3,10 +3,12 @@ package com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
+import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase
 import com.sghore.needtalk.domain.usecase.InsertTalkEntityUseCase
 import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
@@ -16,6 +18,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -25,6 +28,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ClientTimerViewModel @Inject constructor(
+    private val getTalkTopicsUseCase: GetTalkTopicsUseCase,
     private val insertTalkEntityUseCase: InsertTalkEntityUseCase,
     private val insertUserEntityUseCase: InsertUserEntityUseCase,
     savedStateHandle: SavedStateHandle
@@ -64,7 +68,6 @@ class ClientTimerViewModel @Inject constructor(
             is TimerActionState.TimerReady -> {
                 if (_uiState.value.timerCommunicateInfo.timerActionState == TimerActionState.TimerWaiting) {
                     saveOtherUserData()
-                    _uiState.update { it.copy(talkTopic = timerCommunicateInfo.talkTopics.random().topic) }
                 }
             }
 
@@ -76,9 +79,19 @@ class ClientTimerViewModel @Inject constructor(
         }
     }
 
-    fun changeTalkTopic() {
-        val talkTopics = _uiState.value.timerCommunicateInfo.talkTopics
-        _uiState.update { it.copy(talkTopic = talkTopics.random().topic) }
+    // 대화주제 고정
+    fun pinnedTalkTopic(talkTopic: String) {
+        _uiState.update { it.copy(pinnedCategory = talkTopic) }
+    }
+
+    // 해당하는 카테고리의 대화 주제들을 가져옴
+    fun getTalkTopics(
+        groupCode: Int,
+        updateTopics: (List<TalkTopicEntity>) -> Unit
+    ) = viewModelScope.launch {
+        getTalkTopicsUseCase(groupCode).collectLatest {
+            updateTopics(it)
+        }
     }
 
     fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
