@@ -732,7 +732,7 @@ fun TimerTalkTopicItem(
                 .size(20.dp)
                 .align(Alignment.CenterEnd)
                 .clip(CircleShape)
-                .clickable { onPinnedTopic(talkTopicEntity.topic) }, // TODO: 핀 할시 호스트와 클라이언트 시간 단차 커짐
+                .clickable { onPinnedTopic(talkTopicEntity.topic) },
             painter = painterResource(id = R.drawable.ic_pin),
             contentDescription = "DeleteTopic",
             tint = colorResource(id = R.color.light_gray_200)

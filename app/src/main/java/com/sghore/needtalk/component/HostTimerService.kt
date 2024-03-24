@@ -538,7 +538,7 @@ class HostTimerService : LifecycleService() {
     }
 
     // 대화주제 고정
-    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?) = lifecycleScope.launch {
+    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?) {
         timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
         sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
     }

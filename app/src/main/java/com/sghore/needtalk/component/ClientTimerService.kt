@@ -11,6 +11,7 @@ import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.ServiceCompat
 import androidx.lifecycle.LifecycleService
@@ -327,30 +328,33 @@ class ClientTimerService : LifecycleService() {
             is TimerActionState.TimerReady -> {}
 
             is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
-                timerStartOrResume(
-                    startTime = timerCmInfo.value.currentTime,
-                    onUpdateTime = { updateTime ->
-                        if (updateTime != 0L) { // 타이머 동작 중
-                            timerCmInfo.update { it.copy(currentTime = updateTime) }
+                if (timerJob == null) {
+                    timerStartOrResume(
+                        startTime = timerCmInfo.value.currentTime,
+                        onUpdateTime = { updateTime ->
+                            if (updateTime != 0L) { // 타이머 동작 중
+                                Log.i("Check", "time: $updateTime")
+                                timerCmInfo.update { it.copy(currentTime = updateTime) }
 
-                            // foreground로 동작 시 알림 업데이트
-                            onNotifyUpdate(parseMinuteSecond(updateTime))
-                        } else { // 타이머 동작이 끝이난 경우
-                            timerCmInfo.update {
-                                it.copy(
-                                    currentTime = updateTime,
-                                    timerActionState = TimerActionState.TimerFinished
-                                )
+                                // foreground로 동작 시 알림 업데이트
+                                onNotifyUpdate(parseMinuteSecond(updateTime))
+                            } else { // 타이머 동작이 끝이난 경우
+                                timerCmInfo.update {
+                                    it.copy(
+                                        currentTime = updateTime,
+                                        timerActionState = TimerActionState.TimerFinished
+                                    )
+                                }
+
+                                onNotifyWarning(
+                                    text = "대화 타이머가 끝났어요.",
+                                    title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
+                                ) // foreground로 동작 시 알림 업데이트
                             }
-
-                            onNotifyWarning(
-                                text = "대화 타이머가 끝났어요.",
-                                title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
-                            ) // foreground로 동작 시 알림 업데이트
-                        }
-                    },
-                    isStopwatch = timerCmInfo.value.isStopWatch
-                )
+                        },
+                        isStopwatch = timerCmInfo.value.isStopWatch
+                    )
+                }
             }
 
             is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
@@ -367,22 +371,21 @@ class ClientTimerService : LifecycleService() {
     }
 
     // 대화주제 고정
-    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?, hostEndpointId: String) =
-        lifecycleScope.launch {
-            timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?, hostEndpointId: String) {
+        timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
 
-            val payloadType = PayloadType.ClientPinnedTopic(pinnedTalkTopic)
-            val payloadTypeJson =
-                Json.encodeToString(PayloadType.serializer(), payloadType)
+        val payloadType = PayloadType.ClientPinnedTopic(pinnedTalkTopic)
+        val payloadTypeJson =
+            Json.encodeToString(PayloadType.serializer(), payloadType)
 
-            sendPayloadUseCase(
-                bytes = payloadTypeJson.toByteArray(),
-                endpointId = hostEndpointId,
-                onFailure = {
+        sendPayloadUseCase(
+            bytes = payloadTypeJson.toByteArray(),
+            endpointId = hostEndpointId,
+            onFailure = {
 
-                }
-            )
-        }
+            }
+        )
+    }
 
     private fun onNotifyUpdate(
         contentText: String
