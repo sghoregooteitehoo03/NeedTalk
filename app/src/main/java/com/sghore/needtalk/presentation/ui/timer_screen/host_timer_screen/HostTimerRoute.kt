@@ -34,6 +34,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DialogTalkTopics
@@ -159,7 +160,7 @@ fun HostTimerRoute(
                         }
 
                         is TimerUiEvent.CancelPinnedTopic -> {
-                            viewModel.pinnedTalkTopic("")
+                            service?.pinnedTalkTopic(null)
                         }
 
                         is TimerUiEvent.ClickStart -> {
@@ -327,9 +328,14 @@ fun HostTimerRoute(
                     talkTopicItem = { talkTopicEntity ->
                         TimerTalkTopicItem(
                             talkTopicEntity = talkTopicEntity,
-                            isPinned = uiState.pinnedCategory == talkTopicEntity.topic,
                             onPinnedTopic = {
-                                viewModel.pinnedTalkTopic(it)
+                                service?.pinnedTalkTopic(
+                                    PinnedTalkTopic(
+                                        talkTopic = it,
+                                        pinnedUser = uiState.userEntity!!
+                                    )
+                                )
+
                                 viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             }
                         )

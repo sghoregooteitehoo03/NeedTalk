@@ -38,6 +38,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.lifecycle.Lifecycle
@@ -238,7 +239,10 @@ fun DialogTalkTopics(
                 Text(
                     modifier = Modifier.align(Alignment.Center),
                     text = topicCategory,
-                    style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight.Bold)
+                    style = MaterialTheme.typography.h5.copy(
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
                 )
                 Icon(
                     modifier = Modifier

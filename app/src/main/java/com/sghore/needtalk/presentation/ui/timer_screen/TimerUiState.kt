@@ -10,6 +10,5 @@ data class TimerUiState(
     val hostEndpointId: String = "",
     val talkTopic: String = "",
     val isFlip: Boolean = false,
-    val pinnedCategory: String = "",
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss,
 )

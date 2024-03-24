@@ -20,12 +20,12 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.repository.ConnectionEvent
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
-import com.sghore.needtalk.domain.usecase.StopCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
@@ -228,6 +228,17 @@ class HostTimerService : LifecycleService() {
                                         it.copy(participantInfoList = updateParticipantInfo)
                                     }
                                     isAvailableTimerStart()
+
+                                    sendUpdateTimerCmInfo(
+                                        updateTimerCmInfo = timerCmInfo.value,
+                                        onFailure = {}
+                                    )
+                                }
+
+                                is PayloadType.ClientPinnedTopic -> {
+                                    timerCmInfo.update {
+                                        it.copy(pinnedTalkTopic = payloadType.talkTopic)
+                                    }
 
                                     sendUpdateTimerCmInfo(
                                         updateTimerCmInfo = timerCmInfo.value,
@@ -450,6 +461,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
+    // 참가 거절 메세지
     private fun sendRejectMessage(
         rejectMessage: String,
         endpointId: String,
@@ -469,6 +481,7 @@ class HostTimerService : LifecycleService() {
         )
     }
 
+    // 사용자들이 모두 기기를 내려놓았는지 확인
     private fun isAvailableTimerStart() {
         val participantInfoList = timerCmInfo.value.participantInfoList
         val isStopwatch = timerCmInfo.value.isStopWatch
@@ -522,6 +535,12 @@ class HostTimerService : LifecycleService() {
                         + " (일시 정지)"
             )
         }
+    }
+
+    // 대화주제 고정
+    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?) = lifecycleScope.launch {
+        timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+        sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
     }
 
     private fun onNotifyUpdate(

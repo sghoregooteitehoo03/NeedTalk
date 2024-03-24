@@ -19,6 +19,10 @@ sealed interface PayloadType {
     data class ClientReady(val isReady: Boolean, val participantIndex: Int) : PayloadType
 
     @Serializable
+    @SerialName("ClientPinnedTopic")
+    data class ClientPinnedTopic(val talkTopic: PinnedTalkTopic?) : PayloadType
+
+    @Serializable
     @SerialName("RejectJoin")
     data class RejectJoin(val rejectMessage: String) : PayloadType
 }

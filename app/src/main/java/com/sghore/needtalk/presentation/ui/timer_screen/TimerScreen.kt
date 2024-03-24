@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.timer_screen
 
+import android.widget.Toast
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -42,8 +43,10 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -57,6 +60,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.ParticipantInfo
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.presentation.ui.NameTag
 import com.sghore.needtalk.presentation.ui.RoundedButton
@@ -141,8 +145,8 @@ fun TimerScreen(
                                 end.linkTo(parent.end)
                                 bottom.linkTo(btnLayout.top, margin = 46.dp)
                             },
-                            title = uiState.pinnedCategory.ifEmpty { "대화주제를 정해보세요!" },
-                            isPinned = uiState.pinnedCategory.isNotEmpty(),
+                            currentUser = uiState.userEntity,
+                            pinnedTalkTopic = timerCmInfo.pinnedTalkTopic,
                             onCancelPinned = { onEvent(TimerUiEvent.CancelPinnedTopic) },
                             onClickCategory = { talkCategory, groupCode ->
                                 onEvent(TimerUiEvent.ClickTopicCategory(talkCategory, groupCode))
@@ -422,7 +426,11 @@ fun TimerContent(
 fun TimerExplain(
     modifier: Modifier = Modifier,
     title: String,
-    content: String = ""
+    content: String = "",
+    titleTextStyle: TextStyle = MaterialTheme.typography.h5.copy(
+        fontSize = 18.sp,
+        textAlign = TextAlign.Center
+    )
 ) {
     Column(
         modifier = modifier,
@@ -430,10 +438,7 @@ fun TimerExplain(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.h5.copy(
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
+            style = titleTextStyle
         )
         if (content.isNotEmpty()) {
             Spacer(modifier = Modifier.height(10.dp))
@@ -451,21 +456,29 @@ fun TimerExplain(
 @Composable
 fun TimerTalkTopics(
     modifier: Modifier = Modifier,
-    title: String,
-    isPinned: Boolean,
+    currentUser: UserEntity?,
+    pinnedTalkTopic: PinnedTalkTopic?,
     onClickCategory: (talkCategory: String, groupCode: Int) -> Unit,
     onCancelPinned: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.h5.copy(
+        TimerExplain(
+            modifier = Modifier.padding(start = 14.dp, end = 14.dp),
+            title = pinnedTalkTopic?.talkTopic ?: "대화주제를 정해보세요!",
+            content = if (pinnedTalkTopic != null) {
+                "(${pinnedTalkTopic.pinnedUser.name}) 고정한 주제"
+            } else {
+                ""
+            },
+            titleTextStyle = MaterialTheme.typography.h5.copy(
                 fontSize = 18.sp,
                 textAlign = TextAlign.Center,
-                fontWeight = if (isPinned) {
+                fontWeight = if (pinnedTalkTopic != null) {
                     FontWeight.Bold
                 } else {
                     FontWeight.Medium
@@ -473,7 +486,7 @@ fun TimerTalkTopics(
             )
         )
         Spacer(modifier = Modifier.height(12.dp))
-        if (!isPinned) {
+        if (pinnedTalkTopic == null) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -534,7 +547,15 @@ fun TimerTalkTopics(
                 modifier = Modifier
                     .size(24.dp)
                     .clip(CircleShape)
-                    .clickable { onCancelPinned() },
+                    .clickable {
+                        if (currentUser?.userId == pinnedTalkTopic.pinnedUser.userId) {
+                            onCancelPinned()
+                        } else {
+                            Toast
+                                .makeText(context, "고정한 사용자만 해제할 수 있습니다.", Toast.LENGTH_SHORT)
+                                .show()
+                        }
+                    },
                 painter = painterResource(id = R.drawable.ic_pin),
                 contentDescription = "Pin",
                 tint = MaterialTheme.colors.secondary
@@ -692,7 +713,6 @@ fun TimerReadyDialog(
 fun TimerTalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopicEntity: TalkTopicEntity,
-    isPinned: Boolean,
     onPinnedTopic: (String) -> Unit
 ) {
     Box(
@@ -712,14 +732,10 @@ fun TimerTalkTopicItem(
                 .size(20.dp)
                 .align(Alignment.CenterEnd)
                 .clip(CircleShape)
-                .clickable { onPinnedTopic(talkTopicEntity.topic) },
+                .clickable { onPinnedTopic(talkTopicEntity.topic) }, // TODO: 핀 할시 호스트와 클라이언트 시간 단차 커짐
             painter = painterResource(id = R.drawable.ic_pin),
             contentDescription = "DeleteTopic",
-            tint = if (isPinned) {
-                MaterialTheme.colors.secondary
-            } else {
-                colorResource(id = R.color.light_gray_200)
-            }
+            tint = colorResource(id = R.color.light_gray_200)
         )
         Divider(
             modifier = Modifier.align(Alignment.BottomCenter),
@@ -788,8 +804,8 @@ fun TimerContentPreview() {
 private fun TimerTalkTopicsPreview() {
     NeedTalkTheme {
         TimerTalkTopics(
-            title = "대화주제를 정해보세요!",
-            isPinned = false,
+            currentUser = null,
+            pinnedTalkTopic = null,
             onCancelPinned = {},
             onClickCategory = { talkCategory, groupCode ->
 

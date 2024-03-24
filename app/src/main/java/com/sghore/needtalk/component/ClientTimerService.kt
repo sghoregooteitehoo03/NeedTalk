@@ -19,6 +19,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ClientEvent
 import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
@@ -364,6 +365,24 @@ class ClientTimerService : LifecycleService() {
             else -> {}
         }
     }
+
+    // 대화주제 고정
+    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?, hostEndpointId: String) =
+        lifecycleScope.launch {
+            timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+
+            val payloadType = PayloadType.ClientPinnedTopic(pinnedTalkTopic)
+            val payloadTypeJson =
+                Json.encodeToString(PayloadType.serializer(), payloadType)
+
+            sendPayloadUseCase(
+                bytes = payloadTypeJson.toByteArray(),
+                endpointId = hostEndpointId,
+                onFailure = {
+
+                }
+            )
+        }
 
     private fun onNotifyUpdate(
         contentText: String
