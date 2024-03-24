@@ -16,6 +16,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -24,11 +26,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
@@ -218,19 +222,36 @@ fun DialogTalkTopics(
     onDismiss: () -> Unit,
     topicCategory: String,
     talkTopics: List<TalkTopicEntity>,
-    talkTopicItem: @Composable  (TalkTopicEntity) -> Unit
+    talkTopicItem: @Composable (TalkTopicEntity) -> Unit
 ) {
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight(0.5f)
+                .fillMaxHeight(0.7f)
                 .then(modifier)
         ) {
-            Text(
-                text = topicCategory,
-                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
-            )
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth(),
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = topicCategory,
+                    style = MaterialTheme.typography.h4.copy(fontWeight = FontWeight.Bold)
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(28.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .rotate(90f)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_arrow_right),
+                    contentDescription = "back",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
             Spacer(modifier = Modifier.height(8.dp))
             LazyColumn {
                 items(talkTopics) { talkTopicItem(it) }

@@ -22,7 +22,10 @@ object AppModule {
             context,
             TalkDatabase::class.java,
             "TalkDB"
-        ).build()
+        )
+            .createFromAsset("DefaultTalkTopic.db")
+            .fallbackToDestructiveMigration()
+            .build()
 
     @Singleton
     @Provides

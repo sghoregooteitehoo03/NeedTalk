@@ -10,11 +10,8 @@ import com.sghore.needtalk.data.model.entity.UserEntity
 
 @Database(
     entities = [UserEntity::class, TalkEntity::class, TalkTopicEntity::class, TimerSettingEntity::class],
-    version = 2,
-    exportSchema = true,
-    autoMigrations = [
-        AutoMigration (from = 1, to = 2)
-    ]
+    version = 3,
+    exportSchema = true
 )
 abstract class TalkDatabase : RoomDatabase() {
     abstract fun getDao(): TalkDao

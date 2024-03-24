@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.defaultMinSize
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -20,8 +19,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -464,7 +461,7 @@ fun TopicCategory(
         Row {
             TopicCategoryItem(
                 title = "친구",
-                backgroundImage = painterResource(id = R.drawable.freinds),
+                backgroundImage = painterResource(id = R.drawable.friends),
                 onClick = { onClickCategory("친구", 0) }
             )
             Spacer(modifier = Modifier.width(8.dp))
@@ -484,7 +481,7 @@ fun TopicCategory(
             Spacer(modifier = Modifier.width(8.dp))
             TopicCategoryItem(
                 title = "밸런스게임",
-                backgroundImage = painterResource(id = R.drawable.small_talk),
+                backgroundImage = painterResource(id = R.drawable.balance),
                 onClick = { onClickCategory("밸런스게임", 3) }
             )
         }
@@ -498,7 +495,7 @@ fun TopicCategory(
             Spacer(modifier = Modifier.width(8.dp))
             TopicCategoryItem(
                 title = "깊은 대화",
-                backgroundImage = painterResource(id = R.drawable.freinds),
+                backgroundImage = painterResource(id = R.drawable.deep_talk),
                 onClick = { onClickCategory("깊은 대화", 5) }
             )
         }
@@ -524,11 +521,6 @@ fun TopicCategoryItem(
                 .width((maxWidth.dp / 2) - 18.dp)
                 .height(96.dp)
                 .clip(RoundedCornerShape(6.dp))
-                .border(
-                    width = 2.dp,
-                    color = colorResource(id = R.color.light_gray),
-                    shape = RoundedCornerShape(6.dp)
-                )
         ) {
             Image(
                 modifier = Modifier.matchParentSize(),

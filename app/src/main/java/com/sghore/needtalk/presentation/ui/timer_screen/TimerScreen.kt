@@ -483,7 +483,7 @@ fun TimerTalkTopics(
             ) {
                 TimerTopicCategoryItem(
                     text = "친구",
-                    backgroundImage = painterResource(id = R.drawable.freinds),
+                    backgroundImage = painterResource(id = R.drawable.friends),
                     onClick = {
                         onClickCategory("친구", 0)
                     }
@@ -507,7 +507,7 @@ fun TimerTalkTopics(
                 Spacer(modifier = Modifier.width(8.dp))
                 TimerTopicCategoryItem(
                     text = "밸런스게임",
-                    backgroundImage = painterResource(id = R.drawable.small_talk),
+                    backgroundImage = painterResource(id = R.drawable.balance),
                     onClick = {
                         onClickCategory("밸런스게임", 3)
                     }
@@ -523,7 +523,7 @@ fun TimerTalkTopics(
                 Spacer(modifier = Modifier.width(8.dp))
                 TimerTopicCategoryItem(
                     text = "깊은 대화",
-                    backgroundImage = painterResource(id = R.drawable.small_talk),
+                    backgroundImage = painterResource(id = R.drawable.deep_talk),
                     onClick = {
                         onClickCategory("깊은 대화", 5)
                     }
@@ -557,11 +557,6 @@ fun TimerTopicCategoryItem(
             .width((maxWidth.dp / 2) - 18.dp)
             .height(96.dp)
             .clip(RoundedCornerShape(6.dp))
-            .border(
-                width = 2.dp,
-                color = colorResource(id = R.color.light_gray),
-                shape = RoundedCornerShape(6.dp)
-            )
             .clickable {
                 onClick()
             }
