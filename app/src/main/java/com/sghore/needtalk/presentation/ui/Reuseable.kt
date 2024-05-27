@@ -264,6 +264,33 @@ fun DialogTalkTopics(
     }
 }
 
+@Composable
+fun DefaultButton(
+    modifier: Modifier = Modifier,
+    text: String,
+    onClick: () -> Unit
+) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .height(54.dp)
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.secondary,
+                shape = MaterialTheme.shapes.medium
+            )
+            .clickable { onClick() },
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onSecondary
+            )
+        )
+    }
+}
+
 @Preview
 @Composable
 fun NameTagPreview() {
