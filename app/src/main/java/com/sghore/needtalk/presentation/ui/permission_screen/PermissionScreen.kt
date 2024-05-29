@@ -112,7 +112,7 @@ fun PermissionScreen(onClickConfirm: () -> Unit) {
                     bottom.linkTo(parent.bottom)
                 },
                 text = "확인",
-                onClick = {}
+                onClick = onClickConfirm
             )
         }
     }

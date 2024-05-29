@@ -19,10 +19,14 @@ import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
+import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
+
+// TODO:
+//  .메인 액티비티 실행 시 권한 체크하여 표시할 화면 지정
 
 @Composable
 fun AppNavHost(
@@ -36,12 +40,17 @@ fun AppNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.HomeScreen.route,
+        startDestination = UiScreen.PermissionScreen.route,
         enterTransition = { enterTransition() },
         exitTransition = { exitTransition() },
         popEnterTransition = { popEnterTransition() },
         popExitTransition = { popExitTransition() }
     ) {
+        composable(UiScreen.PermissionScreen.route) {
+            PermissionRoute(navigateToStartScreen = {
+            })
+        }
+
         composable(UiScreen.HomeScreen.route) {
             HomeRoute(
                 isRefresh = gViewModel.getIsRefresh(),
