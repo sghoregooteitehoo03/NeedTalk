@@ -20,6 +20,7 @@ import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
+import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
@@ -40,14 +41,17 @@ fun AppNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.PermissionScreen.route,
-        enterTransition = { enterTransition() },
-        exitTransition = { exitTransition() },
-        popEnterTransition = { popEnterTransition() },
-        popExitTransition = { popExitTransition() }
+        startDestination = UiScreen.PermissionScreen.route
     ) {
         composable(UiScreen.PermissionScreen.route) {
             PermissionRoute(navigateToStartScreen = {
+                navController.navigate(UiScreen.StartScreen.route)
+            })
+        }
+
+        composable(UiScreen.StartScreen.route) {
+            StartRoute(navigateToCreateProfile = {
+
             })
         }
 
