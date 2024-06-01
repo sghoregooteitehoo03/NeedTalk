@@ -1,8 +1,11 @@
 package com.sghore.needtalk.presentation.ui.create_profile_screen
 
+import android.annotation.SuppressLint
+import android.provider.Settings
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -30,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.ImeAction
@@ -39,9 +43,19 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.util.getBitmapFromResource
 
+@SuppressLint("HardwareIds")
 @Composable
-fun CreateProfileScreen() {
+fun CreateProfileScreen(
+    uiState: CreateProfileUiState,
+    onEvent: (CreateProfileUiEvent) -> Unit
+) {
+    val context = LocalContext.current
+    val faceImageResources = remember { getFaceStyleImageResources() }
+    val hairStyleImageResources = remember { getHairStyleImageResources() }
+    val accessoryImageResources = remember { getAccessoryStyleImageResources() }
+
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
@@ -69,29 +83,41 @@ fun CreateProfileScreen() {
             }) {
                 ProfileImage(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
-                    selectedFaceImage = painterResource(id = R.drawable.face2),
-                    selectedHairImage = painterResource(id = R.drawable.hair10),
-                    selectedAccessoryImage = painterResource(id = R.drawable.earring)
+                    selectedFaceImageRes = faceImageResources[uiState.selectedFaceIndex],
+                    selectedHairImageRes = hairStyleImageResources[uiState.selectedHairStyleIndex],
+                    selectedAccessoryImageRes = accessoryImageResources[uiState.selectedAccessoryIndex]
                 )
                 Spacer(modifier = Modifier.height(24.dp))
                 SetProfileName(
-                    name = "홍길동",
-                    onNameChange = {}
+                    name = uiState.profileName,
+                    onNameChange = { onEvent(CreateProfileUiEvent.ChangeName(it)) }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 SelectStyleImage(
                     styleTitle = "표정",
-                    styleImageResources = getFaceStyleImageResources()
+                    styleImageResources = faceImageResources,
+                    selectedIndex = uiState.selectedFaceIndex,
+                    onChangeSelectedIndex = {
+                        onEvent(CreateProfileUiEvent.SelectProfileImage(ProfileType.Face, it))
+                    }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 SelectStyleImage(
                     styleTitle = "머리스타일",
-                    styleImageResources = getHairStyleImageResources()
+                    styleImageResources = hairStyleImageResources,
+                    selectedIndex = uiState.selectedHairStyleIndex,
+                    onChangeSelectedIndex = {
+                        onEvent(CreateProfileUiEvent.SelectProfileImage(ProfileType.Hair, it))
+                    }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 SelectStyleImage(
                     styleTitle = "악세서리",
-                    styleImageResources = getAccessoryStyleImageResources()
+                    styleImageResources = accessoryImageResources,
+                    selectedIndex = uiState.selectedAccessoryIndex,
+                    onChangeSelectedIndex = {
+                        onEvent(CreateProfileUiEvent.SelectProfileImage(ProfileType.Accessory, it))
+                    }
                 )
             }
 
@@ -99,8 +125,30 @@ fun CreateProfileScreen() {
                 modifier = Modifier.constrainAs(button) {
                     bottom.linkTo(parent.bottom)
                 },
+                isEnabled = uiState.profileName.isNotEmpty(),
                 text = "확인",
-                onClick = {}
+                onClick = {
+                    onEvent(
+                        CreateProfileUiEvent.ClickConfirm(
+                            userId = Settings.Secure.getString(
+                                context.contentResolver,
+                                Settings.Secure.ANDROID_ID
+                            ),
+                            faceImage = getBitmapFromResource(
+                                context = context,
+                                drawableId = faceImageResources[uiState.selectedFaceIndex]
+                            ),
+                            hairImage = getBitmapFromResource(
+                                context = context,
+                                drawableId = hairStyleImageResources[uiState.selectedHairStyleIndex]
+                            ),
+                            accessoryImage = getBitmapFromResource(
+                                context = context,
+                                drawableId = accessoryImageResources[uiState.selectedAccessoryIndex]
+                            )
+                        )
+                    )
+                }
             )
         }
     }
@@ -109,9 +157,9 @@ fun CreateProfileScreen() {
 @Composable
 fun ProfileImage(
     modifier: Modifier = Modifier,
-    selectedFaceImage: Painter,
-    selectedHairImage: Painter,
-    selectedAccessoryImage: Painter,
+    selectedFaceImageRes: Int,
+    selectedHairImageRes: Int,
+    selectedAccessoryImageRes: Int,
 ) {
     Box(
         modifier = modifier
@@ -125,19 +173,23 @@ fun ProfileImage(
     ) {
         Image(
             modifier = Modifier.size(100.dp),
-            painter = selectedFaceImage,
+            painter = painterResource(id = selectedFaceImageRes),
             contentDescription = "FaceImage"
         )
-        Image(
-            modifier = Modifier.size(100.dp),
-            painter = selectedHairImage,
-            contentDescription = "FaceImage"
-        )
-        Image(
-            modifier = Modifier.size(100.dp),
-            painter = selectedAccessoryImage,
-            contentDescription = "FaceImage"
-        )
+        if (selectedHairImageRes != R.drawable.none) {
+            Image(
+                modifier = Modifier.size(100.dp),
+                painter = painterResource(id = selectedHairImageRes),
+                contentDescription = "FaceImage"
+            )
+        }
+        if (selectedAccessoryImageRes != R.drawable.none) {
+            Image(
+                modifier = Modifier.size(100.dp),
+                painter = painterResource(id = selectedAccessoryImageRes),
+                contentDescription = "FaceImage"
+            )
+        }
     }
 }
 
@@ -192,7 +244,8 @@ fun SelectStyleImage(
     modifier: Modifier = Modifier,
     styleTitle: String,
     styleImageResources: List<Int>,
-    selectedIndex: Int = 0
+    selectedIndex: Int = 0,
+    onChangeSelectedIndex: (Int) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth()
@@ -212,6 +265,9 @@ fun SelectStyleImage(
                             color = colorResource(id = R.color.light_gray),
                             shape = MaterialTheme.shapes.large
                         )
+                        .clickable {
+                            onChangeSelectedIndex(index)
+                        }
                         .then(
                             if (selectedIndex == index) {
                                 Modifier.border(
@@ -290,9 +346,9 @@ private fun getAccessoryStyleImageResources() =
 private fun ProfileImagePreview() {
     NeedTalkTheme {
         ProfileImage(
-            selectedFaceImage = painterResource(id = R.drawable.face2),
-            selectedHairImage = painterResource(id = R.drawable.hair10),
-            selectedAccessoryImage = painterResource(id = R.drawable.earring)
+            selectedFaceImageRes = R.drawable.face2,
+            selectedHairImageRes = R.drawable.hair10,
+            selectedAccessoryImageRes = R.drawable.earring
         )
     }
 }
@@ -319,6 +375,7 @@ private fun SelectStyleImagePreview() {
         SelectStyleImage(
             styleTitle = "표정",
             styleImageResources = getFaceStyleImageResources(),
+            onChangeSelectedIndex = {}
         )
     }
 }

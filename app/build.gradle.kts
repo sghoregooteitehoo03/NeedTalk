@@ -67,10 +67,10 @@ android {
 dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-service:2.8.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-service:2.8.1")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.1")
+    implementation("androidx.activity:activity-compose:1.9.0")
     implementation(platform("androidx.compose:compose-bom:2024.05.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
@@ -104,7 +104,7 @@ dependencies {
     implementation("androidx.navigation:navigation-compose:2.7.7")
 
     // Nearby
-    implementation("com.google.android.gms:play-services-nearby:19.2.0")
+    implementation("com.google.android.gms:play-services-nearby:19.3.0")
 
     // Paging
     implementation("androidx.paging:paging-runtime-ktx:3.3.0")

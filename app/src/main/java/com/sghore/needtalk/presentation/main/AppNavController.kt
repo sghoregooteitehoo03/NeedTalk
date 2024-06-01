@@ -16,6 +16,7 @@ import androidx.navigation.navArgument
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
+import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
@@ -51,8 +52,12 @@ fun AppNavHost(
 
         composable(UiScreen.StartScreen.route) {
             StartRoute(navigateToCreateProfile = {
-
+                navController.navigate(UiScreen.CreateProfileScreen.route)
             })
+        }
+
+        composable(UiScreen.CreateProfileScreen.route) {
+            CreateProfileRoute()
         }
 
         composable(UiScreen.HomeScreen.route) {

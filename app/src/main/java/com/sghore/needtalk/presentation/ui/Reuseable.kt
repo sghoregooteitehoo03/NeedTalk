@@ -268,6 +268,7 @@ fun DialogTalkTopics(
 fun DefaultButton(
     modifier: Modifier = Modifier,
     text: String,
+    isEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Box(
@@ -276,10 +277,20 @@ fun DefaultButton(
             .height(54.dp)
             .clip(MaterialTheme.shapes.medium)
             .background(
-                color = MaterialTheme.colors.secondary,
+                color = if (isEnabled) {
+                    MaterialTheme.colors.secondary
+                } else {
+                    colorResource(id = R.color.light_gray)
+                },
                 shape = MaterialTheme.shapes.medium
             )
-            .clickable { onClick() },
+            .then(
+                if (isEnabled) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            ),
         contentAlignment = Alignment.Center
     ) {
         Text(

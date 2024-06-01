@@ -29,7 +29,12 @@ object AppModule {
     @Singleton
     @Provides
     fun provideTalkDao(database: TalkDatabase) =
-        database.getDao()
+        database.getTalkDao()
+
+    @Singleton
+    @Provides
+    fun provideUserDao(database: TalkDatabase) =
+        database.getUserDao()
 
     @Singleton
     @Provides

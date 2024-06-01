@@ -2,12 +2,21 @@ package com.sghore.needtalk.presentation.ui
 
 sealed class UiScreen(val route: String) {
     data object PermissionScreen : UiScreen(route = "PermissionScreen")
+
     data object StartScreen : UiScreen(route = "StartScreen")
+
+    data object CreateProfileScreen : UiScreen(route = "CreateProfileScreen")
+
     data object HomeScreen : UiScreen(route = "Home")
+
     data object CreateScreen : UiScreen(route = "Create")
+
     data object HostTimerScreen : UiScreen(route = "HostTimer")
+
     data object ClientTimerScreen : UiScreen(route = "ClientTimer")
+
     data object JoinScreen : UiScreen(route = "Join")
+
     data object StaticsScreen : UiScreen(route = "StaticsScreen")
 }
 

@@ -1,6 +1,10 @@
 package com.sghore.needtalk.util
 
+import android.content.Context
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.ui.graphics.Color
@@ -10,6 +14,7 @@ import com.sghore.needtalk.presentation.ui.theme.Green
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import com.sghore.needtalk.presentation.ui.theme.Red
 import com.sghore.needtalk.presentation.ui.theme.Sky
+import java.io.ByteArrayOutputStream
 import java.text.DecimalFormat
 import java.util.Calendar
 
@@ -32,6 +37,7 @@ fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
         }
     }
 }
+
 fun parseMinuteSecond(timeStamp: Long): String {
     return if (timeStamp >= 0L) {
         val decimalFormat = DecimalFormat("#00")
@@ -83,4 +89,46 @@ fun getLastTime(time: Long): Long {
         set(Calendar.SECOND, 59)
         set(Calendar.MILLISECOND, 0)
     }.timeInMillis
+}
+
+// 이미지 인코딩/디코딩 과정
+fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
+    val outputStream = ByteArrayOutputStream()
+    bitmap.compress(Bitmap.CompressFormat.PNG, 100, outputStream)
+    return outputStream.toByteArray()
+}
+
+fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {
+    return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+}
+
+// 이미지 리소스를 Bitmap으로 변환
+fun getBitmapFromResource(context: Context, drawableId: Int): Bitmap {
+    val options = BitmapFactory.Options()
+    options.inMutable = true
+
+    return BitmapFactory.decodeResource(context.resources, drawableId, options)
+}
+
+// 이미지 병합
+fun mergeImages(bitmaps: List<Bitmap>): Bitmap {
+    val width = bitmaps.maxOf { it.width }
+    val height = bitmaps.maxOf { it.height }
+
+    // 새로운 비트맵을 만듭니다.
+    val result = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val canvas = Canvas(result)
+    val paint = Paint()
+
+    var currentWidth = 0
+    var currentHeight = 0
+
+    for (bitmap in bitmaps) {
+        canvas.drawBitmap(bitmap, currentWidth.toFloat(), currentHeight.toFloat(), paint)
+
+        currentWidth += bitmap.width
+        currentHeight += bitmap.height
+    }
+
+    return result
 }
