@@ -3,15 +3,14 @@ package com.sghore.needtalk.presentation.ui.create_profile_screen
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sghore.needtalk.presentation.ui.join_screen.JoinUiEvent
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CreateProfileRoute(
-    viewModel: CreateProfileViewModel = hiltViewModel()
+    viewModel: CreateProfileViewModel = hiltViewModel(),
+    onUpdateUserData: (com.sghore.needtalk.domain.model.UserData) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -35,7 +34,8 @@ fun CreateProfileRoute(
                             userId = event.userId,
                             faceImage = event.faceImage,
                             hairImage = event.hairImage,
-                            accessoryImage = event.accessoryImage
+                            accessoryImage = event.accessoryImage,
+                            onUpdateUserData = onUpdateUserData
                         )
                     }
                 }

@@ -13,6 +13,7 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
+import androidx.navigation.navigation
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
@@ -28,9 +29,6 @@ import com.sghore.needtalk.presentation.ui.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
-
-// TODO:
-//  .메인 액티비티 실행 시 권한 체크하여 표시할 화면 지정
 
 @Composable
 fun AppNavHost(
@@ -79,7 +77,14 @@ fun AppNavHost(
         }
 
         composable(UiScreen.CreateProfileScreen.route) {
-            CreateProfileRoute()
+            CreateProfileRoute(
+                onUpdateUserData = {
+                    gViewModel.setUserData(it)
+                    navController.navigate(UiScreen.TalkHistoryScreen.route) {
+                        popUpTo(0) { inclusive = true } // 모든 백스택 제거
+                    }
+                }
+            )
         }
 
         composable(UiScreen.TalkHistoryScreen.route) {
