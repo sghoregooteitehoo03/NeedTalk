@@ -6,7 +6,7 @@ import com.sghore.needtalk.util.byteArrayToBitmap
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
-class GetUserEntity2UseCase @Inject constructor(
+class GetUserDataUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(userId: String): UserData? {

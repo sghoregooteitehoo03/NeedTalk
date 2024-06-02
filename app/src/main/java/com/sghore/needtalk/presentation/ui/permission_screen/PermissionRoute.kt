@@ -12,11 +12,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
 
-// TODO: 확인 버튼 누를 시 캐릭터 생성 여부에 따라 어디로 보낼 지 정하기
-
 @Composable
 fun PermissionRoute(
-    navigateToStartScreen: () -> Unit,
+    navigateOtherScreen: () -> Unit,
 ) {
     val context = LocalContext.current
     val launcher = rememberLauncherForActivityResult(
@@ -31,14 +29,14 @@ fun PermissionRoute(
                     .show()
                 openAppSettings(context)
             } else {
-                navigateToStartScreen()
+                navigateOtherScreen()
             }
         } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false) {
                 Toast.makeText(context, "권한을 모두 허용해주세요.", Toast.LENGTH_SHORT)
                     .show()
             } else {
-                navigateToStartScreen()
+                navigateOtherScreen()
             }
         }
     }
@@ -48,7 +46,7 @@ fun PermissionRoute(
     )
 }
 
-private fun getPermissions() =
+fun getPermissions() =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
         arrayOf(
             Manifest.permission.BLUETOOTH_SCAN,

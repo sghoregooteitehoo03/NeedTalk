@@ -18,11 +18,13 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
+import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
+import com.sghore.needtalk.presentation.ui.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
@@ -42,11 +44,31 @@ fun AppNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.PermissionScreen.route
+        startDestination = UiScreen.EmptyScreen.route
     ) {
+        composable(UiScreen.EmptyScreen.route) {
+            EmptyRoute(
+                onUpdateUserData = {
+                    gViewModel.setUserData(it)
+                },
+                navigateOtherScreen = { route ->
+                    navController.navigate(route) {
+                        popUpTo(UiScreen.EmptyScreen.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(UiScreen.PermissionScreen.route) {
-            PermissionRoute(navigateToStartScreen = {
-                navController.navigate(UiScreen.StartScreen.route)
+            PermissionRoute(navigateOtherScreen = {
+                navController.navigate(
+                    if (gViewModel.getUserData() != null) {
+                        UiScreen.TalkHistoryScreen.route
+                    } else {
+                        UiScreen.StartScreen.route
+                    }
+                ) {
+                    popUpTo(UiScreen.EmptyScreen.route) { inclusive = true }
+                }
             })
         }
 
@@ -58,6 +80,10 @@ fun AppNavHost(
 
         composable(UiScreen.CreateProfileScreen.route) {
             CreateProfileRoute()
+        }
+
+        composable(UiScreen.TalkHistoryScreen.route) {
+            TalkHistoryRoute()
         }
 
         composable(UiScreen.HomeScreen.route) {
@@ -157,6 +183,10 @@ fun AppNavHost(
             )
         }
     }
+}
+
+@Composable
+fun EmptyScreen() {
 }
 
 private fun navigateToStaticsScreen(
