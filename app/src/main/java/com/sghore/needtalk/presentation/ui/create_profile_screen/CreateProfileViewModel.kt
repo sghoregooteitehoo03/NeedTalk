@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui.create_profile_screen
 
 import android.graphics.Bitmap
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.model.UserData
@@ -69,7 +70,7 @@ class CreateProfileViewModel @Inject constructor(
             val createUserData = UserData(
                 userId = userId,
                 name = _uiState.value.profileName,
-                profileImage = mergedProfileImage
+                profileImage = mergedProfileImage.asImageBitmap()
             )
 
             insertUserEntity2UseCase(createUserData)

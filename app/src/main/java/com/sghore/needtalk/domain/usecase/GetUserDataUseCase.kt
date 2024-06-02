@@ -1,5 +1,6 @@
 package com.sghore.needtalk.domain.usecase
 
+import androidx.compose.ui.graphics.asImageBitmap
 import com.sghore.needtalk.data.repository.UserRepository
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.byteArrayToBitmap
@@ -16,7 +17,7 @@ class GetUserDataUseCase @Inject constructor(
             UserData(
                 userId = userEntity.userId,
                 name = userEntity.name,
-                profileImage = byteArrayToBitmap(userEntity.profileImage)
+                profileImage = byteArrayToBitmap(userEntity.profileImage).asImageBitmap()
             )
         } else {
             null

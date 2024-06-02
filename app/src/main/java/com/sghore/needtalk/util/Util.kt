@@ -120,14 +120,13 @@ fun mergeImages(bitmaps: List<Bitmap>): Bitmap {
     val canvas = Canvas(result)
     val paint = Paint()
 
-    var currentWidth = 0
-    var currentHeight = 0
-
     for (bitmap in bitmaps) {
-        canvas.drawBitmap(bitmap, currentWidth.toFloat(), currentHeight.toFloat(), paint)
+        // 현재 비트맵을 그릴 위치 계산
+        val left = 0
+        val top = (height - bitmap.height) / 2 // 모든 비트맵의 높이가 같다고 가정합니다.
 
-        currentWidth += bitmap.width
-        currentHeight += bitmap.height
+        // 비트맵을 캔버스에 그립니다.
+        canvas.drawBitmap(bitmap, left.toFloat(), top.toFloat(), paint)
     }
 
     return result

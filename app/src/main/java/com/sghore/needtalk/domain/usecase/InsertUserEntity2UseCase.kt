@@ -1,5 +1,6 @@
 package com.sghore.needtalk.domain.usecase
 
+import androidx.compose.ui.graphics.asAndroidBitmap
 import com.sghore.needtalk.data.model.entity.UserEntity2
 import com.sghore.needtalk.data.repository.UserRepository
 import com.sghore.needtalk.domain.model.UserData
@@ -13,7 +14,7 @@ class InsertUserEntity2UseCase @Inject constructor(
         val userEntity = UserEntity2(
             userId = userData.userId,
             name = userData.name,
-            profileImage = bitmapToByteArray(userData.profileImage)
+            profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap())
         )
 
         userRepository.insertUserEntity(userEntity)

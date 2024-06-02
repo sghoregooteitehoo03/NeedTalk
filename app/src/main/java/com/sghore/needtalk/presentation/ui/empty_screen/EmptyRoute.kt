@@ -35,7 +35,7 @@ fun EmptyRoute(
         onUpdateUserData(userData)
         if (isGranted) { // 권한 설정이 되어 있다면
             if (userData != null) { // 유저 데이터 생성 여부 확인
-                navigateOtherScreen(UiScreen.TalkHistoryScreen.route) // 대화기록 화면으로
+                navigateOtherScreen(UiScreen.HomeScreen.route) // 대화기록 화면으로
             } else { // 유저 데이터가 존재하지 않을 시
                 navigateOtherScreen(UiScreen.StartScreen.route) // 시작 화면으로
             }

@@ -7,25 +7,22 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import androidx.navigation.navigation
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
 import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
-import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
+import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
-import com.sghore.needtalk.presentation.ui.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
@@ -37,8 +34,6 @@ fun AppNavHost(
     navController: NavHostController,
     showSnackBar: suspend (String) -> Unit
 ) {
-    val context = LocalContext.current
-
     NavHost(
         modifier = modifier,
         navController = navController,
@@ -60,7 +55,7 @@ fun AppNavHost(
             PermissionRoute(navigateOtherScreen = {
                 navController.navigate(
                     if (gViewModel.getUserData() != null) {
-                        UiScreen.TalkHistoryScreen.route
+                        UiScreen.HomeScreen.route
                     } else {
                         UiScreen.StartScreen.route
                     }
@@ -80,37 +75,17 @@ fun AppNavHost(
             CreateProfileRoute(
                 onUpdateUserData = {
                     gViewModel.setUserData(it)
-                    navController.navigate(UiScreen.TalkHistoryScreen.route) {
+                    navController.navigate(UiScreen.HomeScreen.route) {
                         popUpTo(0) { inclusive = true } // 모든 백스택 제거
                     }
                 }
             )
         }
 
-        composable(UiScreen.TalkHistoryScreen.route) {
-            TalkHistoryRoute()
+        composable(route = UiScreen.HomeScreen.route) {
+            HomeScreen(gViewModel = gViewModel)
         }
 
-        composable(UiScreen.HomeScreen.route) {
-            HomeRoute(
-                isRefresh = gViewModel.getIsRefresh(),
-                setRefresh = gViewModel::setIsRefresh,
-                navigateToStaticsScreen = {
-                    navigateToStaticsScreen(navController, gViewModel.getUserEntity())
-                },
-                navigateToCreateScreen = {
-                    navigateToCreateScreen(navController, gViewModel.getUserEntity())
-                },
-                navigateToJoinScreen = {
-                    navigateToJoinScreen(
-                        navController,
-                        gViewModel.getUserEntity(),
-                        context.packageName
-                    )
-                },
-                updateUserEntity = { userEntity -> gViewModel.setUserEntity(userEntity) }
-            )
-        }
         composable(
             route = UiScreen.CreateScreen.route + "?userEntity={userEntity}",
             arguments = listOf(

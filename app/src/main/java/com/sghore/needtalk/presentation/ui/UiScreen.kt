@@ -1,6 +1,14 @@
 package com.sghore.needtalk.presentation.ui
 
-sealed class UiScreen(val route: String) {
+import com.sghore.needtalk.R
+
+sealed class UiScreen(
+    val route: String,
+    val bottomName: String = "",
+    val bottomIcon: Int = -1,
+) {
+    data object Nothing : UiScreen(route = "")
+
     data object EmptyScreen : UiScreen(route = "EmptyScreen")
 
     data object PermissionScreen : UiScreen(route = "PermissionScreen")
@@ -9,9 +17,19 @@ sealed class UiScreen(val route: String) {
 
     data object CreateProfileScreen : UiScreen(route = "CreateProfileScreen")
 
-    data object TalkHistoryScreen : UiScreen(route = "TalkHistoryScreen")
-
     data object HomeScreen : UiScreen(route = "Home")
+
+    data object TalkHistoryScreen : UiScreen(
+        route = "TalkHistoryScreen",
+        bottomName = "대화 기록",
+        bottomIcon = R.drawable.ic_talk_history
+    )
+
+    data object TalkTopicsScreen : UiScreen(
+        route = "TalkTopicsScreen",
+        bottomName = "대화 주제",
+        bottomIcon = R.drawable.ic_talk_topic
+    )
 
     data object CreateScreen : UiScreen(route = "Create")
 

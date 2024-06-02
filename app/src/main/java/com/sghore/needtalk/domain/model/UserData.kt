@@ -1,9 +1,9 @@
 package com.sghore.needtalk.domain.model
 
-import android.graphics.Bitmap
+import androidx.compose.ui.graphics.ImageBitmap
 
 data class UserData(
     val userId: String,
     val name: String,
-    val profileImage: Bitmap,
+    val profileImage: ImageBitmap,
 )
