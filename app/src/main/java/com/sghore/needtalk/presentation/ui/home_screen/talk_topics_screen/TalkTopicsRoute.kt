@@ -6,5 +6,5 @@ import androidx.compose.ui.Modifier
 
 @Composable
 fun TalkTopicsRoute() {
-    Text(text = "TalkTopicsRoute")
+    TalkTopicsScreen()
 }

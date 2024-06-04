@@ -302,6 +302,31 @@ fun DefaultButton(
     }
 }
 
+@Composable
+fun TalkTopicCategoryTag(
+    modifier: Modifier = Modifier,
+    tagName: String,
+    paddingValues: PaddingValues
+) {
+    Box(
+        modifier = modifier
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = colorResource(id = R.color.light_gray),
+                shape = MaterialTheme.shapes.medium
+            )
+            .padding(paddingValues)
+    ) {
+        Text(
+            modifier = Modifier.align(Alignment.Center),
+            text = tagName,
+            style = MaterialTheme.typography.subtitle1.copy(
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+    }
+}
+
 @Preview
 @Composable
 fun NameTagPreview() {
