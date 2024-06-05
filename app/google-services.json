@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "998708418503",
+    "firebase_url": "https://needtalk-default-rtdb.asia-southeast1.firebasedatabase.app",
+    "project_id": "needtalk",
+    "storage_bucket": "needtalk.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:998708418503:android:c3449b4d5ee74bb6ffabe2",
+        "android_client_info": {
+          "package_name": "com.sghore.needtalk"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhawGmlehyIruJjdztoWL_bF7cj5O5-FA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

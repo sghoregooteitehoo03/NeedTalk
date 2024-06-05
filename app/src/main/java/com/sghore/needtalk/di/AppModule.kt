@@ -3,6 +3,8 @@ package com.sghore.needtalk.di
 import android.content.Context
 import androidx.room.Room
 import com.google.android.gms.nearby.Nearby
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
 import com.sghore.needtalk.data.repository.database.TalkDatabase
 import dagger.Module
 import dagger.Provides
@@ -14,6 +16,11 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object AppModule {
+
+    @Singleton
+    @Provides
+    fun provideFirebaseStore() = Firebase.firestore
+
 
     @Singleton
     @Provides

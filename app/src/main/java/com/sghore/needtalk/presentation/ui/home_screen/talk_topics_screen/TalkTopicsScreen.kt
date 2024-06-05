@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
@@ -41,7 +42,10 @@ import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 
 @Composable
-fun TalkTopicsScreen() {
+fun TalkTopicsScreen(
+    uiState: TalkTopicsUiState,
+    onClick: () -> Unit
+) {
     Column(
         modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -50,12 +54,14 @@ fun TalkTopicsScreen() {
     ) {
         DefaultButton(
             text = "대화주제 제작하기",
-            onClick = {}
+            onClick = onClick
         )
         Spacer(modifier = Modifier.height(28.dp))
         CategoryLayout()
         Spacer(modifier = Modifier.height(28.dp))
-        PopularTalkTopicLayout()
+        PopularTalkTopicLayout(
+            popularTalkTopics = uiState.popularTalkTopics
+        )
         Spacer(modifier = Modifier.height(28.dp))
         TalkTopicGroupLayout(talkTopicGroups = listOf(TalkTopicGroup(0, "제작한 대화주제")))
     }
@@ -145,7 +151,10 @@ fun CategoryItem(
 }
 
 @Composable
-fun PopularTalkTopicLayout(modifier: Modifier = Modifier) {
+fun PopularTalkTopicLayout(
+    modifier: Modifier = Modifier,
+    popularTalkTopics: List<TalkTopic>
+) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
@@ -166,18 +175,15 @@ fun PopularTalkTopicLayout(modifier: Modifier = Modifier) {
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        TalkTopicItem(
-            talkTopic = TalkTopic(
-                topicId = "",
-                topic = "지금까지 받아본 최고의 선물은 무엇인가요?",
-                favoriteCount = 10,
-                isFavorite = false,
-                category1 = "친구",
-                category2 = "애인",
-                category3 = "스몰토크"
-            ),
-            onClick = {}
-        )
+        LazyRow {
+            items(popularTalkTopics) {
+                TalkTopicItem(
+                    talkTopic = it,
+                    onClick = {}
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
     }
 }
 
@@ -189,13 +195,13 @@ fun TalkTopicItem(
 ) {
     val tagList = remember {
         listOf(
-            talkTopic.category1,
-            talkTopic.category2,
-            talkTopic.category3
+            talkTopic.category1.title,
+            talkTopic.category2?.title ?: "",
+            talkTopic.category3?.title ?: ""
         ).filter { it.isNotEmpty() }
     }
 
-    Column(
+    Box(
         modifier = modifier
             .shadow(2.dp, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
@@ -205,6 +211,7 @@ fun TalkTopicItem(
             .padding(12.dp)
     ) {
         Text(
+            modifier = Modifier.align(Alignment.TopStart),
             text = talkTopic.topic,
             style = MaterialTheme.typography.h5.copy(
                 color = MaterialTheme.colors.onPrimary
@@ -213,7 +220,7 @@ fun TalkTopicItem(
             overflow = TextOverflow.Ellipsis
         )
         Spacer(modifier = Modifier.height(16.dp))
-        LazyRow {
+        LazyRow(modifier = Modifier.align(Alignment.BottomStart)) {
             items(tagList.size) {
                 TalkTopicCategoryTag(
                     tagName = tagList[it],

@@ -6,6 +6,7 @@ plugins {
     kotlin("kapt")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.plugin.serialization")
+    id("com.google.gms.google-services")
 }
 
 val properties = Properties()
@@ -94,6 +95,11 @@ dependencies {
 
     // Coil
     implementation("io.coil-kt:coil-compose:2.5.0")
+
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
+    // Firestore
+    implementation("com.google.firebase:firebase-firestore")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.49")

@@ -9,11 +9,8 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.compose.ui.graphics.Color
 import androidx.palette.graphics.Palette
-import com.sghore.needtalk.presentation.ui.theme.Blue
-import com.sghore.needtalk.presentation.ui.theme.Green
+import com.sghore.needtalk.domain.model.TalkTopicCategory
 import com.sghore.needtalk.presentation.ui.theme.Orange50
-import com.sghore.needtalk.presentation.ui.theme.Red
-import com.sghore.needtalk.presentation.ui.theme.Sky
 import java.io.ByteArrayOutputStream
 import java.text.DecimalFormat
 import java.util.Calendar
@@ -91,6 +88,17 @@ fun getLastTime(time: Long): Long {
     }.timeInMillis
 }
 
+// 카테고리코드 -> 카테고리 변환
+fun getCodeToCategory(code: Int) = when (code) {
+    TalkTopicCategory.Friend.code -> TalkTopicCategory.Friend
+    TalkTopicCategory.Couple.code -> TalkTopicCategory.Couple
+    TalkTopicCategory.Family.code -> TalkTopicCategory.Family
+    TalkTopicCategory.Balance.code -> TalkTopicCategory.Balance
+    TalkTopicCategory.SmallTalk.code -> TalkTopicCategory.SmallTalk
+    TalkTopicCategory.DeepTalk.code -> TalkTopicCategory.DeepTalk
+    else -> null
+}
+
 // 이미지 인코딩/디코딩 과정
 fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
     val outputStream = ByteArrayOutputStream()
@@ -98,7 +106,9 @@ fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
     return outputStream.toByteArray()
 }
 
-fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {
+fun byteArrayToBitmap(byteArray: ByteArray)
+
+        : Bitmap {
     return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
@@ -111,7 +121,11 @@ fun getBitmapFromResource(context: Context, drawableId: Int): Bitmap {
 }
 
 // 이미지 병합
-fun mergeImages(bitmaps: List<Bitmap>): Bitmap {
+fun mergeImages(
+    bitmaps: List<Bitmap>
+
+)
+        : Bitmap {
     val width = bitmaps.maxOf { it.width }
     val height = bitmaps.maxOf { it.height }
 
