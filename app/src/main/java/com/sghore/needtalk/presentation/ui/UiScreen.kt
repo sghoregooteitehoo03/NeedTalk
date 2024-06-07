@@ -31,6 +31,8 @@ sealed class UiScreen(
         bottomIcon = R.drawable.ic_talk_topic
     )
 
+    data object AddTalkTopicScreen : UiScreen(route = "AddTalkTopicScreen")
+
     data object CreateScreen : UiScreen(route = "Create")
 
     data object HostTimerScreen : UiScreen(route = "HostTimer")

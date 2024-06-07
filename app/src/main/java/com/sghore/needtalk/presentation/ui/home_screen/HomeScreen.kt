@@ -43,7 +43,10 @@ import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkH
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
 
 @Composable
-fun HomeScreen(gViewModel: GlobalViewModel) {
+fun HomeScreen(
+    gViewModel: GlobalViewModel,
+    navigateToOther: (route: String) -> Unit
+) {
     val navController = rememberNavController()
     val userData = gViewModel.getUserData()!!
 
@@ -180,7 +183,7 @@ fun HomeScreen(gViewModel: GlobalViewModel) {
             }
 
             composable(route = UiScreen.TalkTopicsScreen.route) {
-                TalkTopicsRoute()
+                TalkTopicsRoute(navigateToOther = navigateToOther)
             }
         }
     }

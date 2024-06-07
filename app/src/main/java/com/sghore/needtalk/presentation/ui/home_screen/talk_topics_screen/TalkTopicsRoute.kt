@@ -5,11 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.presentation.ui.UiScreen
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TalkTopicsRoute(
-    viewModel: TalkTopicsViewModel = hiltViewModel()
+    viewModel: TalkTopicsViewModel = hiltViewModel(),
+    navigateToOther: (route: String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -21,7 +23,7 @@ fun TalkTopicsRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is TalkTopicsUiEvent.ClickAddTopic -> {
-
+                    navigateToOther(UiScreen.AddTalkTopicScreen.route)
                 }
 
                 is TalkTopicsUiEvent.ClickGroupMore -> {
