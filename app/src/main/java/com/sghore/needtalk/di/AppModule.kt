@@ -40,6 +40,11 @@ object AppModule {
 
     @Singleton
     @Provides
+    fun provideTalkTopicDao(database: TalkDatabase) =
+        database.getTalkTopicDao()
+
+    @Singleton
+    @Provides
     fun provideUserDao(database: TalkDatabase) =
         database.getUserDao()
 

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -18,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -46,24 +48,33 @@ fun TalkTopicsScreen(
     uiState: TalkTopicsUiState,
     onClick: () -> Unit
 ) {
-    Column(
-        modifier = Modifier
-            .verticalScroll(rememberScrollState())
-            .fillMaxWidth()
-            .padding(14.dp)
-    ) {
-        DefaultButton(
-            text = "대화주제 제작하기",
-            onClick = onClick
-        )
-        Spacer(modifier = Modifier.height(28.dp))
-        CategoryLayout()
-        Spacer(modifier = Modifier.height(28.dp))
-        PopularTalkTopicLayout(
-            popularTalkTopics = uiState.popularTalkTopics
-        )
-        Spacer(modifier = Modifier.height(28.dp))
-        TalkTopicGroupLayout(talkTopicGroups = listOf(TalkTopicGroup(0, "제작한 대화주제")))
+    if (uiState.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = MaterialTheme.colors.onPrimary)
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .verticalScroll(rememberScrollState())
+                .fillMaxWidth()
+                .padding(14.dp)
+        ) {
+            DefaultButton(
+                text = "대화주제 제작하기",
+                onClick = onClick
+            )
+            Spacer(modifier = Modifier.height(28.dp))
+            CategoryLayout()
+            Spacer(modifier = Modifier.height(28.dp))
+            PopularTalkTopicLayout(
+                popularTalkTopics = uiState.popularTalkTopics
+            )
+            Spacer(modifier = Modifier.height(28.dp))
+            TalkTopicGroupLayout(talkTopicGroups = uiState.talkTopicGroups)
+        }
     }
 }
 
@@ -282,7 +293,8 @@ fun TalkTopicGroupItem(
             .shadow(2.dp, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colors.background, shape = MaterialTheme.shapes.medium)
-            .size(120.dp),
+            .size(120.dp)
+            .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {

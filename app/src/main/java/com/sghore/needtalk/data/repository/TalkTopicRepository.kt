@@ -5,14 +5,25 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
 import com.sghore.needtalk.data.model.document.TalkTopicDoc
+import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
+import com.sghore.needtalk.data.repository.database.TalkTopicDao
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.tasks.await
 import java.security.MessageDigest
 import javax.inject.Inject
 
 class TalkTopicRepository @Inject constructor(
+    private val talkTopicDao: TalkTopicDao,
     private val firestore: FirebaseFirestore
 ) {
+
+    fun getTalkTopicGroupEntity(offset: Int = 0, limit: Int = 5) =
+        talkTopicDao.getTalkTopicGroupEntity(offset, limit)
+
+    suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
+        talkTopicDao.insertTalkTopicGroupEntity(groupEntity)
+
+    // 인기 대화주제를 firestore에서 가져옵니다.
     suspend fun getPopularTalkTopics(limit: Long) =
         firestore.collection(Constants.COLLECTION_TALK_TOPIC)
             .orderBy("favoriteCount", Query.Direction.DESCENDING)
