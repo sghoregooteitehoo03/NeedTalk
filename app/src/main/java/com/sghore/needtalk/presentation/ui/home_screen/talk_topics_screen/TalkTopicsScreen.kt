@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
@@ -46,7 +45,7 @@ import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 @Composable
 fun TalkTopicsScreen(
     uiState: TalkTopicsUiState,
-    onClick: () -> Unit
+    onEvent: (TalkTopicsUiEvent) -> Unit
 ) {
     if (uiState.isLoading) {
         Box(
@@ -64,23 +63,32 @@ fun TalkTopicsScreen(
         ) {
             DefaultButton(
                 text = "대화주제 제작하기",
-                onClick = onClick
+                onClick = { onEvent(TalkTopicsUiEvent.ClickAddTopic) }
             )
             Spacer(modifier = Modifier.height(28.dp))
-            CategoryLayout()
+            CategoryLayout(
+                onClickCategory = { onEvent(TalkTopicsUiEvent.ClickTopicCategory(it)) }
+            )
             Spacer(modifier = Modifier.height(28.dp))
             PopularTalkTopicLayout(
-                popularTalkTopics = uiState.popularTalkTopics
+                popularTalkTopics = uiState.popularTalkTopics,
+                onMoreClick = { onEvent(TalkTopicsUiEvent.ClickPopularMore) },
+                onTalkTopicClick = { onEvent(TalkTopicsUiEvent.ClickTalkTopic(it)) }
             )
             Spacer(modifier = Modifier.height(28.dp))
-            TalkTopicGroupLayout(talkTopicGroups = uiState.talkTopicGroups)
+            TalkTopicGroupLayout(
+                talkTopicGroups = uiState.talkTopicGroups,
+                onMoreClick = { onEvent(TalkTopicsUiEvent.ClickGroupMore) },
+                onGroupClick = { onEvent(TalkTopicsUiEvent.ClickGroup(it)) }
+            )
         }
     }
 }
 
 @Composable
 fun CategoryLayout(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClickCategory: (TalkTopicCategory) -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -95,34 +103,34 @@ fun CategoryLayout(
         Row(modifier = Modifier.fillMaxWidth()) {
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.Friend,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.Friend) }
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.Couple,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.Couple) }
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.Family,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.Family) }
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Row(modifier = Modifier.fillMaxWidth()) {
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.Balance,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.Balance) }
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.SmallTalk,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.SmallTalk) }
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 talkTopicTopicCategory = TalkTopicCategory.DeepTalk,
-                onClick = {}
+                onClick = { onClickCategory(TalkTopicCategory.DeepTalk) }
             )
         }
     }
@@ -164,7 +172,9 @@ fun CategoryItem(
 @Composable
 fun PopularTalkTopicLayout(
     modifier: Modifier = Modifier,
-    popularTalkTopics: List<TalkTopic>
+    popularTalkTopics: List<TalkTopic>,
+    onMoreClick: () -> Unit,
+    onTalkTopicClick: (index: Int) -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -178,7 +188,9 @@ fun PopularTalkTopicLayout(
                 )
             )
             Text(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable { onMoreClick() },
                 text = "더보기",
                 style = MaterialTheme.typography.body1.copy(
                     color = colorResource(id = R.color.gray),
@@ -187,10 +199,10 @@ fun PopularTalkTopicLayout(
         }
         Spacer(modifier = Modifier.height(16.dp))
         LazyRow {
-            items(popularTalkTopics) {
+            items(popularTalkTopics.size) { index ->
                 TalkTopicItem(
-                    talkTopic = it,
-                    onClick = {}
+                    talkTopic = popularTalkTopics[index],
+                    onClick = { onTalkTopicClick(index) }
                 )
                 Spacer(modifier = Modifier.width(8.dp))
             }
@@ -219,6 +231,7 @@ fun TalkTopicItem(
             .background(MaterialTheme.colors.background, shape = MaterialTheme.shapes.medium)
             .width(200.dp)
             .height(120.dp)
+            .clickable { onClick() }
             .padding(12.dp)
     ) {
         Text(
@@ -248,7 +261,9 @@ fun TalkTopicItem(
 @Composable
 fun TalkTopicGroupLayout(
     modifier: Modifier = Modifier,
-    talkTopicGroups: List<TalkTopicGroup>
+    talkTopicGroups: List<TalkTopicGroup>,
+    onMoreClick: () -> Unit,
+    onGroupClick: (TalkTopicGroup) -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(modifier = Modifier.fillMaxWidth()) {
@@ -262,7 +277,9 @@ fun TalkTopicGroupLayout(
                 )
             )
             Text(
-                modifier = Modifier.align(Alignment.CenterEnd),
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .clickable { onMoreClick() },
                 text = "더보기",
                 style = MaterialTheme.typography.body1.copy(
                     color = colorResource(id = R.color.gray),
@@ -271,10 +288,10 @@ fun TalkTopicGroupLayout(
         }
         Spacer(modifier = Modifier.height(16.dp))
         LazyRow {
-            items(talkTopicGroups.size) {
+            items(talkTopicGroups.size) { index ->
                 TalkTopicGroupItem(
-                    talkTopicGroup = talkTopicGroups[it],
-                    onClick = {}
+                    talkTopicGroup = talkTopicGroups[index],
+                    onClick = { onGroupClick(it) }
                 )
                 Spacer(modifier = Modifier.width(12.dp))
             }
@@ -286,7 +303,7 @@ fun TalkTopicGroupLayout(
 fun TalkTopicGroupItem(
     modifier: Modifier = Modifier,
     talkTopicGroup: TalkTopicGroup,
-    onClick: () -> Unit
+    onClick: (TalkTopicGroup) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -294,6 +311,7 @@ fun TalkTopicGroupItem(
             .clip(MaterialTheme.shapes.medium)
             .background(MaterialTheme.colors.background, shape = MaterialTheme.shapes.medium)
             .size(120.dp)
+            .clickable { onClick(talkTopicGroup) }
             .padding(8.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center

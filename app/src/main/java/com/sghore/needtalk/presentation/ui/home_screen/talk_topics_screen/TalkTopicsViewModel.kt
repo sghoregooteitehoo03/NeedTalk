@@ -2,13 +2,14 @@ package com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.data.repository.TalkTopicRepository
 import com.sghore.needtalk.domain.usecase.GetPopularTalkTopicsUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -16,7 +17,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TalkTopicsViewModel @Inject constructor(
-    val repository: TalkTopicRepository,
     val getPopularTalkTopicsUseCase: GetPopularTalkTopicsUseCase,
     val getTalkTopicGroupUseCase: GetTalkTopicGroupUseCase
 ) : ViewModel() {
@@ -26,6 +26,13 @@ class TalkTopicsViewModel @Inject constructor(
         viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = TalkTopicsUiState()
+    )
+
+    // UI Event
+    private val _uiEvent = MutableSharedFlow<TalkTopicsUiEvent>()
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        started = SharingStarted.Eagerly
     )
 
     init {
@@ -45,8 +52,7 @@ class TalkTopicsViewModel @Inject constructor(
         _uiState.update { it.copy(isLoading = false, popularTalkTopics = talkTopics) }
     }
 
-    // TODO: 나중에 지울 것
-    fun setData() = viewModelScope.launch {
-        repository.setData()
+    fun handelEvent(event: TalkTopicsUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
     }
 }
