@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.add_talktopic_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -44,7 +45,7 @@ import com.sghore.needtalk.presentation.ui.theme.Green50
 
 @Composable
 fun AddTalkTopicScreen(
-
+    uiState: AddTalkTopicUiState
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -76,7 +77,7 @@ fun AddTalkTopicScreen(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            InputTalkTopic()
+            InputTalkTopic(talkTopic = uiState.talkTopic)
         }
         Column(
             modifier = Modifier
@@ -84,9 +85,13 @@ fun AddTalkTopicScreen(
                 .fillMaxWidth()
                 .padding(start = 14.dp, end = 14.dp)
         ) {
-            SelectCategories()
+            SelectCategories(
+                selectedCategory1 = uiState.selectedCategory1,
+                selectedCategory2 = uiState.selectedCategory2,
+                selectedCategory3 = uiState.selectedCategory3
+            )
             Spacer(modifier = Modifier.height(24.dp))
-            SetPublicAvailability()
+            SetPublicAvailability(isPublic = uiState.isPublic)
         }
     }
 }
@@ -94,15 +99,10 @@ fun AddTalkTopicScreen(
 @Composable
 fun InputTalkTopic(
     modifier: Modifier = Modifier,
+    talkTopic: String,
     maxTextLength: Int = 100
 ) {
-    var text by remember {
-        mutableStateOf("")
-    }
-    var isFocused by remember {
-        mutableStateOf(false)
-    }
-    val underlineColor = if (text.isNotEmpty()) {
+    val underlineColor = if (talkTopic.isNotEmpty()) {
         MaterialTheme.colors.onPrimary
     } else {
         colorResource(id = R.color.gray)
@@ -113,7 +113,7 @@ fun InputTalkTopic(
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Box(contentAlignment = Alignment.Center) {
-            if (text.isEmpty()) {
+            if (talkTopic.isEmpty()) {
                 Text(
                     modifier = Modifier
                         .drawBehind {
@@ -136,7 +136,7 @@ fun InputTalkTopic(
             BasicTextField(
                 modifier = Modifier
                     .drawBehind {
-                        if (text.isNotEmpty()) {
+                        if (talkTopic.isNotEmpty()) {
                             val strokeWidth = 2.dp.toPx()
                             val y = size.height - strokeWidth / 2 + (4.dp.toPx())
                             drawLine(
@@ -146,12 +146,11 @@ fun InputTalkTopic(
                                 strokeWidth = strokeWidth
                             )
                         }
-                    }
-                    .onFocusChanged { isFocused = it.isFocused },
-                value = text,
+                    },
+                value = talkTopic,
                 onValueChange = {
                     if (it.length <= maxTextLength) {
-                        text = it
+//                        talkTopic = it
                     }
                 },
                 textStyle = MaterialTheme.typography.h4.copy(
@@ -163,7 +162,7 @@ fun InputTalkTopic(
         }
         Spacer(modifier = Modifier.height(6.dp))
         Text(
-            text = "${text.length}/$maxTextLength",
+            text = "${talkTopic.length}/$maxTextLength",
             style = MaterialTheme.typography.body1.copy(
                 color = colorResource(id = R.color.gray)
             )
@@ -173,7 +172,10 @@ fun InputTalkTopic(
 
 @Composable
 fun SelectCategories(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    selectedCategory1: TalkTopicCategory?,
+    selectedCategory2: TalkTopicCategory?,
+    selectedCategory3: TalkTopicCategory?,
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp.minus(48).dp
     val width = maxWidth.div(3)
@@ -185,34 +187,76 @@ fun SelectCategories(
         Row {
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.Friend
+                talkTopicCategory = TalkTopicCategory.Friend,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.Friend
+                ),
+                onClick = {}
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.Couple
+                talkTopicCategory = TalkTopicCategory.Couple,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.Couple
+                ),
+                onClick = {}
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.Family
+                talkTopicCategory = TalkTopicCategory.Family,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.Family
+                ),
+                onClick = {}
             )
         }
         Spacer(modifier = Modifier.height(10.dp))
         Row {
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.Balance
+                talkTopicCategory = TalkTopicCategory.Balance,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.Balance
+                ),
+                onClick = {}
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.SmallTalk
+                talkTopicCategory = TalkTopicCategory.SmallTalk,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.SmallTalk
+                ),
+                onClick = {}
             )
             Spacer(modifier = Modifier.width(10.dp))
             CategoryItem(
                 modifier = Modifier.width(width),
-                talkTopicCategory = TalkTopicCategory.DeepTalk
+                talkTopicCategory = TalkTopicCategory.DeepTalk,
+                isSelected = isSelectedCategory(
+                    selectedCategory1,
+                    selectedCategory2,
+                    selectedCategory3,
+                    TalkTopicCategory.DeepTalk
+                ),
+                onClick = {}
             )
         }
     }
@@ -221,16 +265,23 @@ fun SelectCategories(
 @Composable
 fun CategoryItem(
     modifier: Modifier = Modifier,
-    talkTopicCategory: TalkTopicCategory
+    talkTopicCategory: TalkTopicCategory,
+    isSelected: Boolean,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
             .shadow(2.dp, MaterialTheme.shapes.medium)
             .clip(MaterialTheme.shapes.medium)
             .background(
-                color = MaterialTheme.colors.background,
+                color = if (isSelected) {
+                    colorResource(id = R.color.light_orange)
+                } else {
+                    MaterialTheme.colors.background
+                },
                 shape = MaterialTheme.shapes.medium
             )
+            .clickable { onClick() }
             .padding(top = 12.dp, bottom = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -249,7 +300,10 @@ fun CategoryItem(
 }
 
 @Composable
-fun SetPublicAvailability(modifier: Modifier = Modifier) {
+fun SetPublicAvailability(
+    modifier: Modifier = Modifier,
+    isPublic: Boolean
+) {
     Column(modifier = modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -258,31 +312,61 @@ fun SetPublicAvailability(modifier: Modifier = Modifier) {
                 .shadow(2.dp, MaterialTheme.shapes.medium)
                 .clip(MaterialTheme.shapes.medium)
                 .background(
-                    color = MaterialTheme.colors.background,
+                    color = if (isPublic) {
+                        MaterialTheme.colors.background
+                    } else {
+                        colorResource(id = R.color.light_gray)
+                    },
                     shape = MaterialTheme.shapes.medium
                 )
                 .padding(start = 12.dp, end = 12.dp),
         ) {
             Text(
                 modifier = Modifier.align(Alignment.Center),
-                text = "공개",
+                text = if (isPublic) {
+                    "공개"
+                } else {
+                    "비공개"
+                },
                 style = MaterialTheme.typography.h5
             )
-            Icon(
-                modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.CenterEnd),
-                painter = painterResource(id = R.drawable.ic_unlock),
-                contentDescription = "PublicIcon",
-                tint = Green50
-            )
+            if (isPublic) {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterEnd),
+                    painter = painterResource(id = R.drawable.ic_unlock),
+                    contentDescription = "PublicIcon",
+                    tint = Green50
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterEnd),
+                    painter = painterResource(id = R.drawable.ic_unlock),
+                    contentDescription = "NonPublicIcon",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
         }
         Spacer(modifier = Modifier.height(12.dp))
-        Text(
-            text = "제작해주신 대화주제는 검토 후 업로드 될 예정입니다.",
-            style = MaterialTheme.typography.body1.copy(
-                color = colorResource(id = R.color.gray)
+        if (isPublic) {
+            Text(
+                text = "제작해주신 대화주제는 검토 후 업로드 될 예정입니다.",
+                style = MaterialTheme.typography.body1.copy(
+                    color = colorResource(id = R.color.gray)
+                )
             )
-        )
+        }
     }
 }
+
+private fun isSelectedCategory(
+    selectedCategory1: TalkTopicCategory?,
+    selectedCategory2: TalkTopicCategory?,
+    selectedCategory3: TalkTopicCategory?,
+    baseCategory: TalkTopicCategory
+) = (selectedCategory1 == baseCategory ||
+        selectedCategory2 == baseCategory ||
+        selectedCategory3 == baseCategory)
