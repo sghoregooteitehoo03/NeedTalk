@@ -91,7 +91,9 @@ fun AppNavHost(
         }
 
         composable(route = UiScreen.AddTalkTopicScreen.route) {
-            AddTalkTopicRoute()
+            AddTalkTopicRoute(
+                navigateBack = { navController.navigateUp() }
+            )
         }
 
         composable(
