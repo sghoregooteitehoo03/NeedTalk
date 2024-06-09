@@ -31,7 +31,9 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 
 @Composable
-fun TalkTopicsScreen() {
+fun TalkTopicsScreen(
+    uiState: TalkTopicsDetailUiState,
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -63,7 +65,7 @@ fun TalkTopicsScreen() {
                 .padding(14.dp)
         ) {
             item {
-                ListFilter()
+                ListFilter(orderType = uiState.orderType)
                 Spacer(modifier = Modifier.height(10.dp))
             }
             items(1) {
@@ -75,7 +77,8 @@ fun TalkTopicsScreen() {
 
 @Composable
 fun ListFilter(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    orderType: OrderType
 ) {
     Box(
         modifier = modifier.fillMaxWidth(),
@@ -83,7 +86,15 @@ fun ListFilter(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = "최근 제작 순",
+                text = when (orderType) {
+                    is OrderType.Popular -> {
+                        "인기도 순"
+                    }
+
+                    is OrderType.Recently -> {
+                        "최근 제작 순"
+                    }
+                },
                 style = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray))
             )
             Spacer(modifier = Modifier.width(4.dp))
