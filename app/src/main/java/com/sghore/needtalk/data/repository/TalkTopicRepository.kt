@@ -41,6 +41,7 @@ class TalkTopicRepository @Inject constructor(
     suspend fun getPopularTalkTopics(limit: Long) =
         firestore.collection(Constants.COLLECTION_TALK_TOPIC)
             .orderBy("favoriteCount", Query.Direction.DESCENDING)
+            .whereEqualTo("isUpload", true)
             .limit(limit)
             .get()
             .await()

@@ -49,8 +49,6 @@ import com.google.android.gms.ads.AdView
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
-import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Red
 import com.sghore.needtalk.util.Constants
 
 @Composable
@@ -306,6 +304,7 @@ fun DefaultButton(
 fun TalkTopicCategoryTag(
     modifier: Modifier = Modifier,
     tagName: String,
+    textStyle: TextStyle,
     paddingValues: PaddingValues
 ) {
     Box(
@@ -320,24 +319,7 @@ fun TalkTopicCategoryTag(
         Text(
             modifier = Modifier.align(Alignment.Center),
             text = tagName,
-            style = MaterialTheme.typography.subtitle1.copy(
-                color = MaterialTheme.colors.onPrimary
-            )
-        )
-    }
-}
-
-@Preview
-@Composable
-fun NameTagPreview() {
-    NeedTalkTheme {
-        NameTag(
-            name = "닉네임",
-            color = Red,
-            interval = 6.dp,
-            colorSize = 16.dp,
-            textStyle = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
-            isBorder = true
+            style = textStyle
         )
     }
 }

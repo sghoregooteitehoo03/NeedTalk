@@ -250,6 +250,9 @@ fun TalkTopicItem(
                     tagName = tagList[it],
                     paddingValues = PaddingValues(
                         top = 6.dp, bottom = 6.dp, start = 12.dp, end = 12.dp
+                    ),
+                    textStyle = MaterialTheme.typography.subtitle1.copy(
+                        color = MaterialTheme.colors.onPrimary
                     )
                 )
                 Spacer(modifier = Modifier.width(6.dp))
