@@ -7,6 +7,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.presentation.ui.UiScreen
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.serialization.json.Json
 
 @Composable
 fun TalkTopicsRoute(
@@ -26,6 +27,13 @@ fun TalkTopicsRoute(
                     navigateToOther(UiScreen.AddTalkTopicScreen.route)
                 }
 
+                is TalkTopicsUiEvent.ClickTopicCategory -> {
+                    navigateToDetailScreen(
+                        type = TalkTopicsDetailType.CategoryType(event.category.code),
+                        navigateToOther = navigateToOther
+                    )
+                }
+
                 is TalkTopicsUiEvent.ClickGroupMore -> {
 
                 }
@@ -38,9 +46,6 @@ fun TalkTopicsRoute(
 
                 }
 
-                is TalkTopicsUiEvent.ClickTopicCategory -> {
-
-                }
 
                 is TalkTopicsUiEvent.ClickGroup -> {
 
@@ -53,4 +58,14 @@ fun TalkTopicsRoute(
         uiState = uiState,
         onEvent = viewModel::handelEvent
     )
+}
+
+private fun navigateToDetailScreen(
+    type: TalkTopicsDetailType,
+    navigateToOther: (route: String) -> Unit
+) {
+    val detailTypeJson = Json.encodeToString(TalkTopicsDetailType.serializer(), type)
+    val route = UiScreen.TalkTopicsDetailScreen.route + "?type=${detailTypeJson}"
+
+    navigateToOther(route)
 }

@@ -24,6 +24,7 @@ import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
+import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
@@ -95,6 +96,16 @@ fun AppNavHost(
                 userData = gViewModel.getUserData(),
                 navigateBack = { navController.navigateUp() }
             )
+        }
+
+        composable(
+            route = UiScreen.TalkTopicsDetailScreen.route +
+                    "?type={type}",
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType },
+            )
+        ) {
+            TalkTopicsDetailRoute()
         }
 
         composable(
