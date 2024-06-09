@@ -48,8 +48,8 @@ class TalkTopicsViewModel @Inject constructor(
 
     // 인기 대화주제 5개 가져오기
     private fun getPopularTopics() = viewModelScope.launch {
-//        val talkTopics = getPopularTalkTopicsUseCase()
-        _uiState.update { it.copy(isLoading = false) }
+        val talkTopics = getPopularTalkTopicsUseCase()
+        _uiState.update { it.copy(isLoading = false, popularTalkTopics = talkTopics) }
     }
 
     fun handelEvent(event: TalkTopicsUiEvent) = viewModelScope.launch {

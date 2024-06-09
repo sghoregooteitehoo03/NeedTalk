@@ -5,6 +5,7 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
 import com.sghore.needtalk.data.model.document.TalkTopicDoc
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.repository.database.TalkTopicDao
 import com.sghore.needtalk.util.Constants
@@ -17,11 +18,24 @@ class TalkTopicRepository @Inject constructor(
     private val firestore: FirebaseFirestore
 ) {
 
+    // 대화주제 모음집을 가져옴
     fun getTalkTopicGroupEntity(offset: Int = 0, limit: Int = 5) =
         talkTopicDao.getTalkTopicGroupEntity(offset, limit)
 
+    // 대화주제 모음집 추가
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
         talkTopicDao.insertTalkTopicGroupEntity(groupEntity)
+
+    // 비공개 대화주제 추가
+    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity2) =
+        talkTopicDao.insertTalkTopic(talkTopicEntity)
+
+    // 공개 대화주제 추가
+    suspend fun insertTalkTopicDoc(talkTopicDoc: TalkTopicDoc) =
+        firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+            .document(talkTopicDoc.id)
+            .set(talkTopicDoc)
+            .await()
 
     // 인기 대화주제를 firestore에서 가져옵니다.
     suspend fun getPopularTalkTopics(limit: Long) =

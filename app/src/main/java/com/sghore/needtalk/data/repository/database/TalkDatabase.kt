@@ -5,12 +5,17 @@ import androidx.room.RoomDatabase
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TimerSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.model.entity.UserEntity2
 
 @Database(
-    entities = [UserEntity2::class, TalkTopicGroupEntity::class, UserEntity::class, TalkEntity::class, TalkTopicEntity::class, TimerSettingEntity::class],
+    entities = [
+        UserEntity2::class, TalkTopicGroupEntity::class, UserEntity::class,
+        TalkEntity::class, TalkTopicEntity::class, TimerSettingEntity::class,
+        TalkTopicEntity2::class
+    ],
     version = 3,
     exportSchema = true
 )

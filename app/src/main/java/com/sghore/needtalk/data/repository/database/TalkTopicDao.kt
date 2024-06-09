@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -14,4 +15,7 @@ interface TalkTopicDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
+
+    @Insert
+    suspend fun insertTalkTopic(talkTopicEntity: TalkTopicEntity2)
 }

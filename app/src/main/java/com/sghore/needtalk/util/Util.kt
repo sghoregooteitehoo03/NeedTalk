@@ -12,6 +12,7 @@ import androidx.palette.graphics.Palette
 import com.sghore.needtalk.domain.model.TalkTopicCategory
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.io.ByteArrayOutputStream
+import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.util.Calendar
 
@@ -144,4 +145,13 @@ fun mergeImages(
     }
 
     return result
+}
+
+fun generateTalkTopicId(userId: String, currentTime: Long): String {
+    val input = userId + currentTime
+    val bytes = MessageDigest
+        .getInstance("SHA-256")
+        .digest(input.toByteArray())
+
+    return bytes.joinToString("") { "%02x".format(it) }
 }

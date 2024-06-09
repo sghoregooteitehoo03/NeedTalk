@@ -6,5 +6,7 @@ data class AddTalkTopicUiState(
     val talkTopicText: String = "",
     val selectedCategories: List<TalkTopicCategory> = emptyList(),
     val selectedCount: Int = 0,
-    val isPublic: Boolean = true
+    val isEnabled: Boolean = false,
+    val isPublic: Boolean = true,
+    val isLoading: Boolean = false
 )

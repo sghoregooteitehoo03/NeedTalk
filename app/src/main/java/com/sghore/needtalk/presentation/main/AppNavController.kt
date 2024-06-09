@@ -92,6 +92,7 @@ fun AppNavHost(
 
         composable(route = UiScreen.AddTalkTopicScreen.route) {
             AddTalkTopicRoute(
+                userData = gViewModel.getUserData(),
                 navigateBack = { navController.navigateUp() }
             )
         }

@@ -13,4 +13,8 @@ sealed interface AddTalkTopicUiEvent {
     data class ClickTalkTopicCategory(val category: TalkTopicCategory) : AddTalkTopicUiEvent
 
     data object ClickSetPublic : AddTalkTopicUiEvent
+
+    data object SuccessAddTalkTopic : AddTalkTopicUiEvent
+
+    data class FailAddTalkTopic(val errorMessage: String) : AddTalkTopicUiEvent
 }

@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -59,14 +60,34 @@ fun AddTalkTopicScreen(
                 contentDescription = "navigateBack",
                 tint = MaterialTheme.colors.onPrimary
             )
-            Icon(
-                modifier = Modifier
-                    .size(24.dp)
-                    .align(Alignment.CenterEnd),
-                painter = painterResource(id = R.drawable.ic_check),
-                contentDescription = "Complete",
-                tint = MaterialTheme.colors.onPrimary
-            )
+            if (uiState.isLoading) {
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterEnd),
+                    color = MaterialTheme.colors.onPrimary,
+                    strokeWidth = 3.dp
+                )
+            } else {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .align(Alignment.CenterEnd)
+                        .clip(CircleShape)
+                        .clickable {
+                            if (uiState.isEnabled) {
+                                onEvent(AddTalkTopicUiEvent.ClickAddTalkTopic)
+                            }
+                        },
+                    painter = painterResource(id = R.drawable.ic_check),
+                    contentDescription = "Complete",
+                    tint = if (uiState.isEnabled) {
+                        MaterialTheme.colors.onPrimary
+                    } else {
+                        MaterialTheme.colors.onPrimary.copy(alpha = 0.4f)
+                    }
+                )
+            }
         }
         Box(
             modifier = Modifier
