@@ -5,7 +5,7 @@ import com.sghore.needtalk.domain.model.TalkTopic
 import kotlinx.coroutines.flow.Flow
 
 data class TalkTopicsDetailUiState(
-    val talkTopics: PagingData<Flow<TalkTopic>>? = null,
+    val talkTopics: Flow<PagingData<TalkTopic>>? = null,
     val orderType: OrderType = OrderType.Popular
 )
 

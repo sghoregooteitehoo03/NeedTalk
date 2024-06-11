@@ -7,6 +7,7 @@ import androidx.room.PrimaryKey
 data class TalkTopicEntity2(
     @PrimaryKey
     val id: String,
+    val uid: String,
     val topic: String,
     val categoryCode1: Int,
     val categoryCode2: Int?,

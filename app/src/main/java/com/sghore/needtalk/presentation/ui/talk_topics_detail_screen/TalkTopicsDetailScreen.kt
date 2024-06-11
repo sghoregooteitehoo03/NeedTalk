@@ -17,6 +17,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,13 +28,17 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 
 @Composable
 fun TalkTopicsScreen(
     uiState: TalkTopicsDetailUiState,
 ) {
+    val talkTopics = uiState.talkTopics?.collectAsLazyPagingItems()
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -68,8 +73,12 @@ fun TalkTopicsScreen(
                 ListFilter(orderType = uiState.orderType)
                 Spacer(modifier = Modifier.height(10.dp))
             }
-            items(1) {
-                TalkTopicItem()
+
+            talkTopics?.let {
+                items(it.itemCount) { index ->
+                    TalkTopicItem(talkTopic = it[index]!!)
+                    Spacer(modifier = Modifier.height(24.dp))
+                }
             }
         }
     }
@@ -110,7 +119,8 @@ fun ListFilter(
 
 @Composable
 fun TalkTopicItem(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    talkTopic: TalkTopic
 ) {
     Box(
         modifier = modifier
@@ -131,9 +141,17 @@ fun TalkTopicItem(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                repeat(1) { index ->
+                val tagList = remember {
+                    listOf(
+                        talkTopic.category1.title,
+                        talkTopic.category2?.title ?: "",
+                        talkTopic.category3?.title ?: ""
+                    ).filter { it.isNotEmpty() }
+                }
+
+                tagList.forEachIndexed { index, tagName ->
                     TalkTopicCategoryTag(
-                        tagName = "친구",
+                        tagName = tagName,
                         paddingValues = PaddingValues(
                             top = 6.dp,
                             bottom = 6.dp,
@@ -151,7 +169,7 @@ fun TalkTopicItem(
             }
             Spacer(modifier = Modifier.height(24.dp))
             Text(
-                text = "테스트 대화주제입니다.",
+                text = talkTopic.topic,
                 style = MaterialTheme.typography.h3.copy(
                     color = MaterialTheme.colors.onPrimary,
                     textAlign = TextAlign.Center
@@ -162,7 +180,7 @@ fun TalkTopicItem(
         Row(modifier = Modifier.align(Alignment.BottomCenter)) {
             TalkTopicItemButton(
                 icon = painterResource(id = R.drawable.ic_heart_border),
-                text = "0",
+                text = talkTopic.favoriteCount.toString(),
                 color = MaterialTheme.colors.onPrimary,
                 onClick = {}
             )

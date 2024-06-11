@@ -1,6 +1,8 @@
 package com.sghore.needtalk.data.repository
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
@@ -8,6 +10,9 @@ import com.sghore.needtalk.data.model.document.TalkTopicDoc
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.repository.database.TalkTopicDao
+import com.sghore.needtalk.data.repository.datasource.TalkTopicPagingSource
+import com.sghore.needtalk.domain.model.TalkTopicCategory
+import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.tasks.await
 import java.security.MessageDigest
@@ -46,6 +51,17 @@ class TalkTopicRepository @Inject constructor(
             .get()
             .await()
             .toObjects<TalkTopicDoc>()
+
+    // 대화주제를 페이징 하여 가져옴
+    fun getPagingTalkTopics(talkTopicCategoryCode: Int, orderType: OrderType, pageSize: Int) =
+        Pager(PagingConfig(pageSize = pageSize)) {
+            TalkTopicPagingSource(
+                firestore,
+                talkTopicCategoryCode = talkTopicCategoryCode,
+                orderType = orderType,
+                limit = pageSize
+            )
+        }.flow
 
     // TODO: 나중에 지울것
     fun setData() {

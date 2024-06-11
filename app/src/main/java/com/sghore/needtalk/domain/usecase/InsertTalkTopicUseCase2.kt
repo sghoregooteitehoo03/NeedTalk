@@ -29,6 +29,7 @@ class InsertTalkTopicUseCase2 @Inject constructor(
             val talkTopicEntity = TalkTopicEntity2(
                 id = generateTalkTopicId(talkTopic.uid, currentTime),
                 topic = talkTopic.topic,
+                uid = talkTopic.uid,
                 categoryCode1 = talkTopic.category1.code,
                 categoryCode2 = talkTopic.category2?.code,
                 categoryCode3 = talkTopic.category3?.code,

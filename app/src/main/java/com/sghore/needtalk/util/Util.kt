@@ -107,9 +107,7 @@ fun bitmapToByteArray(bitmap: Bitmap): ByteArray {
     return outputStream.toByteArray()
 }
 
-fun byteArrayToBitmap(byteArray: ByteArray)
-
-        : Bitmap {
+fun byteArrayToBitmap(byteArray: ByteArray): Bitmap {
     return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
 }
 
@@ -122,11 +120,7 @@ fun getBitmapFromResource(context: Context, drawableId: Int): Bitmap {
 }
 
 // 이미지 병합
-fun mergeImages(
-    bitmaps: List<Bitmap>
-
-)
-        : Bitmap {
+fun mergeImages(bitmaps: List<Bitmap>): Bitmap {
     val width = bitmaps.maxOf { it.width }
     val height = bitmaps.maxOf { it.height }
 
