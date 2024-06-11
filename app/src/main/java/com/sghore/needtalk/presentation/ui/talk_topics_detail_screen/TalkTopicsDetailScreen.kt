@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui.talk_topics_detail_screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,15 +10,23 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
+import androidx.compose.material.ExperimentalMaterialApi
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,15 +36,18 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TalkTopicsScreen(
     uiState: TalkTopicsDetailUiState,
+    onEvent: (TalkTopicsDetailUiEvent) -> Unit
 ) {
     val talkTopics = uiState.talkTopics?.collectAsLazyPagingItems()
 
@@ -53,7 +65,9 @@ fun TalkTopicsScreen(
             Icon(
                 modifier = Modifier
                     .size(24.dp)
-                    .align(Alignment.CenterStart),
+                    .clip(CircleShape)
+                    .align(Alignment.CenterStart)
+                    .clickable { onEvent(TalkTopicsDetailUiEvent.ClickNavigateUp) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "navigateUp"
             )
@@ -70,8 +84,18 @@ fun TalkTopicsScreen(
                 .padding(14.dp)
         ) {
             item {
-                ListFilter(orderType = uiState.orderType)
-                Spacer(modifier = Modifier.height(10.dp))
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    ListFilter(
+                        orderType = uiState.orderType,
+                        onSelectOrderType = {
+                            onEvent(TalkTopicsDetailUiEvent.SelectOrderType(it))
+                        }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
             }
 
             talkTopics?.let {
@@ -84,35 +108,63 @@ fun TalkTopicsScreen(
     }
 }
 
+@ExperimentalMaterialApi
 @Composable
 fun ListFilter(
     modifier: Modifier = Modifier,
-    orderType: OrderType
+    orderType: OrderType,
+    onSelectOrderType: (OrderType) -> Unit
 ) {
+    var isExpended by remember { mutableStateOf(false) }
+
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier = Modifier.width(128.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = when (orderType) {
-                    is OrderType.Popular -> {
-                        "인기도 순"
-                    }
+        Box(modifier = modifier.clickable { isExpended = true }) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = when (orderType) {
+                        is OrderType.Popular -> {
+                            "인기도 순"
+                        }
 
-                    is OrderType.Recently -> {
-                        "최근 제작 순"
-                    }
-                },
-                style = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray))
-            )
-            Spacer(modifier = Modifier.width(4.dp))
-            Icon(
-                modifier = Modifier.size(24.dp),
-                painter = painterResource(id = R.drawable.ic_filter),
-                contentDescription = "filter",
-                tint = colorResource(id = R.color.gray)
-            )
+                        is OrderType.Recently -> {
+                            "최근 제작 순"
+                        }
+                    },
+                    style = MaterialTheme.typography.body1.copy(color = colorResource(id = R.color.gray))
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Icon(
+                    modifier = Modifier.size(24.dp),
+                    painter = painterResource(id = R.drawable.ic_filter),
+                    contentDescription = "filter",
+                    tint = colorResource(id = R.color.gray)
+                )
+            }
+        }
+        DropdownMenu(
+            offset = DpOffset(16.dp, (-24).dp),
+            expanded = isExpended,
+            onDismissRequest = { isExpended = false }
+        ) {
+            DropdownMenuItem(onClick = {
+                if (orderType !is OrderType.Popular) {
+                    onSelectOrderType(OrderType.Popular)
+                }
+                isExpended = false
+            }) {
+                Text(text = "인기도 순")
+            }
+            DropdownMenuItem(onClick = {
+                if (orderType !is OrderType.Recently) {
+                    onSelectOrderType(OrderType.Recently)
+                }
+                isExpended = false
+            }) {
+                Text(text = "최근 제작 순")
+            }
         }
     }
 }

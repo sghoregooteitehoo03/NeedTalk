@@ -105,7 +105,9 @@ fun AppNavHost(
                 navArgument("type") { type = NavType.StringType },
             )
         ) {
-            TalkTopicsDetailRoute()
+            TalkTopicsDetailRoute(
+                navigateUp = { navController.navigateUp() }
+            )
         }
 
         composable(
