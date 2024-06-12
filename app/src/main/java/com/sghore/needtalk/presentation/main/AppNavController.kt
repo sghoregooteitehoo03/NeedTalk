@@ -106,6 +106,7 @@ fun AppNavHost(
             )
         ) {
             TalkTopicsDetailRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = { navController.navigateUp() }
             )
         }

@@ -36,7 +36,7 @@ fun AddTalkTopicRoute(
                         uid = userData?.userId ?: "",
                         topic = uiState.talkTopicText,
                         favoriteCount = 0,
-                        favorites = hashMapOf(),
+                        isFavorite = false,
                         isUpload = uiState.isPublic,
                         category1 = selectedCategories[0],
                         category2 = selectedCategories.getOrNull(1),

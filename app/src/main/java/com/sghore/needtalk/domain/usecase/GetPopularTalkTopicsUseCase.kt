@@ -16,7 +16,7 @@ class GetPopularTalkTopicsUseCase @Inject constructor(
                 uid = it.uid,
                 topic = it.topic,
                 favoriteCount = it.favoriteCount,
-                favorites = it.favorites,
+                isFavorite = it.favorites.getOrDefault(it.uid, false),
                 isUpload = it.isUpload,
                 category1 = getCodeToCategory(it.categoryCode1)!!,
                 category2 = getCodeToCategory(it.categoryCode2),

@@ -95,8 +95,8 @@ class ExampleUnitTest {
 
     @Test
     fun test() {
-        val list = listOf(1)
-
-        println(list.subList(0, 1))
+        val map = hashMapOf<String, Boolean>()
+        map.set("Hello", true)
+        println(map)
     }
 }

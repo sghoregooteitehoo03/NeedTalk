@@ -5,12 +5,14 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.UiScreen
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.serialization.json.Json
 
 @Composable
 fun TalkTopicsRoute(
+    userData: UserData?,
     viewModel: TalkTopicsViewModel = hiltViewModel(),
     navigateToOther: (route: String) -> Unit
 ) {
@@ -29,7 +31,11 @@ fun TalkTopicsRoute(
 
                 is TalkTopicsUiEvent.ClickTopicCategory -> {
                     navigateToDetailScreen(
-                        type = TalkTopicsDetailType.CategoryType(event.category.code),
+                        type = TalkTopicsDetailType.CategoryType(
+                            categoryCode = event.category.code,
+                            userId = userData?.userId ?: "",
+                            title = event.category.title
+                        ),
                         navigateToOther = navigateToOther
                     )
                 }

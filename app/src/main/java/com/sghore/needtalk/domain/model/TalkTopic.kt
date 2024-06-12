@@ -5,7 +5,7 @@ data class TalkTopic(
     val uid: String,
     val topic: String,
     val favoriteCount: Int,
-    val favorites: HashMap<String, Boolean>,
+    val isFavorite: Boolean,
     val isUpload: Boolean,
     val category1: TalkTopicCategory,
     val category2: TalkTopicCategory? = null,

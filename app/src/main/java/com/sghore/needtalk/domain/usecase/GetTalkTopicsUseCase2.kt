@@ -15,6 +15,7 @@ class GetTalkTopicsUseCase2 @Inject constructor(
     ) = when (talkTopicsDetailType) {
         is TalkTopicsDetailType.CategoryType -> { // 카테고리 타입의 대화주제
             talkTopicRepository.getPagingTalkTopics(
+                userId = talkTopicsDetailType.userId,
                 talkTopicCategoryCode = talkTopicsDetailType.categoryCode,
                 orderType = orderType,
                 pageSize = pageSize

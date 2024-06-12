@@ -7,7 +7,8 @@ import kotlinx.serialization.Serializable
 sealed interface TalkTopicsDetailType {
     @Serializable
     @SerialName("CategoryType")
-    data class CategoryType(val categoryCode: Int) : TalkTopicsDetailType
+    data class CategoryType(val categoryCode: Int, val userId: String, val title: String) :
+        TalkTopicsDetailType
 
     @Serializable
     @SerialName("PopularType")

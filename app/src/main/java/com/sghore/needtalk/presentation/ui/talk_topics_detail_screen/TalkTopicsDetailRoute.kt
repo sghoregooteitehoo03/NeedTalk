@@ -5,10 +5,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.UserData
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun TalkTopicsDetailRoute(
+    userData: UserData?,
     viewModel: TalkTopicsDetailViewModel = hiltViewModel(),
     navigateUp: () -> Unit
 ) {
@@ -24,7 +26,11 @@ fun TalkTopicsDetailRoute(
                     viewModel.selectOrderType(event.orderType)
 
                 is TalkTopicsDetailUiEvent.ClickBookmark -> TODO()
-                is TalkTopicsDetailUiEvent.ClickFavorite -> TODO()
+                is TalkTopicsDetailUiEvent.ClickFavorite -> viewModel.setFavorite(
+                    topicId = event.topicId,
+                    uid = userData?.userId ?: "",
+                    isFavorite = event.isFavorite
+                )
             }
         }
     }

@@ -10,7 +10,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -100,7 +99,17 @@ fun TalkTopicsScreen(
 
             talkTopics?.let {
                 items(it.itemCount) { index ->
-                    TalkTopicItem(talkTopic = it[index]!!)
+                    TalkTopicItem(
+                        talkTopic = it[index]!!,
+                        onFavoriteClick = { topicId, isFavorite ->
+                            onEvent(
+                                TalkTopicsDetailUiEvent.ClickFavorite(
+                                    topicId = topicId,
+                                    isFavorite = isFavorite
+                                )
+                            )
+                        }
+                    )
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
@@ -172,7 +181,8 @@ fun ListFilter(
 @Composable
 fun TalkTopicItem(
     modifier: Modifier = Modifier,
-    talkTopic: TalkTopic
+    talkTopic: TalkTopic,
+    onFavoriteClick: (String, Boolean) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -231,10 +241,20 @@ fun TalkTopicItem(
         }
         Row(modifier = Modifier.align(Alignment.BottomCenter)) {
             TalkTopicItemButton(
-                icon = painterResource(id = R.drawable.ic_heart_border),
+                icon = if (talkTopic.isFavorite) {
+                    painterResource(id = R.drawable.ic_heart)
+                } else {
+                    painterResource(id = R.drawable.ic_heart_border)
+                },
                 text = talkTopic.favoriteCount.toString(),
-                color = MaterialTheme.colors.onPrimary,
-                onClick = {}
+                color = if (talkTopic.isFavorite) {
+                    MaterialTheme.colors.secondary
+                } else {
+                    MaterialTheme.colors.onPrimary
+                },
+                onClick = {
+                    onFavoriteClick(talkTopic.topicId, !talkTopic.isFavorite)
+                }
             )
             Spacer(modifier = Modifier.width(24.dp))
             TalkTopicItemButton(
@@ -256,7 +276,7 @@ fun TalkTopicItemButton(
     onClick: () -> Unit
 ) {
     Row(
-        modifier = modifier,
+        modifier = modifier.clickable { onClick() },
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(

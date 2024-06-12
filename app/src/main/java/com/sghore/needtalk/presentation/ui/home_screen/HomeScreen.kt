@@ -183,7 +183,10 @@ fun HomeScreen(
             }
 
             composable(route = UiScreen.TalkTopicsScreen.route) {
-                TalkTopicsRoute(navigateToOther = navigateToOther)
+                TalkTopicsRoute(
+                    userData = gViewModel.getUserData(),
+                    navigateToOther = navigateToOther
+                )
             }
         }
     }

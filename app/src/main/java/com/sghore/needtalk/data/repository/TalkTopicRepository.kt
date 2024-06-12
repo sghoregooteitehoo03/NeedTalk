@@ -53,15 +53,62 @@ class TalkTopicRepository @Inject constructor(
             .toObjects<TalkTopicDoc>()
 
     // 대화주제를 페이징 하여 가져옴
-    fun getPagingTalkTopics(talkTopicCategoryCode: Int, orderType: OrderType, pageSize: Int) =
+    fun getPagingTalkTopics(
+        userId: String,
+        talkTopicCategoryCode: Int,
+        orderType: OrderType,
+        pageSize: Int
+    ) =
         Pager(PagingConfig(pageSize = pageSize)) {
             TalkTopicPagingSource(
-                firestore,
+                userId = userId,
+                firestore = firestore,
                 talkTopicCategoryCode = talkTopicCategoryCode,
                 orderType = orderType,
                 limit = pageSize
             )
         }.flow
+
+    // 대화주제 좋아요 표시
+    suspend fun updateFavoriteCount(
+        talkTopicId: String,
+        uid: String,
+        isFavorite: Boolean,
+        onUpdate: (favoriteCount: Int) -> Unit
+    ) {
+        val ref = firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+            .document(talkTopicId)
+
+        firestore.runTransaction { transaction ->
+            val talkTopicDoc = transaction.get(ref).toObject(TalkTopicDoc::class.java)
+
+            if (isFavorite) { // 좋아요 설정 시
+                val updateFavoriteCount = (talkTopicDoc?.favoriteCount ?: 0) + 1
+                talkTopicDoc?.favorites?.set(uid, true)
+
+                transaction.update(
+                    ref,
+                    mapOf(
+                        "favoriteCount" to updateFavoriteCount,
+                        "favorites" to talkTopicDoc?.favorites
+                    )
+                )
+                onUpdate(updateFavoriteCount)
+            } else { // 좋아요 취소 시
+                val updateFavoriteCount = (talkTopicDoc?.favoriteCount ?: 0) - 1
+                talkTopicDoc?.favorites?.set(uid, false)
+
+                transaction.update(
+                    ref,
+                    mapOf(
+                        "favoriteCount" to updateFavoriteCount,
+                        "favorites" to talkTopicDoc?.favorites
+                    )
+                )
+                onUpdate(updateFavoriteCount)
+            }
+        }.await()
+    }
 
     // TODO: 나중에 지울것
     fun setData() {
