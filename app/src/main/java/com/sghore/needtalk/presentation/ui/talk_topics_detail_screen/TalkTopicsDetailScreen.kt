@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.ExperimentalMaterialApi
@@ -43,13 +44,17 @@ import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.presentation.ui.DefaultButton
+import com.sghore.needtalk.presentation.ui.DefaultTextField
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
+import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -312,8 +317,15 @@ fun TalkTopicItemButton(
 fun SaveTopicDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
-    myGroups: List<TalkTopicGroup>
+    myGroupsFlow: Flow<List<TalkTopicGroup>>,
+    onAddGroupClick: (String) -> Unit
 ) {
+    val myGroups by myGroupsFlow.collectAsStateWithLifecycle(
+        initialValue = listOf(),
+        lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    )
+    var addGroupDialog by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
+
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(
             modifier = modifier
@@ -358,7 +370,7 @@ fun SaveTopicDialog(
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                     item {
-                        AddGroupItem()
+                        AddGroupItem(onClick = { addGroupDialog = DialogScreen.DialogAddGroup })
                     }
                 }
                 DefaultButton(
@@ -370,9 +382,76 @@ fun SaveTopicDialog(
                     textStyle = MaterialTheme.typography.body1.copy(
                         color = MaterialTheme.colors.onSecondary
                     ),
-                    onClick = {}
+                    onClick = {
+
+                    }
                 )
             }
+        }
+    }
+
+    if (addGroupDialog is DialogScreen.DialogAddGroup) {
+        AddGroupDialog(
+            modifier = Modifier
+                .background(
+                    color = MaterialTheme.colors.background,
+                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                )
+                .padding(14.dp),
+            onDismiss = { addGroupDialog = DialogScreen.DialogDismiss },
+            onAddGroupClick = onAddGroupClick
+        )
+    }
+}
+
+@Composable
+fun AddGroupDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onAddGroupClick: (String) -> Unit
+) {
+    var groupName by remember { mutableStateOf("") }
+
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(modifier = modifier) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "모음집 제작",
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            DefaultTextField(
+                hint = "모음집 이름",
+                inputData = groupName,
+                onDataChange = { groupName = it },
+                maxLength = 15
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            DefaultButton(
+                text = "제작하기",
+                buttonHeight = 46.dp,
+                isEnabled = groupName.isNotEmpty(),
+                onClick = {
+                    onAddGroupClick(groupName)
+                    onDismiss()
+                }
+            )
         }
     }
 }
@@ -382,7 +461,7 @@ fun SelectGroupItem(
     modifier: Modifier = Modifier,
     group: TalkTopicGroup
 ) {
-    val isEnabled = remember(group.id) { (group.id ?: 0) > 2 }
+    val isEnabled = remember(group.id) { (group.id ?: 0) > 1 }
     val iconPainter = when (group.id) {
         0 -> {
             painterResource(id = R.drawable.added_group)
@@ -442,7 +521,8 @@ fun SelectGroupItem(
 
 @Composable
 fun AddGroupItem(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
 ) {
     Row(
         modifier = modifier
@@ -453,12 +533,12 @@ fun AddGroupItem(
                 shape = MaterialTheme.shapes.medium
             )
             .clip(shape = MaterialTheme.shapes.medium)
+            .clickable { onClick() }
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            modifier = Modifier
-                .size(48.dp),
+            modifier = Modifier.size(48.dp),
             painter = painterResource(id = R.drawable.ic_add),
             contentDescription = "AddGroup"
         )

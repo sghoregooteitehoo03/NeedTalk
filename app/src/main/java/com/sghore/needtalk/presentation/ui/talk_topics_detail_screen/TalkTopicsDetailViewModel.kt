@@ -7,8 +7,10 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
 import com.sghore.needtalk.data.repository.TalkTopicRepository
+import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
+import com.sghore.needtalk.domain.usecase.InsertTalkTopicGroupUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -28,6 +30,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository,
     private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
+    private val insertTalkTopicGroupUseCase: InsertTalkTopicGroupUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // UI State
@@ -86,14 +89,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
         }
     }
 
-    fun onClickSave() = viewModelScope.launch {
-        val myGroups = getAllTalkTopicGroupUseCase()
-        _uiState.update {
-            it.copy(dialogScreen = DialogScreen.DialogSaveTopic(myGroups))
-        }
-    }
-
-    fun setOpenDialog(dialogScreen: DialogScreen, index: Int = 0) {
+    fun setOpenDialog(dialogScreen: DialogScreen) {
         _uiState.update {
             it.copy(dialogScreen = dialogScreen)
         }
@@ -134,6 +130,18 @@ class TalkTopicsDetailViewModel @Inject constructor(
         )
     }
 
+    // 대화주제 모음집을 모두 가져옴
+    fun getAllTalkTopicGroups() = getAllTalkTopicGroupUseCase()
+
+    // 대화주제 모음집 제작
+    fun addGroup(groupName: String) = viewModelScope.launch {
+        val createdGroup =
+            TalkTopicGroup(id = null, name = groupName, createdTime = System.currentTimeMillis())
+        insertTalkTopicGroupUseCase(createdGroup)
+    }
+
+
+    // 대화주제 페이징 하여 가져옴(타입에 따라)
     private fun getPagingTalkTopics(
         orderType: OrderType,
         talkTopicsDetailType: TalkTopicsDetailType?

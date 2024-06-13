@@ -8,7 +8,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -18,11 +17,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -31,16 +27,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.ui.DefaultButton
+import com.sghore.needtalk.presentation.ui.DefaultTextField
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.getBitmapFromResource
 
@@ -87,9 +82,10 @@ fun CreateProfileScreen(
                     selectedAccessoryImageRes = accessoryImageResources[uiState.selectedAccessoryIndex]
                 )
                 Spacer(modifier = Modifier.height(24.dp))
-                SetProfileName(
-                    name = uiState.profileName,
-                    onNameChange = { onEvent(CreateProfileUiEvent.ChangeName(it)) }
+                DefaultTextField(
+                    hint = "닉네임",
+                    inputData = uiState.profileName,
+                    onDataChange = { onEvent(CreateProfileUiEvent.ChangeName(it)) }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 SelectStyleImage(
@@ -189,52 +185,6 @@ fun ProfileImage(
                 contentDescription = "FaceImage"
             )
         }
-    }
-}
-
-@Composable
-fun SetProfileName(
-    modifier: Modifier = Modifier,
-    name: String,
-    onNameChange: (String) -> Unit,
-    maxLength: Int = 8
-) {
-    Column(modifier = modifier) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = "닉네임",
-                style = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onPrimary
-                )
-            )
-            Spacer(modifier = Modifier.width(6.dp))
-            Text(
-                text = "${name.length}/${maxLength}",
-                style = MaterialTheme.typography.subtitle1.copy(
-                    color = colorResource(id = R.color.gray)
-                )
-            )
-        }
-        Spacer(modifier = Modifier.height(8.dp))
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = name,
-            onValueChange = {
-                if (it.length <= maxLength) {
-                    onNameChange(it)
-                }
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            maxLines = 1,
-            textStyle = MaterialTheme.typography.h5,
-            colors = TextFieldDefaults.textFieldColors(
-                textColor = MaterialTheme.colors.onPrimary,
-                backgroundColor = colorResource(id = R.color.light_gray),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = MaterialTheme.colors.onPrimary
-            )
-        )
     }
 }
 
@@ -358,9 +308,10 @@ private fun SetProfileNamePreview() {
     NeedTalkTheme {
         var name by remember { mutableStateOf("") }
 
-        SetProfileName(
-            name = name,
-            onNameChange = {
+        DefaultTextField(
+            hint = "닉네임",
+            inputData = name,
+            onDataChange = {
                 name = it
             }
         )

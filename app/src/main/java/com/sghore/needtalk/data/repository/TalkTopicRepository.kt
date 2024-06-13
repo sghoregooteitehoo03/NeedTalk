@@ -39,11 +39,12 @@ class TalkTopicRepository @Inject constructor(
         talkTopicDao.insertTalkTopic(talkTopicEntity)
 
     // 공개 대화주제 추가
-    suspend fun insertTalkTopicDoc(talkTopicDoc: TalkTopicDoc) =
+    suspend fun insertTalkTopicDoc(talkTopicDoc: TalkTopicDoc) {
         firestore.collection(Constants.COLLECTION_TALK_TOPIC)
             .document(talkTopicDoc.id)
             .set(talkTopicDoc)
             .await()
+    }
 
     // 인기 대화주제를 firestore에서 가져옵니다.
     suspend fun getPopularTalkTopics(limit: Long) =

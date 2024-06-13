@@ -17,9 +17,12 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.ui.Alignment
@@ -35,7 +38,7 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -259,6 +262,53 @@ fun DialogTalkTopics(
                 items(talkTopics) { talkTopicItem(it) }
             }
         }
+    }
+}
+
+@Composable
+fun DefaultTextField(
+    modifier: Modifier = Modifier,
+    hint: String,
+    inputData: String,
+    onDataChange: (String) -> Unit,
+    maxLength: Int = 8
+) {
+    Column(modifier = modifier) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = hint,
+                style = MaterialTheme.typography.body1.copy(
+                    color = MaterialTheme.colors.onPrimary
+                )
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = "${inputData.length}/${maxLength}",
+                style = MaterialTheme.typography.subtitle1.copy(
+                    color = colorResource(id = R.color.gray)
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(8.dp))
+        TextField(
+            modifier = Modifier.fillMaxWidth(),
+            value = inputData,
+            onValueChange = {
+                if (it.length <= maxLength) {
+                    onDataChange(it)
+                }
+            },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+            maxLines = 1,
+            textStyle = MaterialTheme.typography.h5,
+            colors = TextFieldDefaults.textFieldColors(
+                textColor = MaterialTheme.colors.onPrimary,
+                backgroundColor = colorResource(id = R.color.light_gray),
+                focusedIndicatorColor = Color.Transparent,
+                unfocusedIndicatorColor = Color.Transparent,
+                cursorColor = MaterialTheme.colors.onPrimary
+            )
+        )
     }
 }
 

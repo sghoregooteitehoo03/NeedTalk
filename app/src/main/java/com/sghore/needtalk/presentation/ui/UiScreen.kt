@@ -49,7 +49,9 @@ sealed class UiScreen(
 
 sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
-    data class DialogSaveTopic(val groups: List<TalkTopicGroup>) : DialogScreen
+    data object DialogSaveTopic : DialogScreen
+
+    data object DialogAddGroup : DialogScreen
 
     data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
 
