@@ -7,5 +7,5 @@ sealed interface TalkTopicsDetailUiEvent {
 
     data class ClickFavorite(val topicId: String, val isFavorite: Boolean) : TalkTopicsDetailUiEvent
 
-    data object ClickBookmark : TalkTopicsDetailUiEvent
+    data class ClickBookmark(val topicId: String) : TalkTopicsDetailUiEvent
 }

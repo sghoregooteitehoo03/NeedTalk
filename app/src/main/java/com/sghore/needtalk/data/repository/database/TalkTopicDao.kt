@@ -10,6 +10,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TalkTopicDao {
+    @Query("SELECT * FROM TalkTopicGroupEntity ORDER BY editedTime DESC")
+    fun getAllTalkTopicGroupEntity(): Flow<List<TalkTopicGroupEntity>>
+
     @Query("SELECT * FROM TalkTopicGroupEntity ORDER BY editedTime DESC LIMIT :limit OFFSET :offset")
     fun getTalkTopicGroupEntity(offset: Int, limit: Int): Flow<List<TalkTopicGroupEntity>>
 

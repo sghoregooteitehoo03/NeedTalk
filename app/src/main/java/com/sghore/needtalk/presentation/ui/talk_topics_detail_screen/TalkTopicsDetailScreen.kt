@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.talk_topics_detail_screen
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -8,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,18 +30,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
+import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import androidx.paging.compose.collectAsLazyPagingItems
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
+import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -108,6 +117,9 @@ fun TalkTopicsScreen(
                                     isFavorite = isFavorite
                                 )
                             )
+                        },
+                        onSaveClick = { topicId ->
+                            onEvent(TalkTopicsDetailUiEvent.ClickBookmark(topicId))
                         }
                     )
                     Spacer(modifier = Modifier.height(24.dp))
@@ -182,7 +194,8 @@ fun ListFilter(
 fun TalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopic: TalkTopic,
-    onFavoriteClick: (String, Boolean) -> Unit
+    onFavoriteClick: (String, Boolean) -> Unit,
+    onSaveClick: (String) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -261,7 +274,7 @@ fun TalkTopicItem(
                 icon = painterResource(id = R.drawable.ic_bookmark),
                 text = "저장",
                 color = MaterialTheme.colors.onPrimary,
-                onClick = {}
+                onClick = { onSaveClick(talkTopic.topicId) }
             )
         }
     }
@@ -291,6 +304,168 @@ fun TalkTopicItemButton(
             style = MaterialTheme.typography.h5.copy(
                 color = color
             )
+        )
+    }
+}
+
+@Composable
+fun SaveTopicDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    myGroups: List<TalkTopicGroup>
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(
+            modifier = modifier
+                .fillMaxHeight(0.65f)
+                .padding(14.dp)
+        ) {
+            ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+                val (title, content, button) = createRefs()
+                Box(modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(title) {
+                        top.linkTo(parent.top)
+                    }
+                ) {
+                    Text(
+                        modifier = Modifier.align(Alignment.Center),
+                        text = "대화 모음집 저장",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .align(Alignment.CenterEnd)
+                            .clickable { onDismiss() },
+                        painter = painterResource(id = R.drawable.ic_close),
+                        contentDescription = "Close"
+                    )
+                }
+                LazyColumn(modifier = Modifier
+                    .constrainAs(content) {
+                        top.linkTo(title.bottom, 16.dp)
+                        bottom.linkTo(button.top, 16.dp)
+                        height = Dimension.fillToConstraints
+                    }
+                ) {
+                    items(myGroups.size) { index ->
+                        SelectGroupItem(group = myGroups[index])
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
+                    item {
+                        AddGroupItem()
+                    }
+                }
+                DefaultButton(
+                    modifier = Modifier.constrainAs(button) {
+                        bottom.linkTo(parent.bottom)
+                    },
+                    buttonHeight = 46.dp,
+                    text = "저장하기",
+                    textStyle = MaterialTheme.typography.body1.copy(
+                        color = MaterialTheme.colors.onSecondary
+                    ),
+                    onClick = {}
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SelectGroupItem(
+    modifier: Modifier = Modifier,
+    group: TalkTopicGroup
+) {
+    val isEnabled = remember(group.id) { (group.id ?: 0) > 2 }
+    val iconPainter = when (group.id) {
+        0 -> {
+            painterResource(id = R.drawable.added_group)
+        }
+
+        1 -> {
+            painterResource(id = R.drawable.favorite_group)
+        }
+
+        else -> {
+            painterResource(id = R.drawable.default_group)
+        }
+    }
+
+    ConstraintLayout(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .clip(shape = MaterialTheme.shapes.medium)
+            .then(
+                if (isEnabled) {
+                    Modifier
+                } else {
+                    Modifier.alpha(0.5f)
+                }
+            )
+            .padding(14.dp)
+    ) {
+        val (icon, title, checkBox) = createRefs()
+        Image(
+            modifier = Modifier
+                .size(48.dp)
+                .constrainAs(icon) {
+                    start.linkTo(parent.start)
+                    top.linkTo(parent.top)
+                    bottom.linkTo(parent.bottom)
+                },
+            painter = iconPainter,
+            contentDescription = "GroupIcon"
+        )
+        Text(
+            modifier = Modifier.constrainAs(title) {
+                start.linkTo(icon.end, 10.dp)
+                end.linkTo(checkBox.start, 10.dp)
+                bottom.linkTo(icon.bottom)
+                top.linkTo(icon.top)
+            },
+            text = group.name,
+            style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
+        )
+    }
+}
+
+@Composable
+fun AddGroupItem(
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .clip(shape = MaterialTheme.shapes.medium)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier
+                .size(48.dp),
+            painter = painterResource(id = R.drawable.ic_add),
+            contentDescription = "AddGroup"
+        )
+        Spacer(modifier = Modifier.width(10.dp))
+        Text(
+            text = "새 모음집 제작",
+            style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
         )
     }
 }

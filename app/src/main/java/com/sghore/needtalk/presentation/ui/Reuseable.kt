@@ -265,14 +265,18 @@ fun DialogTalkTopics(
 @Composable
 fun DefaultButton(
     modifier: Modifier = Modifier,
+    buttonHeight: Dp = 54.dp,
     text: String,
+    textStyle: TextStyle = MaterialTheme.typography.h5.copy(
+        color = MaterialTheme.colors.onSecondary
+    ),
     isEnabled: Boolean = true,
     onClick: () -> Unit
 ) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .height(54.dp)
+            .height(buttonHeight)
             .clip(MaterialTheme.shapes.medium)
             .background(
                 color = if (isEnabled) {
@@ -293,9 +297,7 @@ fun DefaultButton(
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.h5.copy(
-                color = MaterialTheme.colors.onSecondary
-            )
+            style = textStyle
         )
     }
 }

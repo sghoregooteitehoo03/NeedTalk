@@ -27,6 +27,9 @@ class TalkTopicRepository @Inject constructor(
     fun getTalkTopicGroupEntity(offset: Int = 0, limit: Int = 5) =
         talkTopicDao.getTalkTopicGroupEntity(offset, limit)
 
+    // 대화주제 모음집을 모두 가져옴
+    fun getAllTalkTopicGroupEntity() = talkTopicDao.getAllTalkTopicGroupEntity()
+
     // 대화주제 모음집 추가
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
         talkTopicDao.insertTalkTopicGroupEntity(groupEntity)

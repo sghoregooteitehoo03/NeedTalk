@@ -7,7 +7,9 @@ import androidx.paging.cachedIn
 import androidx.paging.filter
 import androidx.paging.map
 import com.sghore.needtalk.data.repository.TalkTopicRepository
+import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -25,6 +27,7 @@ import javax.inject.Inject
 class TalkTopicsDetailViewModel @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository,
     private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
+    private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // UI State
@@ -80,6 +83,19 @@ class TalkTopicsDetailViewModel @Inject constructor(
                 orderType = orderType,
                 talkTopics = talkTopics
             )
+        }
+    }
+
+    fun onClickSave() = viewModelScope.launch {
+        val myGroups = getAllTalkTopicGroupUseCase()
+        _uiState.update {
+            it.copy(dialogScreen = DialogScreen.DialogSaveTopic(myGroups))
+        }
+    }
+
+    fun setOpenDialog(dialogScreen: DialogScreen, index: Int = 0) {
+        _uiState.update {
+            it.copy(dialogScreen = dialogScreen)
         }
     }
 
