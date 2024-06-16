@@ -29,9 +29,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkTopicGroup
 
 @Composable
-fun GroupsDetailScreen() {
+fun GroupsDetailScreen(
+    uiState: GroupsDetailUiState
+) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier
@@ -59,37 +62,46 @@ fun GroupsDetailScreen() {
             columns = GridCells.Fixed(2),
             contentPadding = PaddingValues(9.dp)
         ) {
-            item {
-                GroupItem()
+            items(uiState.groups.size) { index ->
+                GroupItem(
+                    modifier = Modifier.padding(5.dp),
+                    group = uiState.groups[index]
+                )
             }
-            item { GroupItem() }
         }
     }
 }
 
 @Composable
 fun GroupItem(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    group: TalkTopicGroup
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp.minus(40).dp
 
     Box(
         modifier = modifier
-            .padding(5.dp)
             .width(maxWidth.div(2))
-            .shadow(8.dp, MaterialTheme.shapes.medium)
+            .shadow(2.dp, MaterialTheme.shapes.medium)
             .background(color = MaterialTheme.colors.background)
             .padding(8.dp)
     ) {
-        Column(modifier = Modifier.align(Alignment.Center)) {
+        Column(
+            modifier = Modifier.align(Alignment.Center),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
             Image(
                 modifier = Modifier.size(80.dp),
-                painter = painterResource(id = R.drawable.default_group),
+                painter = when (group.id ?: 0) {
+                    0 -> painterResource(id = R.drawable.added_group)
+                    1 -> painterResource(id = R.drawable.favorite_group)
+                    else -> painterResource(id = R.drawable.default_group)
+                },
                 contentDescription = "groupImage"
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = "대화주제 모음집",
+                text = group.name,
                 style = MaterialTheme.typography.body1.copy(
                     color = MaterialTheme.colors.onPrimary
                 ),
@@ -98,13 +110,15 @@ fun GroupItem(
             )
         }
 
-        Icon(
-            modifier = Modifier
-                .size(24.dp)
-                .align(Alignment.TopEnd),
-            painter = painterResource(id = R.drawable.ic_more),
-            contentDescription = "more",
-            tint = MaterialTheme.colors.onPrimary
-        )
+        if ((group.id ?: 0) > 1) {
+            Icon(
+                modifier = Modifier
+                    .size(24.dp)
+                    .align(Alignment.TopEnd),
+                painter = painterResource(id = R.drawable.ic_more),
+                contentDescription = "more",
+                tint = MaterialTheme.colors.onPrimary
+            )
+        }
     }
 }

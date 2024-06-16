@@ -324,11 +324,11 @@ fun TalkTopicGroupItem(
             painter = painterResource(
                 id = when (talkTopicGroup.id) {
                     0 -> {
-                        R.drawable.default_group
+                        R.drawable.added_group
                     }
 
                     1 -> {
-                        R.drawable.default_group
+                        R.drawable.favorite_group
                     }
 
                     else -> {
