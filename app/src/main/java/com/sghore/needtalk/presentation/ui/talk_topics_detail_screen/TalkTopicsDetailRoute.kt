@@ -32,7 +32,7 @@ fun TalkTopicsDetailRoute(
                     viewModel.selectOrderType(event.orderType)
 
                 is TalkTopicsDetailUiEvent.ClickBookmark ->
-                    viewModel.setOpenDialog(DialogScreen.DialogSaveTopic)
+                    viewModel.setOpenDialog(DialogScreen.DialogSaveTopic(event.talkTopic))
 
                 is TalkTopicsDetailUiEvent.ClickFavorite -> viewModel.setFavorite(
                     topicId = event.topicId,
@@ -48,7 +48,7 @@ fun TalkTopicsDetailRoute(
         onEvent = viewModel::handelEvent
     )
 
-    when (uiState.dialogScreen) {
+    when (val dialogScreen = uiState.dialogScreen) {
         is DialogScreen.DialogSaveTopic -> {
             SaveTopicDialog(
                 modifier = Modifier
@@ -57,8 +57,15 @@ fun TalkTopicsDetailRoute(
                         shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                     ),
                 onDismiss = { viewModel.setOpenDialog(DialogScreen.DialogDismiss) },
-                myGroupsFlow = viewModel.getAllTalkTopicGroups(),
-                onAddGroupClick = viewModel::addGroup
+                myGroupsFlow = viewModel.getAllTalkTopicGroups(dialogScreen.talkTopic.topicId),
+                onAddGroupClick = viewModel::addGroup,
+                onSaveClick = {
+                    viewModel.saveTalkTopicGroup(
+                        selectedGroup = it,
+                        topicId = dialogScreen.talkTopic.topicId,
+                        isPublic = dialogScreen.talkTopic.isUpload
+                    )
+                }
             )
         }
 

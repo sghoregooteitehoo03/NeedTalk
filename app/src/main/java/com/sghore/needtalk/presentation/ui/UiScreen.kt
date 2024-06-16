@@ -1,7 +1,7 @@
 package com.sghore.needtalk.presentation.ui
 
 import com.sghore.needtalk.R
-import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.domain.model.TalkTopic
 
 sealed class UiScreen(
     val route: String,
@@ -49,7 +49,7 @@ sealed class UiScreen(
 
 sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
-    data object DialogSaveTopic : DialogScreen
+    data class DialogSaveTopic(val talkTopic: TalkTopic) : DialogScreen
 
     data object DialogAddGroup : DialogScreen
 

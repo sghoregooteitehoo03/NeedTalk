@@ -25,7 +25,9 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -123,8 +125,8 @@ fun TalkTopicsScreen(
                                 )
                             )
                         },
-                        onSaveClick = { topicId ->
-                            onEvent(TalkTopicsDetailUiEvent.ClickBookmark(topicId))
+                        onSaveClick = { talkTopic ->
+                            onEvent(TalkTopicsDetailUiEvent.ClickBookmark(talkTopic))
                         }
                     )
                     Spacer(modifier = Modifier.height(24.dp))
@@ -200,7 +202,7 @@ fun TalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopic: TalkTopic,
     onFavoriteClick: (String, Boolean) -> Unit,
-    onSaveClick: (String) -> Unit
+    onSaveClick: (TalkTopic) -> Unit
 ) {
     Box(
         modifier = modifier
@@ -279,7 +281,7 @@ fun TalkTopicItem(
                 icon = painterResource(id = R.drawable.ic_bookmark),
                 text = "저장",
                 color = MaterialTheme.colors.onPrimary,
-                onClick = { onSaveClick(talkTopic.topicId) }
+                onClick = { onSaveClick(talkTopic) }
             )
         }
     }
@@ -318,13 +320,21 @@ fun SaveTopicDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
     myGroupsFlow: Flow<List<TalkTopicGroup>>,
-    onAddGroupClick: (String) -> Unit
+    onAddGroupClick: (String) -> Unit,
+    onSaveClick: (Map<Int, Boolean>) -> Unit
 ) {
     val myGroups by myGroupsFlow.collectAsStateWithLifecycle(
         initialValue = listOf(),
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     )
+    val selectedGroupMap = remember { mutableStateMapOf<Int, Boolean>() }
     var addGroupDialog by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
+
+    LaunchedEffect(key1 = myGroups) {
+        myGroups.filter { it.isIncludeTopic }.forEach {
+            selectedGroupMap[it.id ?: 0] = true
+        }
+    }
 
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(
@@ -366,7 +376,14 @@ fun SaveTopicDialog(
                     }
                 ) {
                     items(myGroups.size) { index ->
-                        SelectGroupItem(group = myGroups[index])
+                        val myGroup = myGroups[index]
+                        SelectGroupItem(
+                            group = myGroup,
+                            isSelected = selectedGroupMap.getOrDefault(myGroup.id ?: 0, false),
+                            onClick = { isSelected ->
+                                selectedGroupMap[myGroup.id ?: 0] = isSelected
+                            }
+                        )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                     item {
@@ -383,7 +400,8 @@ fun SaveTopicDialog(
                         color = MaterialTheme.colors.onSecondary
                     ),
                     onClick = {
-
+                        onSaveClick(selectedGroupMap)
+                        onDismiss()
                     }
                 )
             }
@@ -459,7 +477,9 @@ fun AddGroupDialog(
 @Composable
 fun SelectGroupItem(
     modifier: Modifier = Modifier,
-    group: TalkTopicGroup
+    group: TalkTopicGroup,
+    isSelected: Boolean,
+    onClick: (Boolean) -> Unit
 ) {
     val isEnabled = remember(group.id) { (group.id ?: 0) > 1 }
     val iconPainter = when (group.id) {
@@ -481,13 +501,17 @@ fun SelectGroupItem(
             .fillMaxWidth()
             .shadow(2.dp, MaterialTheme.shapes.medium)
             .background(
-                color = MaterialTheme.colors.background,
+                color = if (isSelected) {
+                    colorResource(id = R.color.light_orange)
+                } else {
+                    MaterialTheme.colors.background
+                },
                 shape = MaterialTheme.shapes.medium
             )
             .clip(shape = MaterialTheme.shapes.medium)
             .then(
                 if (isEnabled) {
-                    Modifier
+                    Modifier.clickable { onClick(!isSelected) }
                 } else {
                     Modifier.alpha(0.5f)
                 }
@@ -512,10 +536,39 @@ fun SelectGroupItem(
                 end.linkTo(checkBox.start, 10.dp)
                 bottom.linkTo(icon.bottom)
                 top.linkTo(icon.top)
+                width = Dimension.fillToConstraints
             },
+            maxLines = 2,
             text = group.name,
-            style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onPrimary,
+                textAlign = TextAlign.Start
+            )
         )
+        if (isSelected) {
+            Box(
+                modifier = Modifier
+                    .size(18.dp)
+                    .constrainAs(checkBox) {
+                        end.linkTo(parent.end)
+                        top.linkTo(parent.top)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .clip(MaterialTheme.shapes.small)
+                    .background(
+                        color = MaterialTheme.colors.secondary,
+                        shape = MaterialTheme.shapes.small
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(18.dp),
+                    painter = painterResource(id = R.drawable.ic_check),
+                    contentDescription = "checkBox",
+                    tint = MaterialTheme.colors.onSecondary
+                )
+            }
+        }
     }
 }
 

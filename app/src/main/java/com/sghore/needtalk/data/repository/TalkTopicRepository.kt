@@ -7,11 +7,11 @@ import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
 import com.sghore.needtalk.data.model.document.TalkTopicDoc
+import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.repository.database.TalkTopicDao
 import com.sghore.needtalk.data.repository.datasource.TalkTopicPagingSource
-import com.sghore.needtalk.domain.model.TalkTopicCategory
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.tasks.await
@@ -24,19 +24,31 @@ class TalkTopicRepository @Inject constructor(
 ) {
 
     // 대화주제 모음집을 가져옴
-    fun getTalkTopicGroupEntity(offset: Int = 0, limit: Int = 5) =
-        talkTopicDao.getTalkTopicGroupEntity(offset, limit)
+    fun getTalkTopicGroupEntities(offset: Int = 0, limit: Int = 5) =
+        talkTopicDao.getTalkTopicGroupEntities(offset, limit)
 
     // 대화주제 모음집을 모두 가져옴
-    fun getAllTalkTopicGroupEntity() = talkTopicDao.getAllTalkTopicGroupEntity()
+    fun getAllTalkTopicGroupEntities() = talkTopicDao.getAllTalkTopicGroupEntities()
 
     // 대화주제 모음집 추가
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
         talkTopicDao.insertTalkTopicGroupEntity(groupEntity)
 
+    // 모음집 조각 데이터 가져옴
+    suspend fun getGroupSegmentEntities(topicId: String) =
+        talkTopicDao.getGroupSegmentEntities(topicId)
+
+    // 모음집 조각 데이터 추가
+    suspend fun insertGroupSegmentEntity(groupSegmentEntity: GroupSegmentEntity) =
+        talkTopicDao.insertGroupSegmentEntity(groupSegmentEntity)
+
+    // 모음집 조각 데이터 삭제
+    suspend fun deleteGroupSegmentEntity(groupId: Int, talkTopicId: String) =
+        talkTopicDao.deleteGroupSegmentEntity(groupId, talkTopicId)
+
     // 비공개 대화주제 추가
     suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity2) =
-        talkTopicDao.insertTalkTopic(talkTopicEntity)
+        talkTopicDao.insertTalkTopicEntity(talkTopicEntity)
 
     // 공개 대화주제 추가
     suspend fun insertTalkTopicDoc(talkTopicDoc: TalkTopicDoc) {

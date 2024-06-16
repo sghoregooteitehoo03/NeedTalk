@@ -10,7 +10,7 @@ import javax.inject.Inject
 class GetTalkTopicGroupUseCase @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository
 ) {
-    suspend operator fun invoke() = talkTopicRepository.getTalkTopicGroupEntity(0)
+    suspend operator fun invoke() = talkTopicRepository.getTalkTopicGroupEntities(0)
         .map {
             it.map { talkTopicGroupEntity ->
                 TalkTopicGroup(

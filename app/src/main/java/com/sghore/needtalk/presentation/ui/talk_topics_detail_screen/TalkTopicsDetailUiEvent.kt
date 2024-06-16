@@ -1,5 +1,7 @@
 package com.sghore.needtalk.presentation.ui.talk_topics_detail_screen
 
+import com.sghore.needtalk.domain.model.TalkTopic
+
 sealed interface TalkTopicsDetailUiEvent {
     data object ClickNavigateUp : TalkTopicsDetailUiEvent
 
@@ -7,5 +9,5 @@ sealed interface TalkTopicsDetailUiEvent {
 
     data class ClickFavorite(val topicId: String, val isFavorite: Boolean) : TalkTopicsDetailUiEvent
 
-    data class ClickBookmark(val topicId: String) : TalkTopicsDetailUiEvent
+    data class ClickBookmark(val talkTopic: TalkTopic) : TalkTopicsDetailUiEvent
 }

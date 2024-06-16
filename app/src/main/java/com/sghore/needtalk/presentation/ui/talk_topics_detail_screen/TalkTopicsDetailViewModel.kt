@@ -4,12 +4,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import androidx.paging.filter
 import androidx.paging.map
 import com.sghore.needtalk.data.repository.TalkTopicRepository
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
+import com.sghore.needtalk.domain.usecase.SaveGroupSegmentUseCase
 import com.sghore.needtalk.domain.usecase.InsertTalkTopicGroupUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
@@ -31,6 +31,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
     private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
     private val insertTalkTopicGroupUseCase: InsertTalkTopicGroupUseCase,
+    private val saveGroupSegmentUseCase: SaveGroupSegmentUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     // UI State
@@ -131,7 +132,13 @@ class TalkTopicsDetailViewModel @Inject constructor(
     }
 
     // 대화주제 모음집을 모두 가져옴
-    fun getAllTalkTopicGroups() = getAllTalkTopicGroupUseCase()
+    fun getAllTalkTopicGroups(talkTopicId: String) =
+        getAllTalkTopicGroupUseCase(talkTopicId = talkTopicId)
+
+    fun saveTalkTopicGroup(selectedGroup: Map<Int, Boolean>, topicId: String, isPublic: Boolean) =
+        viewModelScope.launch {
+            saveGroupSegmentUseCase(selectedGroup, topicId, isPublic)
+        }
 
     // 대화주제 모음집 제작
     fun addGroup(groupName: String) = viewModelScope.launch {

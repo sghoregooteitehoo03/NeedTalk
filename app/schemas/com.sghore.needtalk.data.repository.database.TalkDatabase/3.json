@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "4db6d8b41284dee37cde3e1faa29b1c5",
+    "identityHash": "b44fcc061286fb586b71efaa8a5e2aa1",
     "entities": [
       {
         "tableName": "UserEntity2",
@@ -282,12 +282,45 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "GroupSegmentEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`groupId` INTEGER NOT NULL, `topicId` TEXT NOT NULL, `isPublic` INTEGER NOT NULL, PRIMARY KEY(`groupId`, `topicId`))",
+        "fields": [
+          {
+            "fieldPath": "groupId",
+            "columnName": "groupId",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "topicId",
+            "columnName": "topicId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "isPublic",
+            "columnName": "isPublic",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "groupId",
+            "topicId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '4db6d8b41284dee37cde3e1faa29b1c5')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b44fcc061286fb586b71efaa8a5e2aa1')"
     ]
   }
 }
