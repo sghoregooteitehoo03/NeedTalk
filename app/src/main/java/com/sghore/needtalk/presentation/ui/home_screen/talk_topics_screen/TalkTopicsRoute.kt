@@ -63,7 +63,7 @@ fun TalkTopicsRoute(
                 }
 
                 is TalkTopicsUiEvent.ClickGroupMore -> {
-
+                    navigateToOther(UiScreen.GroupsDetailScreen.route)
                 }
 
 

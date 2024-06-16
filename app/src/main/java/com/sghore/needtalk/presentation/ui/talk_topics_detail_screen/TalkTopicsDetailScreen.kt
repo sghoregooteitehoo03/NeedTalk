@@ -70,9 +70,9 @@ fun TalkTopicsScreen(
 ) {
     val talkTopics = uiState.talkTopics?.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
-    val isLoading by derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading }
     if (uiState.talkTopicsDetailType is TalkTopicsDetailType.PopularType) {
         if (uiState.talkTopicsDetailType.index != 0) {
+            val isLoading by derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading }
             var isScrolled by remember { mutableStateOf(false) }
 
             if (!isLoading && !isScrolled) {

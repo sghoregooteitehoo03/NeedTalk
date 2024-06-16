@@ -36,6 +36,8 @@ sealed class UiScreen(
 
     data object TalkTopicsDetailScreen : UiScreen(route = "TalkTopicsDetailScreen")
 
+    data object GroupsDetailScreen : UiScreen(route = "GroupsDetailScreen")
+
     data object CreateScreen : UiScreen(route = "Create")
 
     data object HostTimerScreen : UiScreen(route = "HostTimer")
