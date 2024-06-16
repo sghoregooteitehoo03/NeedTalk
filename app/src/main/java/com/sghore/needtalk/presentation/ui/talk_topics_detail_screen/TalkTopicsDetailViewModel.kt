@@ -103,6 +103,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
         isFavorite: Boolean
     ) = viewModelScope.launch {
 
+        // TODO: .fix: 좋아요 클릭 시 리스트 전체 업데이트가 되어버림
         // 서버에서 대화주제 좋아요 설정
         talkTopicRepository.updateFavoriteCount(
             talkTopicId = topicId,
@@ -152,19 +153,11 @@ class TalkTopicsDetailViewModel @Inject constructor(
     private fun getPagingTalkTopics(
         orderType: OrderType,
         talkTopicsDetailType: TalkTopicsDetailType?
-    ) = when (talkTopicsDetailType) {
-        is TalkTopicsDetailType.CategoryType -> {
-            getTalkTopicUseCase(
-                talkTopicsDetailType = talkTopicsDetailType,
-                orderType = orderType,
-                pageSize = 10
-            )
-        }
-
-        is TalkTopicsDetailType.GroupType -> null
-        is TalkTopicsDetailType.PopularType -> null
-        else -> null
-    }?.cachedIn(viewModelScope)
+    ) = getTalkTopicUseCase(
+        talkTopicsDetailType = talkTopicsDetailType,
+        orderType = orderType,
+        pageSize = 10
+    )?.cachedIn(viewModelScope)
 
     fun handelEvent(event: TalkTopicsDetailUiEvent) = viewModelScope.launch {
         _uiEvent.emit(event)

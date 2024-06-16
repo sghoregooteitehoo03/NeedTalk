@@ -7,7 +7,6 @@ import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTo
 import kotlinx.coroutines.flow.Flow
 
 data class TalkTopicsDetailUiState(
-    val title: String = "",
     val talkTopics: Flow<PagingData<TalkTopic>>? = null,
     val orderType: OrderType = OrderType.Popular,
     val talkTopicsDetailType: TalkTopicsDetailType? = null,

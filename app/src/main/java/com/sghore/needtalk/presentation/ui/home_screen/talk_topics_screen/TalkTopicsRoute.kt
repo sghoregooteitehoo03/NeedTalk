@@ -34,21 +34,35 @@ fun TalkTopicsRoute(
                         type = TalkTopicsDetailType.CategoryType(
                             categoryCode = event.category.code,
                             userId = userData?.userId ?: "",
-                            title = event.category.title
+                            _title = event.category.title
+                        ),
+                        navigateToOther = navigateToOther
+                    )
+                }
+
+                is TalkTopicsUiEvent.ClickPopularMore -> {
+                    navigateToDetailScreen(
+                        type = TalkTopicsDetailType.PopularType(
+                            index = 0,
+                            userId = userData?.userId ?: "",
+                            _title = "인기 대화주제"
+                        ),
+                        navigateToOther = navigateToOther
+                    )
+                }
+
+                is TalkTopicsUiEvent.ClickTalkTopic -> {
+                    navigateToDetailScreen(
+                        type = TalkTopicsDetailType.PopularType(
+                            index = event.index,
+                            userId = userData?.userId ?: "",
+                            _title = "인기 대화주제"
                         ),
                         navigateToOther = navigateToOther
                     )
                 }
 
                 is TalkTopicsUiEvent.ClickGroupMore -> {
-
-                }
-
-                is TalkTopicsUiEvent.ClickPopularMore -> {
-
-                }
-
-                is TalkTopicsUiEvent.ClickTalkTopic -> {
 
                 }
 

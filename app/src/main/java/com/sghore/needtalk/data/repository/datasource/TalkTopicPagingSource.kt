@@ -14,6 +14,7 @@ import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.getCodeToCategory
 import kotlinx.coroutines.tasks.await
 
+// TODO: .fix: 정렬 기능 동작하지 않음
 class TalkTopicPagingSource(
     private val userId: String,
     private val firestore: FirebaseFirestore,
@@ -34,34 +35,53 @@ class TalkTopicPagingSource(
             }
 
             // 데이터를 읽어
-            val currentPage = params.key ?: firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                .whereEqualTo("isUpload", true)
-                .where(
-                    Filter.or(
-                        Filter.equalTo("categoryCode1", talkTopicCategoryCode),
-                        Filter.equalTo("categoryCode2", talkTopicCategoryCode),
-                        Filter.equalTo("categoryCode3", talkTopicCategoryCode)
+            val currentPage = params.key ?: if (talkTopicCategoryCode != -1) {
+                firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+                    .whereEqualTo("isUpload", true)
+                    .where(
+                        Filter.or(
+                            Filter.equalTo("categoryCode1", talkTopicCategoryCode),
+                            Filter.equalTo("categoryCode2", talkTopicCategoryCode),
+                            Filter.equalTo("categoryCode3", talkTopicCategoryCode)
+                        )
                     )
-                )
-                .orderBy(orderField, Query.Direction.DESCENDING)
-                .limit(limit.toLong())
-                .get()
-                .await()
+                    .orderBy(orderField, Query.Direction.DESCENDING)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+            } else {
+                firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+                    .whereEqualTo("isUpload", true)
+                    .orderBy(orderField, Query.Direction.DESCENDING)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+            }
             val lastDocSnapshot = currentPage.documents[currentPage.size() - 1]
-            val nextPage = firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                .whereEqualTo("isUpload", true)
-                .where(
-                    Filter.or(
-                        Filter.equalTo("categoryCode1", talkTopicCategoryCode),
-                        Filter.equalTo("categoryCode2", talkTopicCategoryCode),
-                        Filter.equalTo("categoryCode3", talkTopicCategoryCode)
+            val nextPage = if (talkTopicCategoryCode != -1) {
+                firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+                    .whereEqualTo("isUpload", true)
+                    .where(
+                        Filter.or(
+                            Filter.equalTo("categoryCode1", talkTopicCategoryCode),
+                            Filter.equalTo("categoryCode2", talkTopicCategoryCode),
+                            Filter.equalTo("categoryCode3", talkTopicCategoryCode)
+                        )
                     )
-                )
-                .orderBy(orderField, Query.Direction.DESCENDING)
-                .startAfter(lastDocSnapshot)
-                .limit(limit.toLong())
-                .get()
-                .await()
+                    .orderBy(orderField, Query.Direction.DESCENDING)
+                    .startAfter(lastDocSnapshot)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+            } else {
+                firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+                    .whereEqualTo("isUpload", true)
+                    .orderBy(orderField, Query.Direction.DESCENDING)
+                    .startAfter(lastDocSnapshot)
+                    .limit(limit.toLong())
+                    .get()
+                    .await()
+            }
 
 
             // mapping

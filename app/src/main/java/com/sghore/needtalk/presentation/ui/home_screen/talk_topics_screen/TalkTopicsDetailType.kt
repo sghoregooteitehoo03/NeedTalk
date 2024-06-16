@@ -4,17 +4,18 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
 @Serializable
-sealed interface TalkTopicsDetailType {
+sealed class TalkTopicsDetailType(val title: String) {
     @Serializable
     @SerialName("CategoryType")
-    data class CategoryType(val categoryCode: Int, val userId: String, val title: String) :
-        TalkTopicsDetailType
+    data class CategoryType(val categoryCode: Int, val userId: String, val _title: String) :
+        TalkTopicsDetailType(_title)
 
     @Serializable
     @SerialName("PopularType")
-    data class PopularType(val index: Int) : TalkTopicsDetailType
+    data class PopularType(val index: Int, val userId: String, val _title: String) :
+        TalkTopicsDetailType(_title)
 
     @Serializable
     @SerialName("GroupType")
-    data class GroupType(val _code: Int) : TalkTopicsDetailType
+    data class GroupType(val _code: Int) : TalkTopicsDetailType("")
 }

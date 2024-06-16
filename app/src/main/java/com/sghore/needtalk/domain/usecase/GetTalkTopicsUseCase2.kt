@@ -9,7 +9,7 @@ class GetTalkTopicsUseCase2 @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository
 ) {
     operator fun invoke(
-        talkTopicsDetailType: TalkTopicsDetailType,
+        talkTopicsDetailType: TalkTopicsDetailType?,
         orderType: OrderType,
         pageSize: Int
     ) = when (talkTopicsDetailType) {
@@ -22,7 +22,15 @@ class GetTalkTopicsUseCase2 @Inject constructor(
             )
         }
 
-        is TalkTopicsDetailType.PopularType -> null // 인기 대화주제
+        is TalkTopicsDetailType.PopularType -> {
+            talkTopicRepository.getPagingTalkTopics(
+                userId = talkTopicsDetailType.userId,
+                talkTopicCategoryCode = -1,
+                orderType = orderType,
+                pageSize = pageSize
+            )
+        } // 인기 대화주제
         is TalkTopicsDetailType.GroupType -> null // 모음집 대화주제
+        else -> null
     }
 }

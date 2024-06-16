@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.DropdownMenu
@@ -26,6 +27,7 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
@@ -47,6 +49,7 @@ import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.paging.LoadState
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
@@ -56,6 +59,7 @@ import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.DefaultTextField
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
+import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import kotlinx.coroutines.flow.Flow
 
 @OptIn(ExperimentalMaterialApi::class)
@@ -65,6 +69,20 @@ fun TalkTopicsScreen(
     onEvent: (TalkTopicsDetailUiEvent) -> Unit
 ) {
     val talkTopics = uiState.talkTopics?.collectAsLazyPagingItems()
+    val listState = rememberLazyListState()
+    val isLoading by derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading }
+    if (uiState.talkTopicsDetailType is TalkTopicsDetailType.PopularType) {
+        if (uiState.talkTopicsDetailType.index != 0) {
+            var isScrolled by remember { mutableStateOf(false) }
+
+            if (!isLoading && !isScrolled) {
+                LaunchedEffect(key1 = true) {
+                    listState.animateScrollToItem(index = uiState.talkTopicsDetailType.index)
+                    isScrolled = true
+                }
+            }
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -88,7 +106,7 @@ fun TalkTopicsScreen(
             )
             Text(
                 modifier = Modifier.align(Alignment.Center),
-                text = "타이틀",
+                text = uiState.talkTopicsDetailType?.title ?: "",
                 style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
@@ -96,20 +114,23 @@ fun TalkTopicsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(14.dp)
+                .padding(14.dp),
+            state = listState
         ) {
-            item {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    ListFilter(
-                        orderType = uiState.orderType,
-                        onSelectOrderType = {
-                            onEvent(TalkTopicsDetailUiEvent.SelectOrderType(it))
-                        }
-                    )
-                    Spacer(modifier = Modifier.height(10.dp))
+            if (uiState.talkTopicsDetailType !is TalkTopicsDetailType.PopularType) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.End
+                    ) {
+                        ListFilter(
+                            orderType = uiState.orderType,
+                            onSelectOrderType = {
+                                onEvent(TalkTopicsDetailUiEvent.SelectOrderType(it))
+                            }
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+                    }
                 }
             }
 
