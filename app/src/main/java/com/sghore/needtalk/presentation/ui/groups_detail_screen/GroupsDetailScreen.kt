@@ -33,7 +33,8 @@ import com.sghore.needtalk.domain.model.TalkTopicGroup
 
 @Composable
 fun GroupsDetailScreen(
-    uiState: GroupsDetailUiState
+    uiState: GroupsDetailUiState,
+    onEvent: (GroupsDetailUiEvent) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
@@ -47,7 +48,7 @@ fun GroupsDetailScreen(
                     .size(24.dp)
                     .clip(CircleShape)
                     .align(Alignment.CenterStart)
-                    .clickable { },
+                    .clickable { onEvent(GroupsDetailUiEvent.ClickNavigateUp) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "navigateUp"
             )

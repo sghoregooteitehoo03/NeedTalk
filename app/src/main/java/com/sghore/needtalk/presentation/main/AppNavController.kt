@@ -113,7 +113,9 @@ fun AppNavHost(
         }
 
         composable(route = UiScreen.GroupsDetailScreen.route) {
-            GroupsDetailRoute()
+            GroupsDetailRoute(
+                navigateUp = navController::navigateUp
+            )
         }
 
         composable(

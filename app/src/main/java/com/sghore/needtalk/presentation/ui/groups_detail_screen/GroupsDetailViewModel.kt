@@ -4,9 +4,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -24,6 +26,13 @@ class GroupsDetailViewModel @Inject constructor(
         initialValue = GroupsDetailUiState()
     )
 
+    // UI Event
+    private val _uiEvent = MutableSharedFlow<GroupsDetailUiEvent>()
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        started = SharingStarted.Eagerly
+    )
+
     init {
         viewModelScope.launch {
             getAllTalkTopicGroupUseCase("")
@@ -31,5 +40,9 @@ class GroupsDetailViewModel @Inject constructor(
                     _uiState.update { it.copy(groups = groups) }
                 }
         }
+    }
+
+    fun handleEvent(event: GroupsDetailUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
     }
 }
