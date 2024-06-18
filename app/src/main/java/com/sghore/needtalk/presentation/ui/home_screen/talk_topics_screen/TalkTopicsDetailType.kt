@@ -17,5 +17,8 @@ sealed class TalkTopicsDetailType(val title: String) {
 
     @Serializable
     @SerialName("GroupType")
-    data class GroupType(val _code: Int) : TalkTopicsDetailType("")
+    data class GroupType(
+        val code: Int,
+        val _title: String
+    ) : TalkTopicsDetailType(_title)
 }

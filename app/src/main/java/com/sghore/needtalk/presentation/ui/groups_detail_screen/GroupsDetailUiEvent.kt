@@ -9,5 +9,5 @@ sealed interface GroupsDetailUiEvent {
 
     data class SelectRemove(val group: TalkTopicGroup) : GroupsDetailUiEvent
 
-    data object ClickGroupItem : GroupsDetailUiEvent
+    data class ClickGroupItem(val group: TalkTopicGroup) : GroupsDetailUiEvent
 }

@@ -117,7 +117,7 @@ fun TalkTopicsScreen(
                 .padding(14.dp),
             state = listState
         ) {
-            if (uiState.talkTopicsDetailType !is TalkTopicsDetailType.PopularType) {
+            if (uiState.talkTopicsDetailType is TalkTopicsDetailType.CategoryType) {
                 item {
                     Column(
                         modifier = Modifier.fillMaxWidth(),

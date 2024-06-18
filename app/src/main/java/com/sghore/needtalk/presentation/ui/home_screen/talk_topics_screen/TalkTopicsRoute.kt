@@ -68,7 +68,13 @@ fun TalkTopicsRoute(
 
 
                 is TalkTopicsUiEvent.ClickGroup -> {
-
+                    navigateToDetailScreen(
+                        type = TalkTopicsDetailType.GroupType(
+                            code = event.group.id ?: 0,
+                            _title = event.group.name
+                        ),
+                        navigateToOther
+                    )
                 }
             }
         }

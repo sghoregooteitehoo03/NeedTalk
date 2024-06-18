@@ -77,7 +77,8 @@ fun GroupsDetailScreen(
                     modifier = Modifier.padding(5.dp),
                     group = uiState.groups[index],
                     onSelectEdit = { onEvent(GroupsDetailUiEvent.SelectEdit(it)) },
-                    onSelectDelete = { onEvent(GroupsDetailUiEvent.SelectRemove(it)) }
+                    onSelectDelete = { onEvent(GroupsDetailUiEvent.SelectRemove(it)) },
+                    onClick = { onEvent(GroupsDetailUiEvent.ClickGroupItem(it)) }
                 )
             }
         }
@@ -89,7 +90,8 @@ fun GroupItem(
     modifier: Modifier = Modifier,
     group: TalkTopicGroup,
     onSelectEdit: (TalkTopicGroup) -> Unit,
-    onSelectDelete: (TalkTopicGroup) -> Unit
+    onSelectDelete: (TalkTopicGroup) -> Unit,
+    onClick: (TalkTopicGroup) -> Unit
 ) {
     var isExpended by remember { mutableStateOf(false) }
     val maxWidth = LocalConfiguration.current.screenWidthDp.minus(40).dp
@@ -99,6 +101,7 @@ fun GroupItem(
             .width(maxWidth.div(2))
             .shadow(2.dp, MaterialTheme.shapes.medium)
             .background(color = MaterialTheme.colors.background)
+            .clickable { onClick(group) }
             .padding(8.dp)
     ) {
         Column(

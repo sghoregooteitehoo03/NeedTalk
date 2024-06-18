@@ -114,7 +114,8 @@ fun AppNavHost(
 
         composable(route = UiScreen.GroupsDetailScreen.route) {
             GroupsDetailRoute(
-                navigateUp = navController::navigateUp
+                navigateUp = navController::navigateUp,
+                navigateToTalkTopicsDetailScreen = { navController.navigate(it) }
             )
         }
 

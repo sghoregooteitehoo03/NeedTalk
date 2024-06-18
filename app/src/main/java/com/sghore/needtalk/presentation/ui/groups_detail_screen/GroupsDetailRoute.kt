@@ -13,12 +13,16 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.UiScreen
+import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.serialization.json.Json
 
 @Composable
 fun GroupsDetailRoute(
     viewModel: GroupsDetailViewModel = hiltViewModel(),
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    navigateToTalkTopicsDetailScreen: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -36,7 +40,19 @@ fun GroupsDetailRoute(
                     DialogScreen.DialogRemoveGroup(event.group)
                 )
 
-                is GroupsDetailUiEvent.ClickGroupItem -> TODO()
+                is GroupsDetailUiEvent.ClickGroupItem -> {
+                    val detailTypeJson =
+                        Json.encodeToString(
+                            TalkTopicsDetailType.serializer(),
+                            TalkTopicsDetailType.GroupType(
+                                code = event.group.id ?: 0,
+                                _title = event.group.name
+                            )
+                        )
+                    val route = UiScreen.TalkTopicsDetailScreen.route + "?type=${detailTypeJson}"
+
+                    navigateToTalkTopicsDetailScreen(route)
+                }
             }
         }
     }
@@ -76,7 +92,6 @@ fun GroupsDetailRoute(
                 onRemoveGroupClick = viewModel::removeTalkTopicGroup
             )
         }
-
 
         else -> {}
     }
