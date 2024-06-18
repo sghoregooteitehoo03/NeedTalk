@@ -56,8 +56,8 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.presentation.ui.DefaultButton
-import com.sghore.needtalk.presentation.ui.DefaultTextField
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.SimpleInputDialog
 import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import kotlinx.coroutines.flow.Flow
@@ -72,7 +72,7 @@ fun TalkTopicsScreen(
     val listState = rememberLazyListState()
     if (uiState.talkTopicsDetailType is TalkTopicsDetailType.PopularType) {
         if (uiState.talkTopicsDetailType.index != 0) {
-            val isLoading by derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading }
+            val isLoading by remember { derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading } }
             var isScrolled by remember { mutableStateOf(false) }
 
             if (!isLoading && !isScrolled) {
@@ -408,7 +408,9 @@ fun SaveTopicDialog(
                         Spacer(modifier = Modifier.height(12.dp))
                     }
                     item {
-                        AddGroupItem(onClick = { addGroupDialog = DialogScreen.DialogAddGroup })
+                        AddGroupItem(onClick = {
+                            addGroupDialog = DialogScreen.DialogAddOrEditGroup()
+                        })
                     }
                 }
                 DefaultButton(
@@ -429,9 +431,10 @@ fun SaveTopicDialog(
         }
     }
 
-    if (addGroupDialog is DialogScreen.DialogAddGroup) {
+    if (addGroupDialog is DialogScreen.DialogAddOrEditGroup) {
         AddGroupDialog(
             modifier = Modifier
+                .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
                 .background(
                     color = MaterialTheme.colors.background,
                     shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
@@ -449,50 +452,15 @@ fun AddGroupDialog(
     onDismiss: () -> Unit,
     onAddGroupClick: (String) -> Unit
 ) {
-    var groupName by remember { mutableStateOf("") }
-
-    BottomSheetDialog(onDismissRequest = onDismiss) {
-        Column(modifier = modifier) {
-            Box(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = "모음집 제작",
-                    style = MaterialTheme.typography.h5.copy(
-                        color = MaterialTheme.colors.onPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-                Icon(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.CenterEnd)
-                        .clickable { onDismiss() },
-                    painter = painterResource(id = R.drawable.ic_close),
-                    contentDescription = "Close"
-                )
-            }
-            Spacer(modifier = Modifier.height(14.dp))
-            DefaultTextField(
-                hint = "모음집 이름",
-                inputData = groupName,
-                onDataChange = { groupName = it },
-                maxLength = 15
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            DefaultButton(
-                text = "제작하기",
-                buttonHeight = 46.dp,
-                isEnabled = groupName.isNotEmpty(),
-                onClick = {
-                    onAddGroupClick(groupName)
-                    onDismiss()
-                }
-            )
-        }
-    }
+    SimpleInputDialog(
+        modifier = modifier,
+        onDismiss = onDismiss,
+        title = "모음집 제작",
+        hint = "모음집 이름",
+        startInputData = "",
+        buttonText = "제작하기",
+        onButtonClick = onAddGroupClick
+    )
 }
 
 @Composable

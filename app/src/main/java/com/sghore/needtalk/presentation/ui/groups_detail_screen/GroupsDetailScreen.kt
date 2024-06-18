@@ -16,10 +16,16 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,9 +33,12 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
+import com.sghore.needtalk.presentation.ui.SimpleInputDialog
 
 @Composable
 fun GroupsDetailScreen(
@@ -66,7 +75,9 @@ fun GroupsDetailScreen(
             items(uiState.groups.size) { index ->
                 GroupItem(
                     modifier = Modifier.padding(5.dp),
-                    group = uiState.groups[index]
+                    group = uiState.groups[index],
+                    onSelectEdit = { onEvent(GroupsDetailUiEvent.SelectEdit(it)) },
+                    onSelectDelete = { onEvent(GroupsDetailUiEvent.SelectRemove(it)) }
                 )
             }
         }
@@ -76,8 +87,11 @@ fun GroupsDetailScreen(
 @Composable
 fun GroupItem(
     modifier: Modifier = Modifier,
-    group: TalkTopicGroup
+    group: TalkTopicGroup,
+    onSelectEdit: (TalkTopicGroup) -> Unit,
+    onSelectDelete: (TalkTopicGroup) -> Unit
 ) {
+    var isExpended by remember { mutableStateOf(false) }
     val maxWidth = LocalConfiguration.current.screenWidthDp.minus(40).dp
 
     Box(
@@ -115,11 +129,72 @@ fun GroupItem(
             Icon(
                 modifier = Modifier
                     .size(24.dp)
-                    .align(Alignment.TopEnd),
+                    .align(Alignment.TopEnd)
+                    .clip(CircleShape)
+                    .clickable { isExpended = true },
                 painter = painterResource(id = R.drawable.ic_more),
                 contentDescription = "more",
                 tint = MaterialTheme.colors.onPrimary
             )
+            DropdownMenu(
+                offset = DpOffset(maxWidth.div(6), (-80).dp),
+                expanded = isExpended,
+                onDismissRequest = { isExpended = false }
+            ) {
+                DropdownMenuItem(
+                    onClick = {
+                        onSelectEdit(group)
+                        isExpended = false
+                    }
+                ) {
+                    Text(text = "수정")
+                }
+                DropdownMenuItem(onClick = {
+                    onSelectDelete(group)
+                    isExpended = false
+                }) {
+                    Text(text = "삭제")
+                }
+            }
         }
     }
+}
+
+@Composable
+fun EditGroupDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    group: TalkTopicGroup,
+    onEditGroupClick: (TalkTopicGroup) -> Unit
+) {
+    SimpleInputDialog(
+        modifier = modifier,
+        onDismiss = onDismiss,
+        title = "모음집 수정",
+        hint = "모음집 이름",
+        startInputData = group.name,
+        buttonText = "수정하기",
+        onButtonClick = {
+            val updateGroup = group.copy(name = it)
+            onEditGroupClick(updateGroup)
+        }
+    )
+}
+
+@Composable
+fun RemoveGroupDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    group: TalkTopicGroup,
+    onRemoveGroupClick: (TalkTopicGroup) -> Unit
+) {
+    ConfirmWithCancelDialog(
+        modifier = modifier,
+        onDismiss = onDismiss,
+        title = "모음집 삭제",
+        message = "\"${group.name}\"\n해당 모음집을 삭제하시겠습니까?",
+        confirmText = "삭제하기",
+        cancelText = "취소",
+        onConfirm = { onRemoveGroupClick(group) }
+    )
 }

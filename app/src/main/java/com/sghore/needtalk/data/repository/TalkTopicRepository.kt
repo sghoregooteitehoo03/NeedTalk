@@ -34,6 +34,9 @@ class TalkTopicRepository @Inject constructor(
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
         talkTopicDao.insertTalkTopicGroupEntity(groupEntity)
 
+    suspend fun deleteTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
+        talkTopicDao.deleteTalkTopicGroupEntity(groupEntity)
+
     // 모음집 조각 데이터 가져옴
     suspend fun getGroupSegmentEntities(topicId: String) =
         talkTopicDao.getGroupSegmentEntities(topicId)

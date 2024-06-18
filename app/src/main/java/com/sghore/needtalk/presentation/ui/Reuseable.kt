@@ -25,6 +25,10 @@ import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -39,6 +43,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -349,6 +354,170 @@ fun DefaultButton(
             text = text,
             style = textStyle
         )
+    }
+}
+
+@Composable
+fun ConfirmWithCancelDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    title: String,
+    message: String,
+    confirmText: String,
+    cancelText: String,
+    onConfirm: () -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        ConstraintLayout(modifier = modifier) {
+            val (topLayout, middleLayout, bottomLayout) = createRefs()
+            Box(modifier = Modifier
+                .fillMaxWidth()
+                .constrainAs(topLayout) {
+                    top.linkTo(parent.top)
+                }
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = title,
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(middleLayout) {
+                        top.linkTo(topLayout.bottom, 16.dp)
+                        bottom.linkTo(bottomLayout.top, 24.dp)
+                    }
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = message,
+                    style = MaterialTheme.typography.h5.copy(
+                        color = colorResource(id = R.color.gray)
+                    ),
+                    textAlign = TextAlign.Center
+                )
+            }
+            Row(modifier = Modifier
+                .fillMaxWidth()
+                .constrainAs(bottomLayout) {
+                    bottom.linkTo(parent.bottom)
+                }) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.5f)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = colorResource(id = R.color.light_gray_200),
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .height(44.dp)
+                        .clickable {
+                            onDismiss()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = cancelText,
+                        style = MaterialTheme.typography.body1.copy(
+                            color = MaterialTheme.colors.onSecondary
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = MaterialTheme.colors.secondary,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .height(44.dp)
+                        .clickable {
+                            onConfirm()
+                            onDismiss()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = confirmText,
+                        style = MaterialTheme.typography.body1.copy(
+                            color = MaterialTheme.colors.onSecondary
+                        )
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun SimpleInputDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    title: String,
+    hint: String,
+    startInputData: String,
+    buttonText: String,
+    onButtonClick: (String) -> Unit
+) {
+    var inputData by remember { mutableStateOf(startInputData) }
+
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(modifier = modifier) {
+            Box(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = title,
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
+            DefaultTextField(
+                hint = hint,
+                inputData = inputData,
+                onDataChange = { inputData = it },
+                maxLength = 15
+            )
+            Spacer(modifier = Modifier.height(24.dp))
+            DefaultButton(
+                text = buttonText,
+                buttonHeight = 46.dp,
+                isEnabled = inputData.isNotEmpty(),
+                onClick = {
+                    onButtonClick(inputData)
+                    onDismiss()
+                }
+            )
+        }
     }
 }
 

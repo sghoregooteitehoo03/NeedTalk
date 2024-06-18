@@ -1,6 +1,7 @@
 package com.sghore.needtalk.data.repository.database
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -20,6 +21,7 @@ interface TalkTopicDao {
     @Query("SELECT * FROM GroupSegmentEntity WHERE :topicId = topicId")
     suspend fun getGroupSegmentEntities(topicId: String): List<GroupSegmentEntity>
 
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
 
@@ -28,6 +30,9 @@ interface TalkTopicDao {
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertGroupSegmentEntity(groupSegmentEntity: GroupSegmentEntity)
+
+    @Delete
+    suspend fun deleteTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
 
     @Query("DELETE FROM GroupSegmentEntity WHERE :groupId = groupId AND :topicId = topicId")
     suspend fun deleteGroupSegmentEntity(groupId: Int, topicId: String)
