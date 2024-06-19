@@ -12,6 +12,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
@@ -21,6 +22,7 @@ import kotlinx.serialization.json.Json
 @Composable
 fun GroupsDetailRoute(
     viewModel: GroupsDetailViewModel = hiltViewModel(),
+    userData: UserData?,
     navigateUp: () -> Unit,
     navigateToTalkTopicsDetailScreen: (String) -> Unit
 ) {
@@ -45,7 +47,8 @@ fun GroupsDetailRoute(
                         Json.encodeToString(
                             TalkTopicsDetailType.serializer(),
                             TalkTopicsDetailType.GroupType(
-                                code = event.group.id ?: 0,
+                                groupId = event.group.id ?: 0,
+                                userId = userData?.userId ?: "",
                                 _title = event.group.name
                             )
                         )

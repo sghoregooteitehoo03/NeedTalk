@@ -11,6 +11,7 @@ import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
 import com.sghore.needtalk.domain.usecase.SaveGroupSegmentUseCase
 import com.sghore.needtalk.domain.usecase.InsertTalkTopicGroupUseCase
+import com.sghore.needtalk.domain.usecase.SetFavoriteUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -29,6 +30,7 @@ import javax.inject.Inject
 class TalkTopicsDetailViewModel @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository,
     private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
+    private val setFavoriteUseCase: SetFavoriteUseCase,
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
     private val insertTalkTopicGroupUseCase: InsertTalkTopicGroupUseCase,
     private val saveGroupSegmentUseCase: SaveGroupSegmentUseCase,
@@ -105,7 +107,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
 
         // TODO: .fix: 좋아요 클릭 시 리스트 전체 업데이트가 되어버림
         // 서버에서 대화주제 좋아요 설정
-        talkTopicRepository.updateFavoriteCount(
+        setFavoriteUseCase(
             talkTopicId = topicId,
             uid = uid,
             isFavorite = isFavorite,

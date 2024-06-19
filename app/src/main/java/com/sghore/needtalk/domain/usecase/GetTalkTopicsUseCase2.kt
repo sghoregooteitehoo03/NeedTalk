@@ -22,15 +22,23 @@ class GetTalkTopicsUseCase2 @Inject constructor(
             )
         }
 
-        is TalkTopicsDetailType.PopularType -> {
+        is TalkTopicsDetailType.PopularType -> { // 인기 대화주제
             talkTopicRepository.getPagingTalkTopics(
                 userId = talkTopicsDetailType.userId,
                 talkTopicCategoryCode = -1,
                 orderType = orderType,
                 pageSize = pageSize
             )
-        } // 인기 대화주제
-        is TalkTopicsDetailType.GroupType -> null // 모음집 대화주제
+        }
+
+        is TalkTopicsDetailType.GroupType -> { // 모음집 대화주제
+            talkTopicRepository.getSavedTalkTopics(
+                userId = talkTopicsDetailType.userId,
+                groupId = talkTopicsDetailType.groupId,
+                pageSize = pageSize
+            )
+        }
+
         else -> null
     }
 }

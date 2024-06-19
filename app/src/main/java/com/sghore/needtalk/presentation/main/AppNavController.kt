@@ -114,6 +114,7 @@ fun AppNavHost(
 
         composable(route = UiScreen.GroupsDetailScreen.route) {
             GroupsDetailRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTalkTopicsDetailScreen = { navController.navigate(it) }
             )

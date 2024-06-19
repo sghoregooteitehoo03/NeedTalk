@@ -11,6 +11,7 @@ import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.repository.database.TalkTopicDao
+import com.sghore.needtalk.data.repository.datasource.SavedTalkTopicPagingSource
 import com.sghore.needtalk.data.repository.datasource.TalkTopicPagingSource
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.util.Constants
@@ -22,6 +23,10 @@ class TalkTopicRepository @Inject constructor(
     private val talkTopicDao: TalkTopicDao,
     private val firestore: FirebaseFirestore
 ) {
+
+    // ID에 해당하는 대화주제 모음집을 가져옴
+    suspend fun getTalkTopicGroupEntity(groupId: Int) =
+        talkTopicDao.getTalkTopicGroupEntity(groupId = groupId)
 
     // 대화주제 모음집을 가져옴
     fun getTalkTopicGroupEntities(offset: Int = 0, limit: Int = 5) =
@@ -65,7 +70,7 @@ class TalkTopicRepository @Inject constructor(
     suspend fun getPopularTalkTopics(limit: Long) =
         firestore.collection(Constants.COLLECTION_TALK_TOPIC)
             .orderBy("favoriteCount", Query.Direction.DESCENDING)
-            .whereEqualTo("isUpload", true)
+            .whereEqualTo("uploaded", true)
             .limit(limit)
             .get()
             .await()
@@ -87,6 +92,21 @@ class TalkTopicRepository @Inject constructor(
                 limit = pageSize
             )
         }.flow
+
+    // 모음집에 저장된 대화주제를 페이징 하여 가져옴
+    fun getSavedTalkTopics(
+        userId: String,
+        groupId: Int,
+        pageSize: Int
+    ) = Pager(PagingConfig(pageSize = pageSize)) {
+        SavedTalkTopicPagingSource(
+            userId = userId,
+            groupId = groupId,
+            pageSize = pageSize,
+            firestore = firestore,
+            talkTopicDao = talkTopicDao
+        )
+    }.flow
 
     // 대화주제 좋아요 표시
     suspend fun updateFavoriteCount(
@@ -144,7 +164,7 @@ class TalkTopicRepository @Inject constructor(
             id = id,
             uid = "",
             topic = "인생에 대한 목표가 무엇인가요?",
-            isUpload = true,
+            uploaded = true,
             categoryCode1 = 5,
             categoryCode2 = -1,
             categoryCode3 = -1,

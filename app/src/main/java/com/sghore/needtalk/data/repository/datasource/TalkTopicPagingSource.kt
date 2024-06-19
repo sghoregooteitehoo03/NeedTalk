@@ -37,7 +37,7 @@ class TalkTopicPagingSource(
             // 데이터를 읽어
             val currentPage = params.key ?: if (talkTopicCategoryCode != -1) {
                 firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                    .whereEqualTo("isUpload", true)
+                    .whereEqualTo("uploaded", true)
                     .where(
                         Filter.or(
                             Filter.equalTo("categoryCode1", talkTopicCategoryCode),
@@ -51,7 +51,7 @@ class TalkTopicPagingSource(
                     .await()
             } else {
                 firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                    .whereEqualTo("isUpload", true)
+                    .whereEqualTo("uploaded", true)
                     .orderBy(orderField, Query.Direction.DESCENDING)
                     .limit(limit.toLong())
                     .get()
@@ -60,7 +60,7 @@ class TalkTopicPagingSource(
             val lastDocSnapshot = currentPage.documents[currentPage.size() - 1]
             val nextPage = if (talkTopicCategoryCode != -1) {
                 firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                    .whereEqualTo("isUpload", true)
+                    .whereEqualTo("uploaded", true)
                     .where(
                         Filter.or(
                             Filter.equalTo("categoryCode1", talkTopicCategoryCode),
@@ -75,7 +75,7 @@ class TalkTopicPagingSource(
                     .await()
             } else {
                 firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-                    .whereEqualTo("isUpload", true)
+                    .whereEqualTo("uploaded", true)
                     .orderBy(orderField, Query.Direction.DESCENDING)
                     .startAfter(lastDocSnapshot)
                     .limit(limit.toLong())
@@ -92,7 +92,7 @@ class TalkTopicPagingSource(
                     topic = it.topic,
                     favoriteCount = it.favorites.filter { favorites -> favorites.value }.size,
                     isFavorite = it.favorites.getOrDefault(userId, false),
-                    isUpload = it.isUpload,
+                    isUpload = it.uploaded,
                     category1 = getCodeToCategory(it.categoryCode1)!!,
                     category2 = getCodeToCategory(it.categoryCode2),
                     category3 = getCodeToCategory(it.categoryCode3)

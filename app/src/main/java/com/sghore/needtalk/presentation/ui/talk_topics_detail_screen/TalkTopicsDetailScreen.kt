@@ -62,6 +62,10 @@ import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import kotlinx.coroutines.flow.Flow
 
+// TODO:
+//  . 내가 제작한 대화주제인 경우 삭제 옵션 추가
+//  . 업로드 되지 않은 상태의 UI 추가
+//  . 내가 제작한 대화주제는 좋아요 불가능하게 구현
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TalkTopicsScreen(

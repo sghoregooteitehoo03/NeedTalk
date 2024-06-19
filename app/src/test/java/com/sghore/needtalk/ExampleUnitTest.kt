@@ -95,8 +95,10 @@ class ExampleUnitTest {
 
     @Test
     fun test() {
-        val map = hashMapOf<String, Boolean>()
-        map.set("Hello", true)
-        println(map)
+        val testList = listOf("123", "456")
+        val list = testList.map {
+            it.toInt()
+        }
+        println(list)
     }
 }
