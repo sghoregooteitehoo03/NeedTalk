@@ -69,7 +69,6 @@ class TalkTopicsDetailViewModel @Inject constructor(
                 talkTopicsDetailType = type
             )
 
-            // TODO: 툴바에 표시 될 타이틀을 이전 데이터에서 전달하여 해당 화면에 표시하게 구현
             _uiState.update {
                 it.copy(
                     talkTopics = talkTopics,

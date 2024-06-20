@@ -22,7 +22,7 @@ class SavedTalkTopicPagingSource(
         return null
     }
 
-    // TODO: 모음집에 저장한 대화주제 읽어오는 기능 테스트 중
+    // TODO: 데이터 추가 후 다시 테스트 해보기
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TalkTopic> {
         return try {
             val offset = params.key ?: 0

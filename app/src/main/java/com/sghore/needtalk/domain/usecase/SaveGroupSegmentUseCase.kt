@@ -10,7 +10,6 @@ class SaveGroupSegmentUseCase @Inject constructor(
         topicId: String,
         isPublic: Boolean
     ) {
-        // TODO: 그룹 수정 시간 업데이트
         selectedGroup.keys.forEach {
             if (selectedGroup.getOrDefault(it, false)) { // 선택이 되었다면 추가
                 crGroupSegmentUseCase(
