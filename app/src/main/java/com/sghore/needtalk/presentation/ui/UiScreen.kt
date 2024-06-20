@@ -33,6 +33,8 @@ sealed class UiScreen(
         bottomIcon = R.drawable.ic_talk_topic
     )
 
+    data object ProfileScreen : UiScreen(route = "ProfileScreen")
+
     data object AddTalkTopicScreen : UiScreen(route = "AddTalkTopicScreen")
 
     data object TalkTopicsDetailScreen : UiScreen(route = "TalkTopicsDetailScreen")

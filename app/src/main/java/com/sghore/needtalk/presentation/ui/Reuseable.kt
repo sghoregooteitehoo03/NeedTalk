@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -15,6 +16,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -542,5 +544,61 @@ fun TalkTopicCategoryTag(
             text = tagName,
             style = textStyle
         )
+    }
+}
+
+@Composable
+fun ExperiencePointBar(
+    modifier: Modifier = Modifier,
+    experiencePoint: Int,
+    maxExperiencePoint: Int = 100
+) {
+    val progress = (experiencePoint / maxExperiencePoint.toFloat())
+    val maxWidth = 200.dp.value
+
+    Box(
+        modifier = modifier
+            .width(maxWidth.dp)
+            .clip(CircleShape)
+            .background(
+                color = colorResource(id = R.color.light_gray),
+                shape = CircleShape
+            )
+            .height(12.dp)
+    ) {
+        Box(
+            modifier = modifier
+                .width((maxWidth * progress).dp)
+                .clip(CircleShape)
+                .background(
+                    color = MaterialTheme.colors.secondary,
+                    shape = CircleShape
+                )
+                .height(12.dp)
+                .fillMaxWidth(0.5f)
+        )
+    }
+}
+
+@Composable
+fun FriendshipPointBar(
+    modifier: Modifier = Modifier,
+    friendshipPoint: Int,
+    maxFriendshipPoint: Int = 10
+) {
+    Row(modifier = modifier) {
+        repeat(maxFriendshipPoint) { index ->
+            Image(
+                modifier = Modifier.size(20.dp),
+                painter = painterResource(
+                    id = if (index < friendshipPoint) {
+                        R.drawable.filled_heart
+                    } else {
+                        R.drawable.unfilled_heart
+                    }
+                ),
+                contentDescription = "FriendshipPoint"
+            )
+        }
     }
 }

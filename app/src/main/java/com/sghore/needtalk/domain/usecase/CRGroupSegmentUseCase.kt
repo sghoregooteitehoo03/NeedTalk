@@ -15,7 +15,7 @@ class CRGroupSegmentUseCase @Inject constructor(
     ) {
         // 그룹의 정보를 가져옴
         val group = talkTopicRepository.getTalkTopicGroupEntity(groupId)
-            ?.copy(editedTime = System.currentTimeMillis())
+            ?.copy(editedTime = System.currentTimeMillis()) // 수정 시간 업데이트
 
         if (group != null) {
             val groupSegmentEntity = GroupSegmentEntity(
@@ -24,13 +24,13 @@ class CRGroupSegmentUseCase @Inject constructor(
                 isPublic
             )
 
-            if (isRemove) { // 대화주제 모음집에서 제거
+            if (isRemove) { // 대화주제 모음집 조각 제거
                 talkTopicRepository.deleteGroupSegmentEntity(groupId, topicId)
-            } else { // 대화주제 모음집에 추가
+            } else { // 대화주제 모음집 조각 추가
                 talkTopicRepository.insertGroupSegmentEntity(groupSegmentEntity)
             }
 
-            // 그룹에 수정시간 업데이트
+            // 대화주제 모음집 수정시간 업데이트
             talkTopicRepository.insertTalkTopicGroupEntity(group)
         }
     }

@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.home_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +24,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -31,7 +31,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -59,29 +58,34 @@ fun HomeScreen(
                     .height(56.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .clip(CircleShape)
-                        .background(
-                            color = colorResource(id = R.color.light_gray_200),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
+                Row(
+                    modifier = Modifier.clickable { navigateToOther(UiScreen.ProfileScreen.route) },
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Image(
-                        bitmap = userData.profileImage,
-                        contentDescription = "Profile Image",
-                        modifier = Modifier.size(24.dp)
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = colorResource(id = R.color.light_gray_200),
+                                shape = CircleShape
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Image(
+                            bitmap = userData.profileImage,
+                            contentDescription = "Profile Image",
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = userData.name,
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
                     )
                 }
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = userData.name,
-                    style = MaterialTheme.typography.h5.copy(
-                        color = MaterialTheme.colors.onPrimary
-                    )
-                )
             }
         },
         bottomBar = {

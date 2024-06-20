@@ -23,6 +23,7 @@ import com.sghore.needtalk.presentation.ui.groups_detail_screen.GroupsDetailRout
 import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
 import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
+import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
@@ -89,6 +90,12 @@ fun AppNavHost(
             HomeScreen(
                 gViewModel = gViewModel,
                 navigateToOther = { navController.navigate(route = it) }
+            )
+        }
+
+        composable(route = UiScreen.ProfileScreen.route) {
+            ProfileRoute(
+                userData = gViewModel.getUserData()
             )
         }
 
