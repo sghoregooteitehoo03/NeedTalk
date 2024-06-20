@@ -93,6 +93,7 @@ class TalkTopicPagingSource(
                     favoriteCount = it.favorites.filter { favorites -> favorites.value }.size,
                     isFavorite = it.favorites.getOrDefault(userId, false),
                     isUpload = it.uploaded,
+                    isPublic = true,
                     category1 = getCodeToCategory(it.categoryCode1)!!,
                     category2 = getCodeToCategory(it.categoryCode2),
                     category3 = getCodeToCategory(it.categoryCode3)

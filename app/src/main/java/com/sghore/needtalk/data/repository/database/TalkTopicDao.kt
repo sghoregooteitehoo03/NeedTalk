@@ -44,6 +44,9 @@ interface TalkTopicDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertGroupSegmentEntity(groupSegmentEntity: GroupSegmentEntity)
 
+    @Query("DELETE FROM TalkTopicEntity2 WHERE :talkTopicId = id")
+    suspend fun deleteTalkTopicEntity(talkTopicId: String)
+
     @Delete
     suspend fun deleteTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
 

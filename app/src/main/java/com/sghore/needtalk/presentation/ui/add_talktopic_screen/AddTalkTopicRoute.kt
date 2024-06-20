@@ -37,7 +37,8 @@ fun AddTalkTopicRoute(
                         topic = uiState.talkTopicText,
                         favoriteCount = 0,
                         isFavorite = false,
-                        isUpload = uiState.isPublic,
+                        isUpload = false,
+                        isPublic = uiState.isPublic,
                         category1 = selectedCategories[0],
                         category2 = selectedCategories.getOrNull(1),
                         category3 = selectedCategories.getOrNull(2)

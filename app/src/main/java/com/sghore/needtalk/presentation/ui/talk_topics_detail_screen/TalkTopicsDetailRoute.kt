@@ -1,6 +1,8 @@
 package com.sghore.needtalk.presentation.ui.talk_topics_detail_screen
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -11,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import kotlinx.coroutines.flow.collectLatest
 
@@ -39,11 +42,18 @@ fun TalkTopicsDetailRoute(
                     uid = userData?.userId ?: "",
                     isFavorite = event.isFavorite
                 )
+
+                is TalkTopicsDetailUiEvent.ClickRemove -> viewModel.setOpenDialog(
+                    DialogScreen.DialogRemoveTalkTopic(
+                        event.talkTopic
+                    )
+                )
             }
         }
     }
 
     TalkTopicsScreen(
+        userData = userData,
         uiState = uiState,
         onEvent = viewModel::handelEvent
     )
@@ -63,9 +73,27 @@ fun TalkTopicsDetailRoute(
                     viewModel.saveTalkTopicGroup(
                         selectedGroup = it,
                         topicId = dialogScreen.talkTopic.topicId,
-                        isPublic = dialogScreen.talkTopic.isUpload
+                        isPublic = dialogScreen.talkTopic.isPublic
                     )
                 }
+            )
+        }
+
+        is DialogScreen.DialogRemoveTalkTopic -> {
+            ConfirmWithCancelDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(14.dp)
+                    .fillMaxHeight(0.2f),
+                onDismiss = { viewModel.setOpenDialog(DialogScreen.DialogDismiss) },
+                title = "대화주제 삭제",
+                message = "제작하신 대화주제를 삭제하시겠습니까?",
+                confirmText = "삭제하기",
+                cancelText = "취소",
+                onConfirm = { viewModel.removeTalkTopic(talkTopic = dialogScreen.talkTopic) }
             )
         }
 

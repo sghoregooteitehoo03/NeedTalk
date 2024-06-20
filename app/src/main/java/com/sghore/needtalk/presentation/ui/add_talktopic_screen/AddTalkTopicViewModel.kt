@@ -72,7 +72,7 @@ class AddTalkTopicViewModel @Inject constructor(
         }
 
         try {
-            insertTalkTopicUseCase(isPublic = talkTopic.isUpload, talkTopic = talkTopic)
+            insertTalkTopicUseCase(isPublic = talkTopic.isPublic, talkTopic = talkTopic)
             handelEvent(AddTalkTopicUiEvent.SuccessAddTalkTopic)
         } catch (e: Exception) {
             e.printStackTrace()

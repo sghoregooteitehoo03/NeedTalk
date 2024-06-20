@@ -42,6 +42,7 @@ class TalkTopicRepository @Inject constructor(
     suspend fun deleteTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity) =
         talkTopicDao.deleteTalkTopicGroupEntity(groupEntity)
 
+
     // 모음집 조각 데이터 가져옴
     suspend fun getGroupSegmentEntities(topicId: String) =
         talkTopicDao.getGroupSegmentEntities(topicId)
@@ -53,6 +54,7 @@ class TalkTopicRepository @Inject constructor(
     // 모음집 조각 데이터 삭제
     suspend fun deleteGroupSegmentEntity(groupId: Int, talkTopicId: String) =
         talkTopicDao.deleteGroupSegmentEntity(groupId, talkTopicId)
+
 
     // 비공개 대화주제 추가
     suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity2) =
@@ -147,6 +149,19 @@ class TalkTopicRepository @Inject constructor(
                 onUpdate(updateFavoriteCount)
             }
         }.await()
+    }
+
+    // 온라인 대화주제 삭제
+    suspend fun deleteTalkTopicDoc(talkTopicId: String) {
+        firestore.collection(Constants.COLLECTION_TALK_TOPIC)
+            .document(talkTopicId)
+            .delete()
+            .await()
+    }
+
+    // 오프라인 대화주제 삭제
+    suspend fun deleteTalkTopicEntity(talkTopicId: String) {
+        talkTopicDao.deleteTalkTopicEntity(talkTopicId)
     }
 
     // TODO: 나중에 지울것

@@ -55,6 +55,7 @@ import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
@@ -62,13 +63,10 @@ import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import kotlinx.coroutines.flow.Flow
 
-// TODO:
-//  . 내가 제작한 대화주제인 경우 삭제 옵션 추가
-//  . 업로드 되지 않은 상태의 UI 추가
-//  . 내가 제작한 대화주제는 좋아요 불가능하게 구현
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun TalkTopicsScreen(
+    userData: UserData?,
     uiState: TalkTopicsDetailUiState,
     onEvent: (TalkTopicsDetailUiEvent) -> Unit
 ) {
@@ -140,20 +138,35 @@ fun TalkTopicsScreen(
 
             talkTopics?.let {
                 items(it.itemCount) { index ->
-                    TalkTopicItem(
-                        talkTopic = it[index]!!,
-                        onFavoriteClick = { topicId, isFavorite ->
-                            onEvent(
-                                TalkTopicsDetailUiEvent.ClickFavorite(
-                                    topicId = topicId,
-                                    isFavorite = isFavorite
+                    val talkTopic = it[index]!!
+                    if (talkTopic.isUpload || !talkTopic.isPublic) {
+                        TalkTopicItem(
+                            talkTopic = talkTopic,
+                            userId = userData?.userId ?: "",
+                            onFavoriteClick = { topicId, isFavorite ->
+                                onEvent(
+                                    TalkTopicsDetailUiEvent.ClickFavorite(
+                                        topicId = topicId,
+                                        isFavorite = isFavorite
+                                    )
                                 )
-                            )
-                        },
-                        onSaveClick = { talkTopic ->
-                            onEvent(TalkTopicsDetailUiEvent.ClickBookmark(talkTopic))
-                        }
-                    )
+                            },
+                            onSaveClick = { _talkTopic ->
+                                onEvent(TalkTopicsDetailUiEvent.ClickBookmark(_talkTopic))
+                            },
+                            onRemoveClick = { _talkTopic ->
+                                onEvent(TalkTopicsDetailUiEvent.ClickRemove(_talkTopic))
+                            }
+                        )
+                    } else {
+                        TalkTopicItem(
+                            modifier = Modifier.alpha(0.6f),
+                            talkTopic = talkTopic,
+                            userId = userData?.userId ?: "",
+                            onFavoriteClick = { _, _ -> },
+                            onSaveClick = { }
+                        )
+                    }
                     Spacer(modifier = Modifier.height(24.dp))
                 }
             }
@@ -226,8 +239,10 @@ fun ListFilter(
 fun TalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopic: TalkTopic,
+    userId: String,
     onFavoriteClick: (String, Boolean) -> Unit,
-    onSaveClick: (TalkTopic) -> Unit
+    onSaveClick: (TalkTopic) -> Unit,
+    onRemoveClick: (TalkTopic) -> Unit = {}
 ) {
     Box(
         modifier = modifier
@@ -285,29 +300,55 @@ fun TalkTopicItem(
             Spacer(modifier = Modifier.height(12.dp))
         }
         Row(modifier = Modifier.align(Alignment.BottomCenter)) {
-            TalkTopicItemButton(
-                icon = if (talkTopic.isFavorite) {
-                    painterResource(id = R.drawable.ic_heart)
-                } else {
-                    painterResource(id = R.drawable.ic_heart_border)
-                },
-                text = talkTopic.favoriteCount.toString(),
-                color = if (talkTopic.isFavorite) {
-                    MaterialTheme.colors.secondary
-                } else {
-                    MaterialTheme.colors.onPrimary
-                },
-                onClick = {
-                    onFavoriteClick(talkTopic.topicId, !talkTopic.isFavorite)
+            if (talkTopic.isUpload || !talkTopic.isPublic) {
+                TalkTopicItemButton(
+                    icon = if (talkTopic.isFavorite) {
+                        painterResource(id = R.drawable.ic_heart)
+                    } else {
+                        painterResource(id = R.drawable.ic_heart_border)
+                    },
+                    text = talkTopic.favoriteCount.toString(),
+                    color = if (talkTopic.isFavorite) {
+                        MaterialTheme.colors.secondary
+                    } else {
+                        MaterialTheme.colors.onPrimary.copy(
+                            alpha = if (talkTopic.isPublic) {
+                                1f
+                            } else {
+                                0.6f
+                            }
+                        )
+                    },
+                    onClick = {
+                        if (userId != talkTopic.uid) {
+                            onFavoriteClick(talkTopic.topicId, !talkTopic.isFavorite)
+                        }
+                    }
+                )
+                Spacer(modifier = Modifier.width(24.dp))
+                TalkTopicItemButton(
+                    icon = painterResource(id = R.drawable.ic_bookmark),
+                    text = "저장",
+                    color = MaterialTheme.colors.onPrimary,
+                    onClick = { onSaveClick(talkTopic) }
+                )
+                if (talkTopic.uid == userId) {
+                    Spacer(modifier = Modifier.width(24.dp))
+                    TalkTopicItemButton(
+                        icon = painterResource(id = R.drawable.ic_trash),
+                        text = "삭제",
+                        color = MaterialTheme.colors.onPrimary,
+                        onClick = { onRemoveClick(talkTopic) }
+                    )
                 }
-            )
-            Spacer(modifier = Modifier.width(24.dp))
-            TalkTopicItemButton(
-                icon = painterResource(id = R.drawable.ic_bookmark),
-                text = "저장",
-                color = MaterialTheme.colors.onPrimary,
-                onClick = { onSaveClick(talkTopic) }
-            )
+            } else {
+                TalkTopicItemButton(
+                    icon = painterResource(id = R.drawable.ic_review),
+                    text = "검토 중",
+                    color = MaterialTheme.colors.onPrimary,
+                    onClick = { }
+                )
+            }
         }
     }
 }

@@ -10,4 +10,6 @@ sealed interface TalkTopicsDetailUiEvent {
     data class ClickFavorite(val topicId: String, val isFavorite: Boolean) : TalkTopicsDetailUiEvent
 
     data class ClickBookmark(val talkTopic: TalkTopic) : TalkTopicsDetailUiEvent
+
+    data class ClickRemove(val talkTopic: TalkTopic) : TalkTopicsDetailUiEvent
 }

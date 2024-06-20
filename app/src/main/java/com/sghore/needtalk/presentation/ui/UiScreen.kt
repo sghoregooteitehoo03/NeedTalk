@@ -58,6 +58,8 @@ sealed interface DialogScreen {
 
     data class DialogRemoveGroup(val group: TalkTopicGroup) : DialogScreen
 
+    data class DialogRemoveTalkTopic(val talkTopic: TalkTopic) : DialogScreen
+
     data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
 
     data object DialogAddTopic : DialogScreen

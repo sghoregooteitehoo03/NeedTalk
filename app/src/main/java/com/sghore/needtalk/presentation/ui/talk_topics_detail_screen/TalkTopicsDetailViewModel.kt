@@ -6,7 +6,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.sghore.needtalk.data.repository.TalkTopicRepository
+import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.domain.usecase.DeleteTalkTopicUseCase
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
 import com.sghore.needtalk.domain.usecase.SaveGroupSegmentUseCase
@@ -31,6 +33,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository,
     private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
     private val setFavoriteUseCase: SetFavoriteUseCase,
+    private val deleteTalkTopicUseCase: DeleteTalkTopicUseCase,
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
     private val insertTalkTopicGroupUseCase: InsertTalkTopicGroupUseCase,
     private val saveGroupSegmentUseCase: SaveGroupSegmentUseCase,
@@ -132,6 +135,12 @@ class TalkTopicsDetailViewModel @Inject constructor(
                 }
             }
         )
+    }
+
+    // 대화주제 삭제
+    fun removeTalkTopic(talkTopic: TalkTopic) = viewModelScope.launch {
+        // TODO: 삭제 후 리스트 업데이트
+        deleteTalkTopicUseCase(talkTopic)
     }
 
     // 대화주제 모음집을 모두 가져옴
