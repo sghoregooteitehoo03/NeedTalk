@@ -2,6 +2,7 @@ package com.sghore.needtalk.data.repository.database
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.sghore.needtalk.data.model.entity.FriendEntity
 import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.model.entity.TalkEntity
@@ -13,7 +14,7 @@ import com.sghore.needtalk.data.model.entity.UserEntity2
 
 @Database(
     entities = [
-        UserEntity2::class, TalkTopicGroupEntity::class, UserEntity::class,
+        UserEntity2::class, FriendEntity::class, TalkTopicGroupEntity::class, UserEntity::class,
         TalkEntity::class, TalkTopicEntity::class, TimerSettingEntity::class,
         TalkTopicEntity2::class, GroupSegmentEntity::class
     ],

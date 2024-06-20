@@ -36,7 +36,8 @@ import com.sghore.needtalk.presentation.ui.FriendshipPointBar
 
 @Composable
 fun ProfileScreen(
-    userData: UserData?
+    userData: UserData?,
+    uiState: ProfileUiState
 ) {
     val testList = listOf(
         Friend(
@@ -92,8 +93,8 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            items(testList.size) { index ->
-                FriendInfoItem(friend = testList[index])
+            items(uiState.friends.size) { index ->
+                FriendInfoItem(friend = uiState.friends[index])
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }

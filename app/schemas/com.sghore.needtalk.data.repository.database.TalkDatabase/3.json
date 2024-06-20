@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "b44fcc061286fb586b71efaa8a5e2aa1",
+    "identityHash": "f0e0fcd803a5dab9b335b117429cef9d",
     "entities": [
       {
         "tableName": "UserEntity2",
@@ -24,6 +24,56 @@
             "fieldPath": "profileImage",
             "columnName": "profileImage",
             "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createTime",
+            "columnName": "createTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "userId"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "FriendEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `userName` TEXT NOT NULL, `profileImage` BLOB NOT NULL, `experiencePoint` INTEGER NOT NULL, `friendshipPoint` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
+        "fields": [
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userName",
+            "columnName": "userName",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "profileImage",
+            "columnName": "profileImage",
+            "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "experiencePoint",
+            "columnName": "experiencePoint",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "friendshipPoint",
+            "columnName": "friendshipPoint",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -320,7 +370,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'b44fcc061286fb586b71efaa8a5e2aa1')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f0e0fcd803a5dab9b335b117429cef9d')"
     ]
   }
 }
