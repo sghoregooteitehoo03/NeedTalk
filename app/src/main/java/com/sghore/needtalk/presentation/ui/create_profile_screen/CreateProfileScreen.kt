@@ -43,12 +43,12 @@ import com.sghore.needtalk.util.getBitmapFromResource
 @Composable
 fun CreateProfileScreen(
     uiState: CreateProfileUiState,
-    onEvent: (CreateProfileUiEvent) -> Unit
+    onEvent: (CreateProfileUiEvent) -> Unit,
+    faceImageResources: List<Int>,
+    hairStyleImageResources: List<Int>,
+    accessoryImageResources: List<Int>
 ) {
     val context = LocalContext.current
-    val faceImageResources = remember { getFaceStyleImageResources() }
-    val hairStyleImageResources = remember { getHairStyleImageResources() }
-    val accessoryImageResources = remember { getAccessoryStyleImageResources() }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -58,7 +58,11 @@ fun CreateProfileScreen(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                text = "프로필 설정",
+                text = if (uiState.isUpdateProfile) {
+                    "프로필 수정"
+                } else {
+                    "프로필 생성"
+                },
                 style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
             )
         }
@@ -121,7 +125,11 @@ fun CreateProfileScreen(
                     bottom.linkTo(parent.bottom)
                 },
                 isEnabled = uiState.profileName.isNotEmpty(),
-                text = "확인",
+                text = if (uiState.isUpdateProfile) {
+                    "수정하기"
+                } else {
+                    "생성하기"
+                },
                 onClick = {
                     onEvent(
                         CreateProfileUiEvent.ClickConfirm(
@@ -244,52 +252,6 @@ fun SelectStyleImage(
     }
 }
 
-private fun getFaceStyleImageResources() =
-    listOf(
-        R.drawable.face1,
-        R.drawable.face2,
-        R.drawable.face3,
-        R.drawable.face4,
-        R.drawable.face5,
-        R.drawable.face6,
-        R.drawable.face7,
-    )
-
-private fun getHairStyleImageResources() =
-    listOf(
-        R.drawable.none,
-        R.drawable.hair1,
-        R.drawable.hair2,
-        R.drawable.hair3,
-        R.drawable.hair4,
-        R.drawable.hair5,
-        R.drawable.hair6,
-        R.drawable.hair7,
-        R.drawable.hair8,
-        R.drawable.hair9,
-        R.drawable.hair10,
-        R.drawable.hair11,
-        R.drawable.hair12,
-        R.drawable.hair13,
-        R.drawable.hair14,
-    )
-
-private fun getAccessoryStyleImageResources() =
-    listOf(
-        R.drawable.none,
-        R.drawable.earring,
-        R.drawable.necklace,
-        R.drawable.glasses,
-        R.drawable.glasses2,
-        R.drawable.sunglasses,
-        R.drawable.ribbon,
-        R.drawable.mask,
-        R.drawable.smoke,
-        R.drawable.earphone,
-        R.drawable.headphone,
-        R.drawable.hairband,
-    )
-
 @Preview
 @Composable
 private fun ProfileImagePreview() {
@@ -324,7 +286,7 @@ private fun SelectStyleImagePreview() {
     NeedTalkTheme {
         SelectStyleImage(
             styleTitle = "표정",
-            styleImageResources = getFaceStyleImageResources(),
+            styleImageResources = listOf(),
             onChangeSelectedIndex = {}
         )
     }

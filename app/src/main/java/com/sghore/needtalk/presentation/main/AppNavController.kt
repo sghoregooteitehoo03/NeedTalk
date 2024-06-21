@@ -71,16 +71,32 @@ fun AppNavHost(
 
         composable(UiScreen.StartScreen.route) {
             StartRoute(navigateToCreateProfile = {
-                navController.navigate(UiScreen.CreateProfileScreen.route)
+                navController.navigate(
+                    UiScreen.CreateProfileScreen.route +
+                            "?userId=${null}"
+                )
             })
         }
 
-        composable(UiScreen.CreateProfileScreen.route) {
+        composable(
+            UiScreen.CreateProfileScreen.route +
+                    "?userId={userId}",
+            arguments = listOf(
+                navArgument("userId") {
+                    type = NavType.StringType
+                    nullable = true
+                },
+            )
+        ) {
             CreateProfileRoute(
-                onUpdateUserData = {
-                    gViewModel.setUserData(it)
-                    navController.navigate(UiScreen.HomeScreen.route) {
-                        popUpTo(0) { inclusive = true } // 모든 백스택 제거
+                onUpdateUserData = { userData, isCreated ->
+                    gViewModel.setUserData(userData)
+                    if (isCreated) {
+                        navController.navigate(UiScreen.HomeScreen.route) {
+                            popUpTo(0) { inclusive = true } // 모든 백스택 제거
+                        }
+                    } else {
+                        navController.navigateUp()
                     }
                 }
             )
@@ -95,7 +111,14 @@ fun AppNavHost(
 
         composable(route = UiScreen.ProfileScreen.route) {
             ProfileRoute(
-                userData = gViewModel.getUserData()
+                userData = gViewModel.getUserData(),
+                navigateUp = navController::navigateUp,
+                navigateToCreateProfile = {
+                    navController.navigate(
+                        UiScreen.CreateProfileScreen.route +
+                                "?userId=${gViewModel.getUserData()?.userId}"
+                    )
+                }
             )
         }
 

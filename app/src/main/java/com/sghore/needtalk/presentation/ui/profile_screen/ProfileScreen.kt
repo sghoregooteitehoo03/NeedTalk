@@ -37,7 +37,8 @@ import com.sghore.needtalk.presentation.ui.FriendshipPointBar
 @Composable
 fun ProfileScreen(
     userData: UserData?,
-    uiState: ProfileUiState
+    uiState: ProfileUiState,
+    onEvent: (ProfileUiEvent) -> Unit
 ) {
     val testList = listOf(
         Friend(
@@ -81,7 +82,12 @@ fun ProfileScreen(
         }
         LazyColumn(contentPadding = PaddingValues(14.dp)) {
             item {
-                MyProfileLayout(userData = userData)
+                MyProfileLayout(
+                    userData = userData,
+                    onClickEditProfile = {
+                        onEvent(ProfileUiEvent.ClickEditProfile)
+                    }
+                )
                 Spacer(modifier = Modifier.height(24.dp))
                 Text(
                     text = "친구 목록",
@@ -104,7 +110,8 @@ fun ProfileScreen(
 @Composable
 fun MyProfileLayout(
     modifier: Modifier = Modifier,
-    userData: UserData?
+    userData: UserData?,
+    onClickEditProfile: () -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -159,6 +166,7 @@ fun MyProfileLayout(
                             color = colorResource(id = R.color.orange_80),
                             shape = MaterialTheme.shapes.medium
                         )
+                        .clickable { onClickEditProfile() }
                         .padding(top = 6.dp, bottom = 6.dp, start = 12.dp, end = 12.dp)
                 ) {
                     Text(

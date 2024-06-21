@@ -3,6 +3,7 @@ package com.sghore.needtalk.data.model.entity
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
+// TODO: userName, profileImage 삭제하기
 @Entity
 data class FriendEntity(
     @PrimaryKey

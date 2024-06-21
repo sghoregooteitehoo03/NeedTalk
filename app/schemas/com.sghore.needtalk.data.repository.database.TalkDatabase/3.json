@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "f0e0fcd803a5dab9b335b117429cef9d",
+    "identityHash": "61e4783bd4bd68a8cc3b5eaf570ffe57",
     "entities": [
       {
         "tableName": "UserEntity2",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `name` TEXT NOT NULL, `profileImage` BLOB NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `name` TEXT NOT NULL, `profileImage` BLOB NOT NULL, `selectedFaceImageRes` INTEGER NOT NULL, `selectedHairImageRes` INTEGER NOT NULL, `selectedAccessoryImageRes` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
           {
             "fieldPath": "userId",
@@ -24,6 +24,24 @@
             "fieldPath": "profileImage",
             "columnName": "profileImage",
             "affinity": "BLOB",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedFaceImageRes",
+            "columnName": "selectedFaceImageRes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedHairImageRes",
+            "columnName": "selectedHairImageRes",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "selectedAccessoryImageRes",
+            "columnName": "selectedAccessoryImageRes",
+            "affinity": "INTEGER",
             "notNull": true
           },
           {
@@ -370,7 +388,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f0e0fcd803a5dab9b335b117429cef9d')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '61e4783bd4bd68a8cc3b5eaf570ffe57')"
     ]
   }
 }

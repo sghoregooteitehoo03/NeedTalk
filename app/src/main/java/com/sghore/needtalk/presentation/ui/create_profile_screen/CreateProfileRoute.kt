@@ -5,12 +5,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.UserData
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CreateProfileRoute(
     viewModel: CreateProfileViewModel = hiltViewModel(),
-    onUpdateUserData: (com.sghore.needtalk.domain.model.UserData) -> Unit
+    onUpdateUserData: (UserData, Boolean) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -45,6 +46,9 @@ fun CreateProfileRoute(
 
     CreateProfileScreen(
         uiState = uiState,
-        onEvent = viewModel::handelEvent
+        onEvent = viewModel::handelEvent,
+        faceImageResources = viewModel.faceImageResources,
+        hairStyleImageResources = viewModel.hairStyleImageResources,
+        accessoryImageResources = viewModel.accessoryImageResources
     )
 }

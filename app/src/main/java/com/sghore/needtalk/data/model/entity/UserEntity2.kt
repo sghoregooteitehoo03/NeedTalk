@@ -10,5 +10,8 @@ data class UserEntity2(
     val userId: String,
     val name: String,
     val profileImage: ByteArray,
+    val selectedFaceImageRes: Int,
+    val selectedHairImageRes: Int,
+    val selectedAccessoryImageRes: Int,
     val createTime: Long = System.currentTimeMillis()
 )

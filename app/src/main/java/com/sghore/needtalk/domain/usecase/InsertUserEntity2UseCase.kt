@@ -10,11 +10,19 @@ import javax.inject.Inject
 class InsertUserEntity2UseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
-    suspend operator fun invoke(userData: UserData) {
+    suspend operator fun invoke(
+        userData: UserData,
+        selectedFaceImageRes: Int,
+        selectedHairImageRes: Int,
+        selectedAccessoryImageRes: Int
+    ) {
         val userEntity = UserEntity2(
             userId = userData.userId,
             name = userData.name,
-            profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap())
+            profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap()),
+            selectedFaceImageRes = selectedFaceImageRes,
+            selectedHairImageRes = selectedHairImageRes,
+            selectedAccessoryImageRes = selectedAccessoryImageRes
         )
 
         userRepository.insertUserEntity(userEntity)
