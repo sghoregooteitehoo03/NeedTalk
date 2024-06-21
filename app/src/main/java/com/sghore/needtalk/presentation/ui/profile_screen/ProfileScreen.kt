@@ -98,12 +98,37 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            items(testList.size) { index ->
-                FriendInfoItem(
-                    friend = testList[index],
-                    onClickRemove = { onEvent(ProfileUiEvent.ClickRemoveFriend(it)) }
-                )
-                Spacer(modifier = Modifier.height(12.dp))
+            if (!uiState.isLoading && uiState.friends.isEmpty()) {
+                item {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Spacer(modifier = Modifier.height(80.dp))
+                        Text(
+                            text = "친구 목록이 비어있습니다.",
+                            style = MaterialTheme.typography.h4.copy(
+                                color = MaterialTheme.colors.onPrimary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "친구 목록이 비어있습니다.",
+                            style = MaterialTheme.typography.h5.copy(
+                                color = colorResource(id = R.color.gray)
+                            )
+                        )
+                    }
+                }
+            } else {
+                items(uiState.friends.size) { index ->
+                    FriendInfoItem(
+                        friend = uiState.friends[index],
+                        onClickRemove = { onEvent(ProfileUiEvent.ClickRemoveFriend(it)) }
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                }
             }
         }
     }
