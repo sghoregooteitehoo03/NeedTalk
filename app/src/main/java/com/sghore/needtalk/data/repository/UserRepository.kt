@@ -27,4 +27,9 @@ class UserRepository @Inject constructor(
     suspend fun insertFriendEntity(friendEntity: FriendEntity) {
         userDao.insertFriendEntity(friendEntity)
     }
+
+    // 친구 삭제
+    suspend fun deleteFriendEntity(userId: String) {
+        userDao.deleteFriendEntity(userId)
+    }
 }

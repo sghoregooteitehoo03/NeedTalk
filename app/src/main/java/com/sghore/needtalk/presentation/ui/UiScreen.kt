@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.domain.model.UserData
 
 sealed class UiScreen(
     val route: String,
@@ -61,6 +62,8 @@ sealed interface DialogScreen {
     data class DialogRemoveGroup(val group: TalkTopicGroup) : DialogScreen
 
     data class DialogRemoveTalkTopic(val talkTopic: TalkTopic) : DialogScreen
+
+    data class DialogRemoveFriend(val friend: UserData) : DialogScreen
 
     data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
 

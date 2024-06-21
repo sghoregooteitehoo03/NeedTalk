@@ -7,5 +7,5 @@ sealed interface ProfileUiEvent {
 
     data object ClickEditProfile : ProfileUiEvent
 
-    data class ClickRemoveProfile(val friend: UserData) : ProfileUiEvent
+    data class ClickRemoveFriend(val friend: UserData) : ProfileUiEvent
 }

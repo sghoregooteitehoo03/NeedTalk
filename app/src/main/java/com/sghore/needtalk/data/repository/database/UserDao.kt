@@ -25,4 +25,8 @@ interface UserDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFriendEntity(friendEntity: FriendEntity)
+
+
+    @Query("DELETE FROM FriendEntity WHERE userId == :userId")
+    suspend fun deleteFriendEntity(userId: String)
 }

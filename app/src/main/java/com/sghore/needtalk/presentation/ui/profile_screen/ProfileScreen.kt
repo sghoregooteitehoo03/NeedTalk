@@ -74,7 +74,7 @@ fun ProfileScreen(
                     .size(24.dp)
                     .clip(CircleShape)
                     .align(Alignment.CenterStart)
-                    .clickable { },
+                    .clickable { onEvent(ProfileUiEvent.ClickNavigateUp) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "navigateUp"
             )
@@ -99,7 +99,10 @@ fun ProfileScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
             items(testList.size) { index ->
-                FriendInfoItem(friend = testList[index])
+                FriendInfoItem(
+                    friend = testList[index],
+                    onClickRemove = { onEvent(ProfileUiEvent.ClickRemoveFriend(it)) }
+                )
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -184,7 +187,8 @@ fun MyProfileLayout(
 @Composable
 fun FriendInfoItem(
     modifier: Modifier = Modifier,
-    friend: UserData
+    friend: UserData,
+    onClickRemove: (UserData) -> Unit
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -245,7 +249,9 @@ fun FriendInfoItem(
                     top.linkTo(parent.top)
                     end.linkTo(parent.end)
                 }
-                .size(24.dp),
+                .size(24.dp)
+                .clip(CircleShape)
+                .clickable { onClickRemove(friend) },
             painter = painterResource(id = R.drawable.ic_close),
             contentDescription = "RemoveFriend",
             tint = MaterialTheme.colors.onPrimary
