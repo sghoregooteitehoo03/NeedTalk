@@ -9,6 +9,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.data.repository.UserRepository
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.usecase.InsertUserEntity2UseCase
+import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.mergeImages
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -150,7 +151,9 @@ class CreateProfileViewModel @Inject constructor(
             val createUserData = UserData(
                 userId = userId,
                 name = _uiState.value.profileName,
-                profileImage = mergedProfileImage.asImageBitmap()
+                profileImage = mergedProfileImage.asImageBitmap(),
+                experiencePoint = Constants.MAX_EXPERIENCE_POINT,
+                friendshipPoint = Constants.MAX_FRIENDSHIP_POINT
             )
 
             insertUserEntity2UseCase(

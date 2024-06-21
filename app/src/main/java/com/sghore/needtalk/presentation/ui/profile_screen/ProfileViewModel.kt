@@ -2,9 +2,8 @@ package com.sghore.needtalk.presentation.ui.profile_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.domain.model.Friend
 import com.sghore.needtalk.domain.usecase.AddFriendUseCase
-import com.sghore.needtalk.domain.usecase.GetAllFriendsUseCase
+import com.sghore.needtalk.domain.usecase.GetAllUserDataUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
-    private val getAllFriendsUseCase: GetAllFriendsUseCase,
+    private val getAllFriendUseCase: GetAllUserDataUseCase,
     private val addFriendUseCase: AddFriendUseCase
 ) : ViewModel() {
     // UI State
@@ -40,7 +39,7 @@ class ProfileViewModel @Inject constructor(
         // TODO: 나중에 테스트
         viewModelScope.launch {
             // 친구 목록을 가져옴
-            getAllFriendsUseCase().collectLatest { friends ->
+            getAllFriendUseCase().collectLatest { friends ->
                 _uiState.update { it.copy(friends = friends) }
             }
         }

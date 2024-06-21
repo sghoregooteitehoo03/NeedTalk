@@ -12,4 +12,7 @@ object Constants {
 
     const val AD_BANNER_TEST_ID = "ca-app-pub-3940256099942544/6300978111"
     const val AD_BANNER_ID = "ca-app-pub-7835153855071596/4861936054"
+
+    const val MAX_EXPERIENCE_POINT = 100
+    const val MAX_FRIENDSHIP_POINT = 10
 }

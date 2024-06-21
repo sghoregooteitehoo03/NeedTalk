@@ -12,12 +12,15 @@ class GetUserDataUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(userId: String): UserData? {
         val userEntity = userRepository.getUserEntity(userId).first()
+        val friendEntity = userRepository.getFriendEntity(userId).first()
 
         return if (userEntity != null) {
             UserData(
                 userId = userEntity.userId,
                 name = userEntity.name,
-                profileImage = byteArrayToBitmap(userEntity.profileImage).asImageBitmap()
+                profileImage = byteArrayToBitmap(userEntity.profileImage).asImageBitmap(),
+                experiencePoint = friendEntity?.experiencePoint ?: -1,
+                friendshipPoint = friendEntity?.friendshipPoint ?: -1
             )
         } else {
             null

@@ -29,7 +29,6 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.sghore.needtalk.R
-import com.sghore.needtalk.domain.model.Friend
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
@@ -41,21 +40,21 @@ fun ProfileScreen(
     onEvent: (ProfileUiEvent) -> Unit
 ) {
     val testList = listOf(
-        Friend(
+        UserData(
             userId = "",
             name = "민머리",
             profileImage = userData!!.profileImage,
             experiencePoint = 80,
             friendshipPoint = 4
         ),
-        Friend(
+        UserData(
             userId = "",
             name = "대충 지은 이름",
             profileImage = userData.profileImage,
             experiencePoint = 50,
             friendshipPoint = 7
         ),
-        Friend(
+        UserData(
             userId = "",
             name = "닉네임",
             profileImage = userData.profileImage,
@@ -99,8 +98,8 @@ fun ProfileScreen(
                 )
                 Spacer(modifier = Modifier.height(12.dp))
             }
-            items(uiState.friends.size) { index ->
-                FriendInfoItem(friend = uiState.friends[index])
+            items(testList.size) { index ->
+                FriendInfoItem(friend = testList[index])
                 Spacer(modifier = Modifier.height(12.dp))
             }
         }
@@ -185,7 +184,7 @@ fun MyProfileLayout(
 @Composable
 fun FriendInfoItem(
     modifier: Modifier = Modifier,
-    friend: Friend
+    friend: UserData
 ) {
     ConstraintLayout(
         modifier = modifier

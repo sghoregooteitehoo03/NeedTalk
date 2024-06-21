@@ -6,4 +6,6 @@ data class UserData(
     val userId: String,
     val name: String,
     val profileImage: ImageBitmap,
+    val experiencePoint: Int,
+    val friendshipPoint: Int
 )

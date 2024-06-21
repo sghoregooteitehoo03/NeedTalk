@@ -551,7 +551,7 @@ fun TalkTopicCategoryTag(
 fun ExperiencePointBar(
     modifier: Modifier = Modifier,
     experiencePoint: Int,
-    maxExperiencePoint: Int = 100
+    maxExperiencePoint: Int = Constants.MAX_EXPERIENCE_POINT
 ) {
     val progress = (experiencePoint / maxExperiencePoint.toFloat())
     val maxWidth = 200.dp.value
@@ -584,7 +584,7 @@ fun ExperiencePointBar(
 fun FriendshipPointBar(
     modifier: Modifier = Modifier,
     friendshipPoint: Int,
-    maxFriendshipPoint: Int = 10
+    maxFriendshipPoint: Int = Constants.MAX_FRIENDSHIP_POINT
 ) {
     Row(modifier = modifier) {
         repeat(maxFriendshipPoint) { index ->
