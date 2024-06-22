@@ -154,6 +154,7 @@ fun AppNavHost(
             route = UiScreen.CreateTalkScreen.route
         ) {
             CreateRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerCmInfo ->
                     navigateToHostTimerScreen(

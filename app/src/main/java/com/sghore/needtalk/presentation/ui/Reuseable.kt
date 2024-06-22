@@ -3,6 +3,7 @@ package com.sghore.needtalk.presentation.ui
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -36,9 +37,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -59,6 +62,7 @@ import com.google.android.gms.ads.AdView
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.Constants
 
 @Composable
@@ -600,5 +604,80 @@ fun FriendshipPointBar(
                 contentDescription = "FriendshipPoint"
             )
         }
+    }
+}
+
+// TODO: 인원 수 UI 구현
+@Composable
+fun TalkUserInfo(
+    modifier: Modifier = Modifier,
+    userData: UserData,
+    isCurrentUser: Boolean
+) {
+    Row(
+        modifier = modifier
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .then(
+                if (isCurrentUser) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colors.secondary,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(
+                    color = colorResource(id = R.color.light_gray_200),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                bitmap = userData.profileImage,
+                contentDescription = "ProfileImage",
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = userData.name,
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+    }
+}
+
+@Composable
+fun EmptyTalkUserInfo(
+    modifier: Modifier = Modifier,
+    alignment: Alignment = Alignment.TopStart,
+    content: @Composable (Modifier) -> Unit
+) {
+    Box(
+        modifier = modifier
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = colorResource(id = R.color.light_gray),
+                shape = MaterialTheme.shapes.medium
+            )
+            .height(54.dp)
+    ) {
+        content(Modifier.align(alignment))
     }
 }

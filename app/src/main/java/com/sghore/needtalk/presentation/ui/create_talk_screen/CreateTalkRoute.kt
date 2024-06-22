@@ -18,20 +18,39 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DialogTalkTopics
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.theme.Orange
+import com.sghore.needtalk.presentation.ui.theme.Orange50
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun CreateRoute(
     viewModel: CreateTalkViewModel = hiltViewModel(),
+    userData: UserData?,
     navigateUp: () -> Unit,
     navigateToTimer: (TimerCommunicateInfo) -> Unit
 ) {
-//    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+        lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    )
+    val systemUiController = rememberSystemUiController()
     val context = LocalContext.current
+
+    DisposableEffectWithLifeCycle(
+        onCreate = {
+            systemUiController.setStatusBarColor(
+                color = Orange50,
+                darkIcons = false
+            )
+        },
+        onDispose = {}
+    )
 
     LaunchedEffect(key1 = viewModel.uiEvent, block = {
         viewModel.uiEvent.collectLatest { event ->
@@ -84,11 +103,13 @@ fun CreateRoute(
         }
     })
 
+    CreateScreen(
+        userData = userData,
+        uiState = uiState,
+        onEvent = viewModel::handelEvent
+    )
 //    Surface {
-//        CreateScreen(
-//            uiState = uiState,
-//            onEvent = viewModel::handelEvent
-//        )
+//
 //
 //        when (val dialog = uiState.dialogScreen) {
 //            is DialogScreen.DialogTalkTopics -> {
