@@ -17,11 +17,11 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.add_talktopic_screen.AddTalkTopicRoute
 import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
-import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
+import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateRoute
 import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
 import com.sghore.needtalk.presentation.ui.groups_detail_screen.GroupsDetailRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
-import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
+import com.sghore.needtalk.presentation.ui.join_talk_screen.JoinRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
@@ -151,10 +151,7 @@ fun AppNavHost(
         }
 
         composable(
-            route = UiScreen.CreateScreen.route + "?userEntity={userEntity}",
-            arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType }
-            )
+            route = UiScreen.CreateTalkScreen.route
         ) {
             CreateRoute(
                 navigateUp = navController::navigateUp,
@@ -168,12 +165,7 @@ fun AppNavHost(
             )
         }
         composable(
-            route = UiScreen.JoinScreen.route +
-                    "?userEntity={userEntity}&packageName={packageName}",
-            arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
-                navArgument("packageName") { type = NavType.StringType }
-            )
+            route = UiScreen.JoinTalkScreen.route,
         ) {
             JoinRoute(
                 navigateUp = navController::navigateUp,
@@ -249,7 +241,7 @@ private fun navigateToCreateScreen(
 ) {
     if (userEntity != null) {
         val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(UiScreen.CreateScreen.route + "?userEntity=${userEntityJson}")
+        navController.navigate(UiScreen.CreateTalkScreen.route + "?userEntity=${userEntityJson}")
     }
 }
 
@@ -261,7 +253,7 @@ private fun navigateToJoinScreen(
     if (userEntity != null) {
         val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
         navController.navigate(
-            UiScreen.JoinScreen.route +
+            UiScreen.JoinTalkScreen.route +
                     "?&userEntity=${userEntityJson}&packageName=${packageName}"
         )
     }

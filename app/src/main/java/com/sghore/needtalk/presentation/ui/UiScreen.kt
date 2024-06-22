@@ -20,7 +20,7 @@ sealed class UiScreen(
 
     data object CreateProfileScreen : UiScreen(route = "CreateProfileScreen")
 
-    data object HomeScreen : UiScreen(route = "Home")
+    data object HomeScreen : UiScreen(route = "HomeScreen")
 
     data object TalkHistoryScreen : UiScreen(
         route = "TalkHistoryScreen",
@@ -42,19 +42,22 @@ sealed class UiScreen(
 
     data object GroupsDetailScreen : UiScreen(route = "GroupsDetailScreen")
 
-    data object CreateScreen : UiScreen(route = "Create")
+    data object CreateTalkScreen : UiScreen(route = "CreateTalkScreen")
+
+    data object JoinTalkScreen : UiScreen(route = "JoinTalkScreen")
 
     data object HostTimerScreen : UiScreen(route = "HostTimer")
 
     data object ClientTimerScreen : UiScreen(route = "ClientTimer")
-
-    data object JoinScreen : UiScreen(route = "Join")
 
     data object StaticsScreen : UiScreen(route = "StaticsScreen")
 }
 
 sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
+
+    data object DialogStart : DialogScreen
+
     data class DialogSaveTopic(val talkTopic: TalkTopic) : DialogScreen
 
     data class DialogAddOrEditGroup(val group: TalkTopicGroup? = null) : DialogScreen

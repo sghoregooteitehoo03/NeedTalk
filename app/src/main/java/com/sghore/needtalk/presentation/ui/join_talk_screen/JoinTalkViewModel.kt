@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui.join_screen
+package com.sghore.needtalk.presentation.ui.join_talk_screen
 
 import android.util.Log
 import androidx.lifecycle.SavedStateHandle
@@ -32,14 +32,14 @@ import java.nio.charset.Charset
 import javax.inject.Inject
 
 @HiltViewModel
-class JoinViewModel @Inject constructor(
+class JoinTalkViewModel @Inject constructor(
     private val stopAllConnectionUseCase: StopAllConnectionUseCase,
     private val startDiscoveryUseCase: StartDiscoveryUseCase,
     private val connectToHostUseCase: ConnectToHostUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(JoinUiState())
-    private val _uiEvent = MutableSharedFlow<JoinUiEvent>()
+    private val _uiEvent = MutableSharedFlow<JoinTalkUiEvent>()
     private var discoveryJob: Job? = null
     private var connectJob: Job? = null
 
@@ -54,15 +54,15 @@ class JoinViewModel @Inject constructor(
     )
 
     init {
-        val userEntityJson = savedStateHandle.get<String>("userEntity")
-        val packageName = savedStateHandle.get<String>("packageName") ?: ""
-
-        if (userEntityJson != null && packageName.isNotEmpty()) {
-            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
-
-            _uiState.update { it.copy(userEntity = userEntity) }
-            startDiscovery(packageName)
-        }
+//        val userEntityJson = savedStateHandle.get<String>("userEntity")
+//        val packageName = savedStateHandle.get<String>("packageName") ?: ""
+//
+//        if (userEntityJson != null && packageName.isNotEmpty()) {
+//            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+//
+//            _uiState.update { it.copy(userEntity = userEntity) }
+//            startDiscovery(packageName)
+//        }
     }
 
     @OptIn(FlowPreview::class)
@@ -178,7 +178,7 @@ class JoinViewModel @Inject constructor(
                         }
 
                         is ClientEvent.ClientConnectionFailure -> {
-                            handelEvent(JoinUiEvent.ShowSnackBar(event.errorMessage))
+                            handelEvent(JoinTalkUiEvent.ShowSnackBar(event.errorMessage))
                         }
 
                         else -> {}
@@ -195,7 +195,7 @@ class JoinViewModel @Inject constructor(
         startDiscovery(packageName)
     }
 
-    fun handelEvent(event: JoinUiEvent) = viewModelScope.launch {
+    fun handelEvent(event: JoinTalkUiEvent) = viewModelScope.launch {
         _uiEvent.emit(event)
     }
 }

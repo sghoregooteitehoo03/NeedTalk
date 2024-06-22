@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui.join_screen
+package com.sghore.needtalk.presentation.ui.join_talk_screen
 
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -13,12 +13,12 @@ import kotlinx.coroutines.flow.collectLatest
 // TODO: fix. 여럿이서 참가하기 눌렀을 때 오류 발생
 @Composable
 fun JoinRoute(
-    viewModel: JoinViewModel = hiltViewModel(),
+    viewModel: JoinTalkViewModel = hiltViewModel(),
     navigateUp: () -> Unit,
     navigateToTimerScreen: (TimerInfo) -> Unit,
     showSnackBar: suspend (String) -> Unit
 ) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+//    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(
@@ -26,34 +26,27 @@ fun JoinRoute(
         block = {
             viewModel.uiEvent.collectLatest { event ->
                 when (event) {
-                    is JoinUiEvent.ClickBackArrow -> {
+                    is JoinTalkUiEvent.ClickBackArrow -> {
                         navigateUp()
                     }
 
-                    is JoinUiEvent.ClickJoin -> {
+                    is JoinTalkUiEvent.ClickJoin -> {
                         navigateToTimerScreen(event.timerInfo)
                     }
 
-                    is JoinUiEvent.ClickResearch -> {
+                    is JoinTalkUiEvent.ClickResearch -> {
                         viewModel.researchDevice(context.packageName)
                     }
 
-                    is JoinUiEvent.LoadTimerInfo -> {
+                    is JoinTalkUiEvent.LoadTimerInfo -> {
                         viewModel.loadTimerInfo(event.index)
                     }
 
-                    is JoinUiEvent.ShowSnackBar -> {
+                    is JoinTalkUiEvent.ShowSnackBar -> {
                         showSnackBar(event.message)
                     }
                 }
             }
         }
     )
-
-    Surface {
-        JoinScreen(
-            uiState = uiState,
-            onEvent = viewModel::handelEvent
-        )
-    }
 }

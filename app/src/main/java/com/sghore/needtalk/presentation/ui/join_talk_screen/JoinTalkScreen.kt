@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui.join_screen
+package com.sghore.needtalk.presentation.ui.join_talk_screen
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
@@ -10,7 +10,6 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.stopScroll
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -39,7 +38,6 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -64,7 +62,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun JoinScreen(
     uiState: JoinUiState,
-    onEvent: (JoinUiEvent) -> Unit
+    onEvent: (JoinTalkUiEvent) -> Unit
 ) {
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (toolbar, layout, adview) = createRefs()
@@ -83,7 +81,7 @@ fun JoinScreen(
                     .clip(CircleShape)
                     .size(24.dp)
                     .clickable {
-                        onEvent(JoinUiEvent.ClickBackArrow)
+                        onEvent(JoinTalkUiEvent.ClickBackArrow)
                     },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
@@ -124,8 +122,8 @@ fun JoinScreen(
 
                     TimerInfoPager(
                         timerInfoList = uiState.searchNearDevice.timerInfoList,
-                        loadTimerInfo = { onEvent(JoinUiEvent.LoadTimerInfo(it)) },
-                        onJoinClick = { onEvent(JoinUiEvent.ClickJoin(it)) }
+                        loadTimerInfo = { onEvent(JoinTalkUiEvent.LoadTimerInfo(it)) },
+                        onJoinClick = { onEvent(JoinTalkUiEvent.ClickJoin(it)) }
                     )
                     Spacer(modifier = Modifier.height(28.dp))
                     Text(
@@ -146,7 +144,7 @@ fun JoinScreen(
                                     end = Offset(size.width - 3, verticalOffset)
                                 )
                             }
-                            .clickable { onEvent(JoinUiEvent.ClickResearch) },
+                            .clickable { onEvent(JoinTalkUiEvent.ClickResearch) },
                         text = "재탐색",
                         style = MaterialTheme.typography.h5.copy(color = researchColor),
                     )

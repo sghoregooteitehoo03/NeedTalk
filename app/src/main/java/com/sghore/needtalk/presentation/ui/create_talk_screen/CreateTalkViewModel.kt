@@ -1,4 +1,4 @@
-package com.sghore.needtalk.presentation.ui.create_screen
+package com.sghore.needtalk.presentation.ui.create_talk_screen
 
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -28,7 +28,7 @@ import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
-class CreateViewModel @Inject constructor(
+class CreateTalkViewModel @Inject constructor(
     private val getTimerSettingUseCase: GetTimerSettingUseCase,
     private val getTalkTopicsUseCase: GetTalkTopicsUseCase,
     private val insertTalkTopicUseCase: InsertTalkTopicUseCase,
@@ -36,13 +36,13 @@ class CreateViewModel @Inject constructor(
     private val insertTimerSettingUseCase: InsertTimerSettingUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
-    private val _uiState = MutableStateFlow(CreateUiState())
-    private val _uiEvent = MutableSharedFlow<CreateUiEvent>()
+    private val _uiState = MutableStateFlow(CreateTalkUiState())
+    private val _uiEvent = MutableSharedFlow<CreateTalkUiEvent>()
 
     val uiState = _uiState.stateIn(
         viewModelScope,
         SharingStarted.Eagerly,
-        CreateUiState()
+        CreateTalkUiState()
     )
     val uiEvent = _uiEvent.shareIn(
         viewModelScope,
@@ -50,13 +50,13 @@ class CreateViewModel @Inject constructor(
     )
 
     init {
-        val userEntityJson = savedStateHandle.get<String>("userEntity")
-        if (userEntityJson != null) {
-            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
-            initState(userEntity)
-        } else {
-            handelEvent(CreateUiEvent.ErrorMessage("오류가 발생하였습니다."))
-        }
+//        val userEntityJson = savedStateHandle.get<String>("userEntity")
+//        if (userEntityJson != null) {
+//            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+//            initState(userEntity)
+//        } else {
+//            handelEvent(CreateTalkUiEvent.ErrorMessage("오류가 발생하였습니다."))
+//        }
     }
 
     private fun initState(userEntity: UserEntity) = viewModelScope.launch {
@@ -96,7 +96,7 @@ class CreateViewModel @Inject constructor(
         val stateValue = _uiState.value
 
         if (stateValue.talkTime == 0L) {
-            handelEvent(CreateUiEvent.ErrorMessage("0분 이상 대화 시간을 설정해주세요."))
+            handelEvent(CreateTalkUiEvent.ErrorMessage("0분 이상 대화 시간을 설정해주세요."))
             return@launch
         }
 
@@ -172,7 +172,7 @@ class CreateViewModel @Inject constructor(
             insertTalkTopicUseCase(talkTopicEntity)
     }
 
-    fun handelEvent(event: CreateUiEvent) = viewModelScope.launch {
+    fun handelEvent(event: CreateTalkUiEvent) = viewModelScope.launch {
         _uiEvent.emit(event)
     }
 }

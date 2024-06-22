@@ -1,8 +1,7 @@
-package com.sghore.needtalk.presentation.ui.create_screen
+package com.sghore.needtalk.presentation.ui.create_talk_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -65,8 +64,8 @@ import com.sghore.needtalk.util.getTimerTimeByStep
 
 @Composable
 fun CreateScreen(
-    uiState: CreateUiState,
-    onEvent: (CreateUiEvent) -> Unit
+    uiState: CreateTalkUiState,
+    onEvent: (CreateTalkUiEvent) -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -83,7 +82,7 @@ fun CreateScreen(
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(24.dp)
-                    .clickable { onEvent(CreateUiEvent.ClickBackArrow) },
+                    .clickable { onEvent(CreateTalkUiEvent.ClickBackArrow) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
                 tint = MaterialTheme.colors.onPrimary
@@ -92,7 +91,7 @@ fun CreateScreen(
                 modifier = Modifier
                     .align(Alignment.CenterEnd)
                     .clickable {
-                        onEvent(CreateUiEvent.ClickComplete)
+                        onEvent(CreateTalkUiEvent.ClickComplete)
                     },
                 text = "완료",
                 style = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onPrimary)
@@ -104,7 +103,7 @@ fun CreateScreen(
                 OptionLayout(optionTitle = "대화시간 설정") {
                     SetTimer(
                         currentTime = uiState.talkTime,
-                        onTimeChange = { time -> onEvent(CreateUiEvent.ChangeTime(time)) },
+                        onTimeChange = { time -> onEvent(CreateTalkUiEvent.ChangeTime(time)) },
                         isStopwatch = uiState.isStopwatch
                     )
                     Spacer(modifier = Modifier.height(8.dp))
@@ -113,7 +112,7 @@ fun CreateScreen(
                         isChecked = uiState.isStopwatch,
                         onCheckedChange = { isAllow ->
                             onEvent(
-                                CreateUiEvent.ClickStopWatchMode(
+                                CreateTalkUiEvent.ClickStopWatchMode(
                                     isAllow
                                 )
                             )
@@ -131,7 +130,7 @@ fun CreateScreen(
                         numberOfPeople = uiState.numberOfPeople,
                         onClickNumber = { number ->
                             onEvent(
-                                CreateUiEvent.ClickNumberOfPeople(
+                                CreateTalkUiEvent.ClickNumberOfPeople(
                                     number
                                 )
                             )
@@ -169,7 +168,7 @@ fun CreateScreen(
                             .clip(CircleShape)
                             .size(20.dp)
                             .align(Alignment.CenterEnd)
-                            .clickable { onEvent(CreateUiEvent.ClickAddTopic) },
+                            .clickable { onEvent(CreateTalkUiEvent.ClickAddTopic) },
                         painter = painterResource(id = R.drawable.ic_add),
                         contentDescription = "",
                         tint = MaterialTheme.colors.onPrimary
@@ -177,7 +176,7 @@ fun CreateScreen(
                 }
                 TopicCategory(
                     onClickCategory = { topicCategory, groupCode ->
-                        onEvent(CreateUiEvent.ClickTopicCategory(topicCategory, groupCode))
+                        onEvent(CreateTalkUiEvent.ClickTopicCategory(topicCategory, groupCode))
                     }
                 )
             }

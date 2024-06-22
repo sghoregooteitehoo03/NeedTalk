@@ -3,7 +3,9 @@ package com.sghore.needtalk.presentation.ui.home_screen
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.BottomNavigation
 import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
@@ -20,10 +23,13 @@ import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -35,8 +41,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.main.GlobalViewModel
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
@@ -48,6 +56,7 @@ fun HomeScreen(
 ) {
     val navController = rememberNavController()
     val userData = gViewModel.getUserData()!!
+    var dialogScreen by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
 
     Scaffold(
         topBar = {
@@ -116,7 +125,8 @@ fun HomeScreen(
                                     .background(
                                         color = MaterialTheme.colors.secondary,
                                         shape = CircleShape
-                                    ),
+                                    )
+                                    .clickable { dialogScreen = DialogScreen.DialogStart },
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
@@ -191,6 +201,124 @@ fun HomeScreen(
                     userData = gViewModel.getUserData(),
                     navigateToOther = navigateToOther
                 )
+            }
+        }
+    }
+
+    when (dialogScreen) {
+        is DialogScreen.DialogStart -> {
+            StartDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(14.dp),
+                onDismiss = { dialogScreen = DialogScreen.DialogDismiss },
+                onClickCreate = {
+                    navigateToOther(UiScreen.CreateTalkScreen.route)
+                },
+                onClickJoin = {
+                    navigateToOther(UiScreen.JoinTalkScreen.route)
+                }
+            )
+        }
+
+        else -> {}
+    }
+}
+
+@Composable
+fun StartDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onClickCreate: () -> Unit,
+    onClickJoin: () -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(modifier = modifier) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "시작하기",
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .shadow(2.dp, MaterialTheme.shapes.medium)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .fillMaxWidth(0.5f)
+                        .clickable {
+                            onDismiss()
+                            onClickCreate()
+                        }
+                        .padding(top = 20.dp, bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(48.dp),
+                        painter = painterResource(id = R.drawable.ic_create),
+                        contentDescription = "CreateTalk"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "대화방 생성",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(
+                    modifier = Modifier
+                        .shadow(2.dp, MaterialTheme.shapes.medium)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .fillMaxWidth()
+                        .clickable {
+                            onDismiss()
+                            onClickJoin()
+                        }
+                        .padding(top = 20.dp, bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(48.dp),
+                        painter = painterResource(id = R.drawable.ic_join),
+                        contentDescription = "JoinTalk"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "대화방 참가",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    )
+                }
             }
         }
     }
