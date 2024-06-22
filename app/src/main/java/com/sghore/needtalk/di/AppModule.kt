@@ -30,6 +30,7 @@ object AppModule {
             TalkDatabase::class.java,
             "TalkDB"
         )
+            .fallbackToDestructiveMigration()
             .createFromAsset("DefaultTalkTopic.db")
             .build()
 

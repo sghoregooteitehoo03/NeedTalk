@@ -3,8 +3,7 @@ package com.sghore.needtalk.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.sghore.needtalk.data.model.entity.TalkEntity
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
-import com.sghore.needtalk.data.model.entity.TimerSettingEntity
+import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
 import com.sghore.needtalk.data.repository.datasource.TalkHistoryPagingSource
@@ -101,24 +100,15 @@ class TalkRepository @Inject constructor(
     // 대화 주제 리스트 반환
     fun getTalkTopicEntity(groupCode: Int) = dao.getTalkTopicEntity(groupCode)
 
-    // 대화 주제 삽입
-    suspend fun insertTalkTopic(talkTopicEntity: TalkTopicEntity) =
-        dao.insertTalkTopicEntity(talkTopicEntity)
-
-    // 대화 주제 삭제
-    suspend fun deleteTalkTopic(talkTopicEntity: TalkTopicEntity) =
-        dao.deleteTalkTopicEntity(talkTopicEntity)
-
     // 대화 기록 삽입
     suspend fun insertTalkEntity(talkEntity: TalkEntity) {
         dao.insertTalkEntity(talkEntity)
     }
 
-    // 저장된 타이머 설정 반환
-    fun getTimerSettingEntity() =
-        dao.getTimerSettingEntity()
+    // 저장된 대화방 설정 가져옴
+    fun getTalkSettingEntity() = dao.getTalkSettingEntity()
 
-    // 타이머 설정 삽입
-    suspend fun insertTimerSettingEntity(timerSettingEntity: TimerSettingEntity) =
-        dao.insertTimerSettingEntity(timerSettingEntity)
+    // 대화방 설정 저장
+    suspend fun insertTalkSettingEntity(talkSettingEntity: TalkSettingEntity) =
+        dao.insertTalkSettingEntity(talkSettingEntity)
 }

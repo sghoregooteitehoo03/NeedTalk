@@ -4,10 +4,9 @@ import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.presentation.ui.DialogScreen
 
 data class CreateTalkUiState(
-    val userEntity: UserEntity? = null,
-    val isLoading: Boolean = true,
     val talkTime: Long = 3600000L,
-    val isStopwatch: Boolean = false,
+    val isTimer: Boolean = true,
+    val isMicAllow: Boolean = true,
     val numberOfPeople: Int = 2,
-    val dialogScreen: DialogScreen = DialogScreen.DialogDismiss
+    val isLoading: Boolean = true,
 )

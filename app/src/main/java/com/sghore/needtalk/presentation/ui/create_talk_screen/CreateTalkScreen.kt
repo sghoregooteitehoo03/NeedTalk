@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PageSize
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +37,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sghore.needtalk.R
@@ -47,7 +45,7 @@ import com.sghore.needtalk.presentation.ui.EmptyTalkUserInfo
 import com.sghore.needtalk.presentation.ui.TalkUserInfo
 
 @Composable
-fun CreateScreen(
+fun CreateTalkScreen(
     userData: UserData?,
     uiState: CreateTalkUiState,
     onEvent: (CreateTalkUiEvent) -> Unit
@@ -65,7 +63,7 @@ fun CreateScreen(
                     .size(24.dp)
                     .clip(CircleShape)
                     .align(Alignment.CenterStart)
-                    .clickable { },
+                    .clickable { onEvent(CreateTalkUiEvent.ClickBackArrow) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "navigateUp",
                 tint = MaterialTheme.colors.onSecondary

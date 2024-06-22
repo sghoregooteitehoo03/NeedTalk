@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicCategory
-import com.sghore.needtalk.domain.usecase.InsertTalkTopicUseCase2
+import com.sghore.needtalk.domain.usecase.InsertTalkTopicUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +17,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class AddTalkTopicViewModel @Inject constructor(
-    private val insertTalkTopicUseCase: InsertTalkTopicUseCase2,
+    private val insertTalkTopicUseCase: InsertTalkTopicUseCase,
 ) : ViewModel() {
     // UI State
     private val _uiState = MutableStateFlow(AddTalkTopicUiState())

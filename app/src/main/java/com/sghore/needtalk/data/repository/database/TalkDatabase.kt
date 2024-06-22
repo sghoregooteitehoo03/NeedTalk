@@ -8,17 +8,17 @@ import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
-import com.sghore.needtalk.data.model.entity.TimerSettingEntity
+import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.model.entity.UserEntity2
 
 @Database(
     entities = [
         UserEntity2::class, FriendEntity::class, TalkTopicGroupEntity::class, UserEntity::class,
-        TalkEntity::class, TalkTopicEntity::class, TimerSettingEntity::class,
+        TalkEntity::class, TalkTopicEntity::class, TalkSettingEntity::class,
         TalkTopicEntity2::class, GroupSegmentEntity::class
     ],
-    version = 3,
+    version = 1,
     exportSchema = true
 )
 abstract class TalkDatabase : RoomDatabase() {

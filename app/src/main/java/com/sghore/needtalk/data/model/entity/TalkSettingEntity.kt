@@ -6,10 +6,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @Entity
-data class TimerSettingEntity(
+data class TalkSettingEntity(
     @PrimaryKey
     val userId: String,
     val talkTime: Long,
-    val isStopwatch: Boolean,
+    val isTimer: Boolean,
+    val isAllowMic: Boolean,
     val numberOfPeople: Int
 )

@@ -17,7 +17,7 @@ import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.add_talktopic_screen.AddTalkTopicRoute
 import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
-import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateRoute
+import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateTalkRoute
 import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
 import com.sghore.needtalk.presentation.ui.groups_detail_screen.GroupsDetailRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
@@ -150,10 +150,8 @@ fun AppNavHost(
             )
         }
 
-        composable(
-            route = UiScreen.CreateTalkScreen.route
-        ) {
-            CreateRoute(
+        composable(route = UiScreen.CreateTalkScreen.route) {
+            CreateTalkRoute(
                 userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerCmInfo ->
