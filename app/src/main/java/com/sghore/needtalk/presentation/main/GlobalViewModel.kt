@@ -19,11 +19,6 @@ class GlobalViewModel @Inject constructor() : ViewModel() {
         userData = newUserData
     }
 
-    // TODO: 나중에 삭제
-    fun setUserEntity(newUserEntity: UserEntity?) {
-        userEntity = newUserEntity
-    }
-
     fun getUserData() = userData
 
     // TODO: 나중에 삭제

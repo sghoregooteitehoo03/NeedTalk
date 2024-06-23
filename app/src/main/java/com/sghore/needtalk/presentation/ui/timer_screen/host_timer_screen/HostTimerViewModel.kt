@@ -48,19 +48,14 @@ class HostTimerViewModel @Inject constructor(
     )
 
     init {
-        val userEntityJson = savedStateHandle.get<String>("userEntity")
         val timerCmInfoJson = savedStateHandle.get<String>("timerCmInfo")
 
-        if (userEntityJson != null && timerCmInfoJson != null) {
-            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
+        if (timerCmInfoJson != null) {
             val timerCmInfo =
                 Json.decodeFromString(TimerCommunicateInfo.serializer(), timerCmInfoJson)
 
             _uiState.update {
-                it.copy(
-                    userEntity = userEntity,
-                    timerCommunicateInfo = timerCmInfo
-                )
+                it.copy(timerCommunicateInfo = timerCmInfo)
             }
         }
     }

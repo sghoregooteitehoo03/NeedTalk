@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.create_talk_screen
 
+import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
@@ -8,6 +9,7 @@ import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.util.bitmapToByteArray
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -81,7 +83,11 @@ class CreateTalkViewModel @Inject constructor(
             TimerCommunicateInfo(
                 participantInfoList = listOf(
                     ParticipantInfo(
-                        userData = userData,
+                        userId = userData.userId,
+                        name = userData.name,
+                        profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap()),
+                        experiencePoint = userData.experiencePoint,
+                        friendshipPoint = userData.friendshipPoint,
                         endpointId = "",
                         isReady = null
                     )

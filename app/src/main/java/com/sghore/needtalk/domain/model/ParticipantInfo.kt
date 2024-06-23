@@ -4,7 +4,11 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class ParticipantInfo(
-    val userData: UserData,
+    val userId: String,
+    val name: String,
+    val profileImage: ByteArray,
+    val experiencePoint: Int,
+    val friendshipPoint: Int,
     val endpointId: String,
     val isReady: Boolean?
 )

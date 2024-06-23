@@ -54,7 +54,9 @@ fun HostTimerRoute(
     showSnackBar: suspend (String) -> Unit
 ) {
     val context = LocalContext.current
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+        lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    )
     var service: HostTimerService? by remember { mutableStateOf(null) }
 
     val connection = remember {
@@ -72,32 +74,32 @@ fun HostTimerRoute(
             }
         }
     }
-    val sensorListener = remember {
-        object : SensorEventListener2 {
-            override fun onSensorChanged(event: SensorEvent?) {
-                val eventZ = event?.values?.get(2) ?: 0f
-                val timerActionState = uiState.timerCommunicateInfo.timerActionState
-
-                // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
-                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
-                    if (timerActionState is TimerActionState.TimerReady) {
-                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                    }
-
-                    vibrate(context)
-                    service?.deviceFlip(true)
-                    viewModel.flipState(true)
-                } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
-                    service?.deviceFlip(false)
-                    viewModel.flipState(false)
-                }
-            }
-
-            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
-
-            override fun onFlushCompleted(p0: Sensor?) {}
-        }
-    }
+//    val sensorListener = remember {
+//        object : SensorEventListener2 {
+//            override fun onSensorChanged(event: SensorEvent?) {
+//                val eventZ = event?.values?.get(2) ?: 0f
+//                val timerActionState = uiState.timerCommunicateInfo.timerActionState
+//
+//                // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
+//                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
+//                    if (timerActionState is TimerActionState.TimerReady) {
+//                        viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//                    }
+//
+//                    vibrate(context)
+//                    service?.deviceFlip(true)
+//                    viewModel.flipState(true)
+//                } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+//                    service?.deviceFlip(false)
+//                    viewModel.flipState(false)
+//                }
+//            }
+//
+//            override fun onAccuracyChanged(p0: Sensor?, p1: Int) {}
+//
+//            override fun onFlushCompleted(p0: Sensor?) {}
+//        }
+//    }
 
     DisposableEffectWithLifeCycle(
         onCreate = {
@@ -107,244 +109,244 @@ fun HostTimerRoute(
             )
         },
         onResume = {
-            val timerActionState = uiState.timerCommunicateInfo.timerActionState
-            service?.stopForegroundService()
-
-            if (timerActionState != TimerActionState.TimerWaiting
-                && timerActionState != TimerActionState.TimerFinished
-                && timerActionState !is TimerActionState.TimerError
-            ) {
-                startSensor(context, sensorListener)
-            }
+//            val timerActionState = uiState.timerCommunicateInfo.timerActionState
+//            service?.stopForegroundService()
+//
+//            if (timerActionState != TimerActionState.TimerWaiting
+//                && timerActionState != TimerActionState.TimerFinished
+//                && timerActionState !is TimerActionState.TimerError
+//            ) {
+//                startSensor(context, sensorListener)
+//            }
         },
         onStop = {
-            service?.startForegroundService()
-            stopSensor(context, sensorListener)
+//            service?.startForegroundService()
+//            stopSensor(context, sensorListener)
         },
         onDispose = {
             stopService(context = context, connection = connection)
         }
     )
 
-    LaunchedEffect(
-        key1 = service,
-        block = {
-            launch {
-                viewModel.uiEvent.collectLatest { event ->
-                    when (event) {
-                        is TimerUiEvent.ClickExit -> {
-                            val message =
-                                when (uiState.timerCommunicateInfo.timerActionState) {
-                                    is TimerActionState.TimerWaiting,
-                                    is TimerActionState.TimerReady ->
-                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+//    LaunchedEffect(
+//        key1 = service,
+//        block = {
+//            launch {
+//                viewModel.uiEvent.collectLatest { event ->
+//                    when (event) {
+//                        is TimerUiEvent.ClickExit -> {
+//                            val message =
+//                                when (uiState.timerCommunicateInfo.timerActionState) {
+//                                    is TimerActionState.TimerWaiting,
+//                                    is TimerActionState.TimerReady ->
+//                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+//
+//                                    is TimerActionState.TimerRunning,
+//                                    is TimerActionState.TimerPause,
+//                                    is TimerActionState.StopWatchPause ->
+//                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+//
+//                                    else -> ""
+//                                }
+//
+//                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
+//                        }
+//
+//                        is TimerUiEvent.ClickTopicCategory -> {
+//                            viewModel.setDialogScreen(
+//                                DialogScreen.DialogTalkTopics(
+//                                    event.topicCategory,
+//                                    event.groupCode
+//                                )
+//                            )
+//                        }
+//
+//                        is TimerUiEvent.CancelPinnedTopic -> {
+//                            service?.pinnedTalkTopic(null)
+//                        }
+//
+//                        is TimerUiEvent.ClickStart -> {
+//                            if (event.isEnabled) {
+//                                viewModel.saveOtherUserData()
+//
+//                                service?.timerReady(onOpenDialog = viewModel::setDialogScreen)
+//                                startSensor(context, sensorListener)
+//                            } else {
+//                                showSnackBar("멤버가 모두 모이지 않았습니다.")
+//                            }
+//                        }
+//
+//                        is TimerUiEvent.ClickFinished -> {
+//                            if (uiState.timerCommunicateInfo.isStopWatch) {
+//                                viewModel.setDialogScreen(
+//                                    DialogScreen.DialogWarning(
+//                                        "아직 대화중인 인원들이 있어요\n" +
+//                                                "정말로 나가시겠습니까?"
+//                                    )
+//                                )
+//                            } else {
+//                                viewModel.saveTalkHistory {
+//                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
+//                                        .show()
+//                                }
+//
+//                                service = null
+//                                navigateUp()
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//
+//            launch {
+//                service?.timerCmInfo?.collectLatest {
+//                    if (it.timerActionState is TimerActionState.TimerError) {
+//                        service?.deviceFlip(false)
+//                        stopSensor(context, sensorListener)
+//
+//                        viewModel.setDialogScreen(
+//                            DialogScreen.DialogWarning(
+//                                it.timerActionState.errorMsg,
+//                                isError = true
+//                            )
+//                        )
+//                    } else if (it.timerActionState is TimerActionState.TimerFinished) {
+//                        stopSensor(context, sensorListener)
+//                    }
+//
+//                    viewModel.updateTimerCommunicateInfo(it)
+//                }
+//            }
+//        })
 
-                                    is TimerActionState.TimerRunning,
-                                    is TimerActionState.TimerPause,
-                                    is TimerActionState.StopWatchPause ->
-                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+//    BackHandler {}
 
-                                    else -> ""
-                                }
-
-                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
-                        }
-
-                        is TimerUiEvent.ClickTopicCategory -> {
-                            viewModel.setDialogScreen(
-                                DialogScreen.DialogTalkTopics(
-                                    event.topicCategory,
-                                    event.groupCode
-                                )
-                            )
-                        }
-
-                        is TimerUiEvent.CancelPinnedTopic -> {
-                            service?.pinnedTalkTopic(null)
-                        }
-
-                        is TimerUiEvent.ClickStart -> {
-                            if (event.isEnabled) {
-                                viewModel.saveOtherUserData()
-
-                                service?.timerReady(onOpenDialog = viewModel::setDialogScreen)
-                                startSensor(context, sensorListener)
-                            } else {
-                                showSnackBar("멤버가 모두 모이지 않았습니다.")
-                            }
-                        }
-
-                        is TimerUiEvent.ClickFinished -> {
-                            if (uiState.timerCommunicateInfo.isStopWatch) {
-                                viewModel.setDialogScreen(
-                                    DialogScreen.DialogWarning(
-                                        "아직 대화중인 인원들이 있어요\n" +
-                                                "정말로 나가시겠습니까?"
-                                    )
-                                )
-                            } else {
-                                viewModel.saveTalkHistory {
-                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
-                                        .show()
-                                }
-
-                                service = null
-                                navigateUp()
-                            }
-                        }
-                    }
-                }
-            }
-
-            launch {
-                service?.timerCmInfo?.collectLatest {
-                    if (it.timerActionState is TimerActionState.TimerError) {
-                        service?.deviceFlip(false)
-                        stopSensor(context, sensorListener)
-
-                        viewModel.setDialogScreen(
-                            DialogScreen.DialogWarning(
-                                it.timerActionState.errorMsg,
-                                isError = true
-                            )
-                        )
-                    } else if (it.timerActionState is TimerActionState.TimerFinished) {
-                        stopSensor(context, sensorListener)
-                    }
-
-                    viewModel.updateTimerCommunicateInfo(it)
-                }
-            }
-        })
-
-    BackHandler {}
-
-    Surface {
-        TimerScreen(
-            uiState = uiState,
-            onEvent = viewModel::handelEvent,
-            isHost = true
-        )
-
-        when (val dialogScreen = uiState.dialogScreen) {
-            is DialogScreen.DialogWarning -> {
-                if (dialogScreen.isError) {
-                    stopSensor(context, sensorListener)
-
-                    WarningDialog(
-                        modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colors.background,
-                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                            )
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        message = dialogScreen.message,
-                        possibleButtonText = "나가기",
-                        onPossibleClick = {
-                            viewModel.saveTalkHistory {
-                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-
-                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-
-                            service = null
-                            navigateUp()
-                        },
-                        isError = true,
-                        onDismiss = {}
-                    )
-                } else {
-                    WarningDialog(
-                        modifier = Modifier
-                            .background(
-                                color = MaterialTheme.colors.background,
-                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                            )
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        message = dialogScreen.message,
-                        possibleButtonText = "나가기",
-                        onPossibleClick = {
-                            viewModel.saveTalkHistory {
-                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
-                                    .show()
-                            }
-
-                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-
-                            service = null
-                            navigateUp()
-                        },
-                        negativeButtonText = "취소",
-                        onNegativeClick = {
-                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                        },
-                        onDismiss = {
-                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                        }
-                    )
-                }
-            }
-
-            is DialogScreen.DialogTimerReady -> {
-                TimerReadyDialog(
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colors.background,
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        )
-                        .fillMaxWidth()
-                        .padding(top = 24.dp, bottom = 24.dp)
-                )
-            }
-
-            is DialogScreen.DialogTalkTopics -> {
-                var talkTopics by remember {
-                    mutableStateOf(listOf<TalkTopicEntity>())
-                }
-
-                if (talkTopics.isEmpty()) {
-                    viewModel.getTalkTopics(
-                        groupCode = dialogScreen.groupCode,
-                        updateTopics = {
-                            talkTopics = it
-                        }
-                    )
-                }
-
-                DialogTalkTopics(
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colors.background,
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        )
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .padding(14.dp),
-                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
-                    topicCategory = dialogScreen.topicCategory,
-                    talkTopics = talkTopics,
-                    talkTopicItem = { talkTopicEntity ->
-                        TimerTalkTopicItem(
-                            talkTopicEntity = talkTopicEntity,
-                            onPinnedTopic = {
-                                service?.pinnedTalkTopic(
-                                    PinnedTalkTopic(
-                                        talkTopic = it,
-                                        pinnedUser = uiState.userEntity!!
-                                    )
-                                )
-
-                                viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                            }
-                        )
-                    })
-            }
-
-            else -> {}
-        }
-    }
+//    Surface {
+//        TimerScreen(
+//            uiState = uiState,
+//            onEvent = viewModel::handelEvent,
+//            isHost = true
+//        )
+//
+//        when (val dialogScreen = uiState.dialogScreen) {
+//            is DialogScreen.DialogWarning -> {
+//                if (dialogScreen.isError) {
+//                    stopSensor(context, sensorListener)
+//
+//                    WarningDialog(
+//                        modifier = Modifier
+//                            .background(
+//                                color = MaterialTheme.colors.background,
+//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+//                            )
+//                            .fillMaxWidth()
+//                            .padding(14.dp),
+//                        message = dialogScreen.message,
+//                        possibleButtonText = "나가기",
+//                        onPossibleClick = {
+//                            viewModel.saveTalkHistory {
+//                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+//                                    .show()
+//                            }
+//
+//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//
+//                            service = null
+//                            navigateUp()
+//                        },
+//                        isError = true,
+//                        onDismiss = {}
+//                    )
+//                } else {
+//                    WarningDialog(
+//                        modifier = Modifier
+//                            .background(
+//                                color = MaterialTheme.colors.background,
+//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+//                            )
+//                            .fillMaxWidth()
+//                            .padding(14.dp),
+//                        message = dialogScreen.message,
+//                        possibleButtonText = "나가기",
+//                        onPossibleClick = {
+//                            viewModel.saveTalkHistory {
+//                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+//                                    .show()
+//                            }
+//
+//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//
+//                            service = null
+//                            navigateUp()
+//                        },
+//                        negativeButtonText = "취소",
+//                        onNegativeClick = {
+//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//                        },
+//                        onDismiss = {
+//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//                        }
+//                    )
+//                }
+//            }
+//
+//            is DialogScreen.DialogTimerReady -> {
+//                TimerReadyDialog(
+//                    modifier = Modifier
+//                        .background(
+//                            color = MaterialTheme.colors.background,
+//                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+//                        )
+//                        .fillMaxWidth()
+//                        .padding(top = 24.dp, bottom = 24.dp)
+//                )
+//            }
+//
+//            is DialogScreen.DialogTalkTopics -> {
+//                var talkTopics by remember {
+//                    mutableStateOf(listOf<TalkTopicEntity>())
+//                }
+//
+//                if (talkTopics.isEmpty()) {
+//                    viewModel.getTalkTopics(
+//                        groupCode = dialogScreen.groupCode,
+//                        updateTopics = {
+//                            talkTopics = it
+//                        }
+//                    )
+//                }
+//
+//                DialogTalkTopics(
+//                    modifier = Modifier
+//                        .background(
+//                            color = MaterialTheme.colors.background,
+//                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+//                        )
+//                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
+//                        .padding(14.dp),
+//                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+//                    topicCategory = dialogScreen.topicCategory,
+//                    talkTopics = talkTopics,
+//                    talkTopicItem = { talkTopicEntity ->
+//                        TimerTalkTopicItem(
+//                            talkTopicEntity = talkTopicEntity,
+//                            onPinnedTopic = {
+//                                service?.pinnedTalkTopic(
+//                                    PinnedTalkTopic(
+//                                        talkTopic = it,
+//                                        pinnedUser = uiState.userEntity!!
+//                                    )
+//                                )
+//
+//                                viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+//                            }
+//                        )
+//                    })
+//            }
+//
+//            else -> {}
+//        }
+//    }
 }
 
 private fun startService(

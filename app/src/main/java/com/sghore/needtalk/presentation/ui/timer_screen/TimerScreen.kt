@@ -254,7 +254,7 @@ fun GroupMember(
 ) {
     Row(modifier = modifier) {
         repeat(participantInfoList.size) { index ->
-            val user = participantInfoList[index]?.userData
+//            val user = participantInfoList[index]?.userData
             Spacer(modifier = Modifier.width(9.dp))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally

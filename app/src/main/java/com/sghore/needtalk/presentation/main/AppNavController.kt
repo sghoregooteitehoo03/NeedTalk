@@ -155,11 +155,10 @@ fun AppNavHost(
                 userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerCmInfo ->
-//                    navigateToHostTimerScreen(
-//                        navController = navController,
-//                        userEntity = gViewModel.getUserEntity(),
-//                        timerCmInfo = timerCmInfo
-//                    )
+                    navigateToHostTimerScreen(
+                        navController = navController,
+                        timerCmInfo = timerCmInfo
+                    )
                 }
             )
         }
@@ -180,9 +179,8 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.HostTimerScreen.route +
-                    "?userEntity={userEntity}&timerCmInfo={timerCmInfo}",
+                    "?timerCmInfo={timerCmInfo}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
                 navArgument("timerCmInfo") { type = NavType.StringType }
             )
         ) {
@@ -260,19 +258,15 @@ private fun navigateToJoinScreen(
 
 private fun navigateToHostTimerScreen(
     navController: NavHostController,
-    userEntity: UserEntity?,
     timerCmInfo: TimerCommunicateInfo
 ) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        val timerCmInfoJson = Json.encodeToString(TimerCommunicateInfo.serializer(), timerCmInfo)
-            .replace("&", "%26")
+    val timerCmInfoJson = Json.encodeToString(TimerCommunicateInfo.serializer(), timerCmInfo)
+        .replace("&", "%26")
 
-        navController.navigate(
-            UiScreen.HostTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&timerCmInfo=${timerCmInfoJson}"
-        )
-    }
+    navController.navigate(
+        UiScreen.HostTimerScreen.route +
+                "?timerCmInfo=${timerCmInfoJson}"
+    )
 }
 
 private fun navigateToClientTimerScreen(

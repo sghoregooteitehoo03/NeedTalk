@@ -90,7 +90,7 @@ class HostTimerService : LifecycleService() {
             val packageName = applicationContext.packageName
 
             startAdvertisingUseCase(
-                userId = initTimerCmInfo.participantInfoList[0]?.userData?.userId ?: "",
+                userId = initTimerCmInfo.participantInfoList[0]?.userId ?: "",
                 packageName = packageName
             ).collectLatest { event ->
                 when (event) {

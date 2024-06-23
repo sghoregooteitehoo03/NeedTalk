@@ -105,11 +105,11 @@ class ClientTimerService : LifecycleService() {
                                     if (currentInfo.participantInfoList.size
                                         != timerCmInfo.value.participantInfoList.size
                                     ) {
-                                        currentInfo.participantInfoList
-                                            .forEachIndexed { index, participantInfo ->
-                                                if (participantInfo?.userData?.userId == userEntity?.userId)
-                                                    participantInfoIndex = index
-                                            }
+//                                        currentInfo.participantInfoList
+//                                            .forEachIndexed { index, participantInfo ->
+//                                                if (participantInfo?.userData?.userId == userEntity?.userId)
+//                                                    participantInfoIndex = index
+//                                            }
                                     }
 
                                     timerCmInfo.update { currentInfo }
