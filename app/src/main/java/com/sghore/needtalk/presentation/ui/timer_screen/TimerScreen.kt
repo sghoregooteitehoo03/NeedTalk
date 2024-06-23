@@ -254,25 +254,25 @@ fun GroupMember(
 ) {
     Row(modifier = modifier) {
         repeat(participantInfoList.size) { index ->
-            val user = participantInfoList[index]?.userEntity
+            val user = participantInfoList[index]?.userData
             Spacer(modifier = Modifier.width(9.dp))
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                NameTag(
-                    name = user?.name ?: "",
-                    color = Color(user?.color ?: 0),
-                    interval = 4.dp,
-                    colorSize = 10.dp,
-                    textStyle = MaterialTheme.typography.body1.copy(
-                        color = MaterialTheme.colors.onPrimary,
-                        fontWeight = if (user?.userId == currentUser?.userId) {
-                            FontWeight.ExtraBold
-                        } else {
-                            FontWeight.Normal
-                        }
-                    )
-                )
+//                NameTag(
+//                    name = user?.name ?: "",
+//                    color = Color(user?.color ?: 0),
+//                    interval = 4.dp,
+//                    colorSize = 10.dp,
+//                    textStyle = MaterialTheme.typography.body1.copy(
+//                        color = MaterialTheme.colors.onPrimary,
+//                        fontWeight = if (user?.userId == currentUser?.userId) {
+//                            FontWeight.ExtraBold
+//                        } else {
+//                            FontWeight.Normal
+//                        }
+//                    )
+//                )
                 Spacer(modifier = Modifier.height(6.dp))
                 Box(
                     modifier = Modifier
@@ -741,38 +741,6 @@ fun TimerTalkTopicItem(
             modifier = Modifier.align(Alignment.BottomCenter),
             thickness = 2.dp,
             color = colorResource(id = R.color.light_gray)
-        )
-    }
-}
-
-@Preview
-@Composable
-fun GroupMemberPreview() {
-    NeedTalkTheme {
-        val testUserList = listOf(
-            ParticipantInfo(
-                userEntity = UserEntity(
-                    userId = "abc",
-                    name = "아령하세요",
-                    color = Color.Blue.toArgb()
-                ),
-                endpointId = "",
-                isReady = false
-            ),
-            ParticipantInfo(
-                userEntity = UserEntity(
-                    userId = "idna",
-                    name = "하이하이",
-                    color = Color.Magenta.toArgb()
-                ),
-                endpointId = "",
-                isReady = false
-            )
-        )
-        GroupMember(
-            currentUser = testUserList[1].userEntity,
-            participantInfoList = testUserList,
-            maxMember = 4
         )
     }
 }

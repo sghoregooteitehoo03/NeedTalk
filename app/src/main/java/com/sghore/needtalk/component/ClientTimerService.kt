@@ -107,7 +107,7 @@ class ClientTimerService : LifecycleService() {
                                     ) {
                                         currentInfo.participantInfoList
                                             .forEachIndexed { index, participantInfo ->
-                                                if (participantInfo?.userEntity?.userId == userEntity?.userId)
+                                                if (participantInfo?.userData?.userId == userEntity?.userId)
                                                     participantInfoIndex = index
                                             }
                                     }

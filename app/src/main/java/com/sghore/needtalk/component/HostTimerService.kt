@@ -90,7 +90,7 @@ class HostTimerService : LifecycleService() {
             val packageName = applicationContext.packageName
 
             startAdvertisingUseCase(
-                userId = initTimerCmInfo.participantInfoList[0]?.userEntity?.userId ?: "",
+                userId = initTimerCmInfo.participantInfoList[0]?.userData?.userId ?: "",
                 packageName = packageName
             ).collectLatest { event ->
                 when (event) {
@@ -191,13 +191,13 @@ class HostTimerService : LifecycleService() {
                                             .toMutableList()
 
                                         // 참가자 인원 리스트 추가
-                                        participantInfoList.add(
-                                            ParticipantInfo(
-                                                userEntity = payloadType.user,
-                                                endpointId = event.endpointId,
-                                                isReady = null
-                                            )
-                                        )
+//                                        participantInfoList.add(
+//                                            ParticipantInfo(
+//                                                userData = payloadType.user,
+//                                                endpointId = event.endpointId,
+//                                                isReady = null
+//                                            )
+//                                        )
                                         // 인원이 추가된 데이터로 업데이트함
                                         timerCmInfo.update {
                                             it.copy(participantInfoList = participantInfoList)

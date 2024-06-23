@@ -106,12 +106,12 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     private fun saveOtherUserData() = viewModelScope.launch {
-        val timerCmInfo = _uiState.value.timerCommunicateInfo
-        userList = timerCmInfo.participantInfoList.map { it?.userEntity }
-
-        for (i in 0 until timerCmInfo.participantInfoList.size) {
-            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userEntity)
-        }
+//        val timerCmInfo = _uiState.value.timerCommunicateInfo
+//        userList = timerCmInfo.participantInfoList.map { it?.userData }
+//
+//        for (i in 0 until timerCmInfo.participantInfoList.size) {
+//            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userData)
+//        }
     }
 
     // 타이머 끝났을 떄 취하는 동작

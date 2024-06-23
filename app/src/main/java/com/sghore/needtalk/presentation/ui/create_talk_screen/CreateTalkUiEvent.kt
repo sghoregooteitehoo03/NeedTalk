@@ -4,11 +4,15 @@ package com.sghore.needtalk.presentation.ui.create_talk_screen
 sealed interface CreateTalkUiEvent {
     data object ClickBackArrow : CreateTalkUiEvent
 
-    data object ClickComplete : CreateTalkUiEvent
+    data class ClickComplete(val selectedTime: Long) : CreateTalkUiEvent
 
-    data class ClickStopWatchMode(val isAllow: Boolean) : CreateTalkUiEvent
+    data class ClickAllowTimer(val isAllow: Boolean) : CreateTalkUiEvent
 
-    data class ClickNumberOfPeople(val number: Int) : CreateTalkUiEvent
+    data class ClickAllowMic(val isAllow: Boolean) : CreateTalkUiEvent
+
+    data object ClickDecreasePeople : CreateTalkUiEvent
+
+    data object ClickIncreasePeople : CreateTalkUiEvent
 
     data class ErrorMessage(val message: String) : CreateTalkUiEvent
 

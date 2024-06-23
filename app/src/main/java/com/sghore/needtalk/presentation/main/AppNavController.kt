@@ -155,11 +155,11 @@ fun AppNavHost(
                 userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerCmInfo ->
-                    navigateToHostTimerScreen(
-                        navController = navController,
-                        userEntity = gViewModel.getUserEntity(),
-                        timerCmInfo = timerCmInfo
-                    )
+//                    navigateToHostTimerScreen(
+//                        navController = navController,
+//                        userEntity = gViewModel.getUserEntity(),
+//                        timerCmInfo = timerCmInfo
+//                    )
                 }
             )
         }

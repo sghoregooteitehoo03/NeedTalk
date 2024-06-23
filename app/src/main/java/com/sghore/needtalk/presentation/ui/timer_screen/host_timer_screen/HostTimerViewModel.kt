@@ -99,12 +99,12 @@ class HostTimerViewModel @Inject constructor(
 
     // 참여한 인원들에 대한 정보를 저장함
     fun saveOtherUserData() = viewModelScope.launch {
-        val timerCmInfo = _uiState.value.timerCommunicateInfo
-        userList = timerCmInfo.participantInfoList.map { it?.userEntity }
-
-        for (i in 1 until timerCmInfo.participantInfoList.size) {
-            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userEntity)
-        }
+//        val timerCmInfo = _uiState.value.timerCommunicateInfo
+//        userList = timerCmInfo.participantInfoList.map { it?.userData }
+//
+//        for (i in 1 until timerCmInfo.participantInfoList.size) {
+//            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userData)
+//        }
     }
 
     // 타이머 끝났을 떄 취하는 동작

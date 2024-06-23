@@ -2,8 +2,12 @@ package com.sghore.needtalk.presentation.ui.create_talk_screen
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.repository.TalkRepository
+import com.sghore.needtalk.domain.model.ParticipantInfo
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
+import com.sghore.needtalk.domain.model.UserData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,48 +59,49 @@ class CreateTalkViewModel @Inject constructor(
     }
 
     // 타이머 정보 저장
-    fun completeTimerSetting(
+    fun completeTalkSetting(
+        userData: UserData,
+        selectedTime: Long,
         navigateToTimer: (TimerCommunicateInfo) -> Unit
     ) = viewModelScope.launch {
         val stateValue = _uiState.value
+        val talkSetting = TalkSettingEntity(
+            userId = userData.userId,
+            talkTime = selectedTime,
+            isTimer = stateValue.isTimer,
+            isAllowMic = stateValue.isMicAllow,
+            numberOfPeople = stateValue.numberOfPeople
+        )
 
-//        if (stateValue.talkTime == 0L) {
-//            handelEvent(CreateTalkUiEvent.ErrorMessage("0분 이상 대화 시간을 설정해주세요."))
-//            return@launch
-//        }
-//
-//        val timerSetting = TalkSettingEntity(
-//            userId = stateValue.userEntity?.userId ?: "",
-//            talkTime = stateValue.talkTime,
-//            isTimer = stateValue.isStopwatch,
-//            numberOfPeople = stateValue.numberOfPeople
-//        )
-//
-//        insertTimerSettingUseCase(timerSetting)
-//        navigateToTimer(
-//            TimerCommunicateInfo(
-//                participantInfoList = listOf(
-//                    ParticipantInfo(
-//                        stateValue.userEntity!!,
-//                        endpointId = "",
-//                        isReady = null
-//                    )
-//                ),
-//                currentTime = if (timerSetting.isTimer) {
-//                    0L
-//                } else {
-//                    timerSetting.talkTime
-//                },
-//                maxTime = if (timerSetting.isTimer) {
-//                    -1L
-//                } else {
-//                    timerSetting.talkTime
-//                },
-//                isStopWatch = timerSetting.isTimer,
-//                maxMember = timerSetting.numberOfPeople,
-//                timerActionState = TimerActionState.TimerWaiting
-//            )
-//        )
+        // 정보 저장
+        talkRepository.insertTalkSettingEntity(talkSetting)
+
+        // 타이머 화면으로 이동
+        navigateToTimer(
+            TimerCommunicateInfo(
+                participantInfoList = listOf(
+                    ParticipantInfo(
+                        userData = userData,
+                        endpointId = "",
+                        isReady = null
+                    )
+                ),
+                currentTime = if (talkSetting.isTimer) {
+                    0L
+                } else {
+                    talkSetting.talkTime
+                },
+                maxTime = if (talkSetting.isTimer) {
+                    -1L
+                } else {
+                    talkSetting.talkTime
+                },
+                isStopWatch = talkSetting.isTimer,
+                isAllowMic = talkSetting.isAllowMic,
+                maxMember = talkSetting.numberOfPeople,
+                timerActionState = TimerActionState.TimerWaiting
+            )
+        )
     }
 
     // 스톱워치 모드 온 오프
@@ -104,10 +109,21 @@ class CreateTalkViewModel @Inject constructor(
         _uiState.update { it.copy(isTimer = isAllow) }
     }
 
+    // 마이크 허용/비허용
+    fun setMicAllow(isAllow: Boolean) {
+        _uiState.update { it.copy(isMicAllow = isAllow) }
+    }
+
     // 인원 수 변경
-    fun changeNumberOfPeople(number: Int) {
+    fun changeNumberOfPeople(isIncrease: Boolean) {
         _uiState.update {
-            it.copy(numberOfPeople = number)
+            it.copy(
+                numberOfPeople = if (isIncrease) {
+                    it.numberOfPeople + 1
+                } else {
+                    it.numberOfPeople - 1
+                }
+            )
         }
     }
 

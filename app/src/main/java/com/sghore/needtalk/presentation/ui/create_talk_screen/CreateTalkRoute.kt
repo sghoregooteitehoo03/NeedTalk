@@ -45,16 +45,22 @@ fun CreateTalkRoute(
                 }
 
                 is CreateTalkUiEvent.ClickComplete -> {
-                    viewModel.completeTimerSetting(navigateToTimer)
+                    if (userData != null) {
+                        viewModel.completeTalkSetting(
+                            userData = userData,
+                            selectedTime = event.selectedTime,
+                            navigateToTimer = navigateToTimer
+                        )
+                    }
                 }
 
-                is CreateTalkUiEvent.ClickStopWatchMode -> {
-                    viewModel.setTimerAllow(event.isAllow)
-                }
+                is CreateTalkUiEvent.ClickAllowTimer -> viewModel.setTimerAllow(event.isAllow)
 
-                is CreateTalkUiEvent.ClickNumberOfPeople -> {
-                    viewModel.changeNumberOfPeople(event.number)
-                }
+                is CreateTalkUiEvent.ClickAllowMic -> viewModel.setMicAllow(event.isAllow)
+
+                is CreateTalkUiEvent.ClickIncreasePeople -> viewModel.changeNumberOfPeople(true)
+
+                is CreateTalkUiEvent.ClickDecreasePeople -> viewModel.changeNumberOfPeople(false)
 
                 is CreateTalkUiEvent.ErrorMessage -> {
                     Toast.makeText(context, event.message, Toast.LENGTH_SHORT)

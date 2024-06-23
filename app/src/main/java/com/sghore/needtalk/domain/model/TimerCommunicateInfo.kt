@@ -10,6 +10,7 @@ data class TimerCommunicateInfo(
     val currentTime: Long = -1L,
     val maxTime: Long = -1L,
     val isStopWatch: Boolean = false,
+    val isAllowMic: Boolean = false,
     val maxMember: Int = -1,
     val pinnedTalkTopic: PinnedTalkTopic? = null,
     val timerActionState: TimerActionState = TimerActionState.TimerWaiting

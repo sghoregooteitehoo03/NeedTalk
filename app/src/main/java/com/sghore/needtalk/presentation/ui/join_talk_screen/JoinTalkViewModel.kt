@@ -4,7 +4,6 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.ClientEvent
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.TimerInfo
@@ -147,29 +146,29 @@ class JoinTalkViewModel @Inject constructor(
                                 )
 
                                 if (payloadType is PayloadType.UpdateTimerCmInfo) {
-                                    val timerInfo = TimerInfo(
-                                        hostUser = payloadType.timerCommunicateInfo
-                                            .participantInfoList[0]
-                                        !!.userEntity,
-                                        timerTime = payloadType.timerCommunicateInfo.maxTime,
-                                        currentMember = payloadType.timerCommunicateInfo.participantInfoList.size,
-                                        maxMember = payloadType.timerCommunicateInfo.maxMember,
-                                        hostEndpointId = event.endpointId
-                                    )
-                                    val updateList = previousLoadData.timerInfoList
-                                        .toMutableList()
-                                        .apply {
-                                            this[index] = timerInfo
-                                        }
-
-                                    _uiState.update {
-                                        it.copy(
-                                            searchNearDevice = SearchNearDevice.Load(
-                                                endpointIdList = previousLoadData.endpointIdList,
-                                                timerInfoList = updateList
-                                            )
-                                        )
-                                    }
+//                                    val timerInfo = TimerInfo(
+//                                        hostUser = payloadType.timerCommunicateInfo
+//                                            .participantInfoList[0]
+//                                        !!.userData,
+//                                        timerTime = payloadType.timerCommunicateInfo.maxTime,
+//                                        currentMember = payloadType.timerCommunicateInfo.participantInfoList.size,
+//                                        maxMember = payloadType.timerCommunicateInfo.maxMember,
+//                                        hostEndpointId = event.endpointId
+//                                    )
+//                                    val updateList = previousLoadData.timerInfoList
+//                                        .toMutableList()
+//                                        .apply {
+//                                            this[index] = timerInfo
+//                                        }
+//
+//                                    _uiState.update {
+//                                        it.copy(
+//                                            searchNearDevice = SearchNearDevice.Load(
+//                                                endpointIdList = previousLoadData.endpointIdList,
+//                                                timerInfoList = updateList
+//                                            )
+//                                        )
+//                                    }
 
                                     connectJob?.cancel()
                                     connectJob = null
