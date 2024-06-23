@@ -94,14 +94,14 @@ class CreateTalkViewModel @Inject constructor(
                     )
                 ),
                 currentTime = if (talkSetting.isTimer) {
-                    0L
-                } else {
                     talkSetting.talkTime
+                } else {
+                    0L
                 },
                 maxTime = if (talkSetting.isTimer) {
-                    -1L
-                } else {
                     talkSetting.talkTime
+                } else {
+                    -1L
                 },
                 isStopWatch = talkSetting.isTimer,
                 isAllowMic = talkSetting.isAllowMic,

@@ -31,6 +31,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -63,6 +64,7 @@ fun HomeScreen(
     var dialogScreen by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
     val systemUiController = rememberSystemUiController()
     val statusbarColor = MaterialTheme.colors.background
+    val context = LocalContext.current
 
     DisposableEffectWithLifeCycle(
         onCreate = {
@@ -224,7 +226,10 @@ fun HomeScreen(
                     navigateToOther(UiScreen.CreateTalkScreen.route)
                 },
                 onClickJoin = {
-                    navigateToOther(UiScreen.JoinTalkScreen.route)
+                    navigateToOther(
+                        UiScreen.JoinTalkScreen.route +
+                                "?packageName=${context.packageName}"
+                    )
                 }
             )
         }

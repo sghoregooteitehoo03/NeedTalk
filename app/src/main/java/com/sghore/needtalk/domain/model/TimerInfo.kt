@@ -1,7 +1,7 @@
 package com.sghore.needtalk.domain.model
 
 data class TimerInfo(
-    val participantInfoList: List<ParticipantInfo>,
+    val participantInfoList: List<ParticipantInfo?>,
     val timerTime: Long,
     val isAllowMic: Boolean,
     val maxMember: Int,

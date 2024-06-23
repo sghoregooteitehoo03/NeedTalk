@@ -163,7 +163,11 @@ fun AppNavHost(
             )
         }
         composable(
-            route = UiScreen.JoinTalkScreen.route,
+            route = UiScreen.JoinTalkScreen.route +
+                    "?packageName={packageName}",
+            arguments = listOf(
+                navArgument("packageName") { type = NavType.StringType },
+            )
         ) {
             JoinTalkRoute(
                 userData = gViewModel.getUserData(),

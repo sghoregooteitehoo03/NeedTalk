@@ -18,13 +18,13 @@ import androidx.lifecycle.LifecycleService
 import androidx.lifecycle.lifecycleScope
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.repository.ConnectionEvent
+import com.sghore.needtalk.data.repository.NearByRepository
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
-import com.sghore.needtalk.domain.usecase.StartAdvertisingUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
@@ -47,7 +47,7 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
-    lateinit var startAdvertisingUseCase: StartAdvertisingUseCase
+    lateinit var nearByRepository: NearByRepository
 
     @Inject
     lateinit var stopAllConnectionUseCase: StopAllConnectionUseCase
@@ -89,9 +89,9 @@ class HostTimerService : LifecycleService() {
             timerCmInfo.update { initTimerCmInfo }
             val packageName = applicationContext.packageName
 
-            startAdvertisingUseCase(
+            nearByRepository.startAdvertising(
                 userId = initTimerCmInfo.participantInfoList[0]?.userId ?: "",
-                packageName = packageName
+                serviceId = packageName
             ).collectLatest { event ->
                 when (event) {
                     // 기기간의 연결이 문제가 없는경우

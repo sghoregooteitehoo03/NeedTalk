@@ -5,10 +5,10 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.repository.ClientEvent
+import com.sghore.needtalk.data.repository.NearByRepository
 import com.sghore.needtalk.domain.model.PayloadType
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerInfo
-import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
-import com.sghore.needtalk.domain.usecase.StartDiscoveryUseCase
 import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
 import com.sghore.needtalk.domain.usecase.StopCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -32,9 +32,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class JoinTalkViewModel @Inject constructor(
+    private val nearByRepository: NearByRepository,
     private val stopAllConnectionUseCase: StopAllConnectionUseCase,
-    private val startDiscoveryUseCase: StartDiscoveryUseCase,
-    private val connectToHostUseCase: ConnectToHostUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(JoinUiState())
@@ -53,15 +52,11 @@ class JoinTalkViewModel @Inject constructor(
     )
 
     init {
-//        val userEntityJson = savedStateHandle.get<String>("userEntity")
-//        val packageName = savedStateHandle.get<String>("packageName") ?: ""
-//
-//        if (userEntityJson != null && packageName.isNotEmpty()) {
-//            val userEntity = Json.decodeFromString(UserEntity.serializer(), userEntityJson)
-//
-//            _uiState.update { it.copy(userEntity = userEntity) }
-//            startDiscovery(packageName)
-//        }
+        val packageName = savedStateHandle.get<String>("packageName") ?: ""
+
+        if (packageName.isNotEmpty()) {
+            startDiscovery(packageName)
+        }
     }
 
     @OptIn(FlowPreview::class)
@@ -70,7 +65,7 @@ class JoinTalkViewModel @Inject constructor(
         var isError = false
 
         discoveryJob = viewModelScope.launch {
-            startDiscoveryUseCase(packageName)
+            nearByRepository.startDiscovery(packageName)
                 .onEach { event ->
                     when (event) {
                         is ClientEvent.DiscoveryEndpointFound -> {
@@ -127,11 +122,12 @@ class JoinTalkViewModel @Inject constructor(
         connectJob?.cancel()
         connectJob = viewModelScope.launch {
             // 상대에게 연결 요청
-            connectToHostUseCase(userId, endpointId)
+            nearByRepository.connectToHost(userId, endpointId)
                 .collectLatest { event ->
                     when (event) {
                         // 상대에게 타이머의 정보가 넘어올 때
                         is ClientEvent.PayloadReceived -> {
+                            // 타이머 정보를 받으면 연결 해제
                             stopAllConnectionUseCase(StopCase.DisconnectOther(endpointId))
                             delay(200)
 
@@ -145,29 +141,31 @@ class JoinTalkViewModel @Inject constructor(
                                 )
 
                                 if (payloadType is PayloadType.UpdateTimerCmInfo) {
-//                                    val timerInfo = TimerInfo(
-//                                        hostUser = payloadType.timerCommunicateInfo
-//                                            .participantInfoList[0]
-//                                        !!.userData,
-//                                        timerTime = payloadType.timerCommunicateInfo.maxTime,
-//                                        currentMember = payloadType.timerCommunicateInfo.participantInfoList.size,
-//                                        maxMember = payloadType.timerCommunicateInfo.maxMember,
-//                                        hostEndpointId = event.endpointId
-//                                    )
-//                                    val updateList = previousLoadData.timerInfoList
-//                                        .toMutableList()
-//                                        .apply {
-//                                            this[index] = timerInfo
-//                                        }
-//
-//                                    _uiState.update {
-//                                        it.copy(
-//                                            searchNearDevice = SearchNearDevice.Load(
-//                                                endpointIdList = previousLoadData.endpointIdList,
-//                                                timerInfoList = updateList
-//                                            )
-//                                        )
-//                                    }
+                                    val timerCmInfo = payloadType.timerCommunicateInfo
+                                    val timerInfo = TimerInfo(
+                                        participantInfoList = timerCmInfo.participantInfoList,
+                                        timerTime = timerCmInfo.maxTime,
+                                        maxMember = timerCmInfo.maxMember,
+                                        isAllowMic = timerCmInfo.isAllowMic,
+                                        hostEndpointId = event.endpointId,
+                                        isStart = timerCmInfo.timerActionState !is TimerActionState.TimerWaiting
+                                    )
+
+                                    // 타이머 정보를 리스트에 반영함
+                                    val updateList = previousLoadData.timerInfoList
+                                        .toMutableList()
+                                        .apply {
+                                            this[index] = timerInfo
+                                        }
+
+                                    _uiState.update {
+                                        it.copy(
+                                            searchNearDevice = SearchNearDevice.Load(
+                                                endpointIdList = previousLoadData.endpointIdList,
+                                                timerInfoList = updateList
+                                            )
+                                        )
+                                    }
 
                                     connectJob?.cancel()
                                     connectJob = null
@@ -185,6 +183,7 @@ class JoinTalkViewModel @Inject constructor(
         }
     }
 
+    // 장치를 재탐색 함
     fun researchDevice(packageName: String) {
         _uiState.update {
             it.copy(searchNearDevice = SearchNearDevice.Searching(false))

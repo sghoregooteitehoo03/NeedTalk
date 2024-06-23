@@ -48,7 +48,8 @@ fun JoinTalkRoute(
                     }
 
                     is JoinTalkUiEvent.ClickJoin -> {
-                        navigateToTimerScreen(event.timerInfo)
+                        // TODO: 타이머 화면 구현 후 구현
+//                        navigateToTimerScreen(event.timerInfo)
                     }
 
                     is JoinTalkUiEvent.ClickResearch -> {

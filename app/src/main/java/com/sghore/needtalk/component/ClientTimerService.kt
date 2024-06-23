@@ -23,7 +23,6 @@ import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
-import com.sghore.needtalk.domain.usecase.ConnectToHostUseCase
 import com.sghore.needtalk.domain.usecase.SendPayloadUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
@@ -44,8 +43,8 @@ import javax.inject.Inject
 // TODO: . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
 @AndroidEntryPoint
 class ClientTimerService : LifecycleService() {
-    @Inject
-    lateinit var connectToHostUseCase: ConnectToHostUseCase
+//    @Inject
+//    lateinit var connectToHostUseCase: ConnectToHostUseCase
 
     @Inject
     lateinit var sendPayloadUseCase: SendPayloadUseCase
@@ -83,98 +82,98 @@ class ClientTimerService : LifecycleService() {
         onError: (String) -> Unit
     ) =
         lifecycleScope.launch {
-            connectToHostUseCase(
-                userId = userEntity?.userId ?: "",
-                endpointId = hostEndpointId
-            ).collectLatest { event ->
-                when (event) {
-                    // host에게 데이터가 왔을 때
-                    is ClientEvent.PayloadReceived -> {
-                        val payloadTypeJson =
-                            event.payload.asBytes()?.toString(Charset.defaultCharset())
-
-                        if (payloadTypeJson != null) {
-                            val payloadType = Json.decodeFromString(
-                                PayloadType.serializer(),
-                                payloadTypeJson
-                            )
-
-                            when (payloadType) {
-                                is PayloadType.UpdateTimerCmInfo -> {
-                                    val currentInfo = payloadType.timerCommunicateInfo
-                                    if (currentInfo.participantInfoList.size
-                                        != timerCmInfo.value.participantInfoList.size
-                                    ) {
-//                                        currentInfo.participantInfoList
-//                                            .forEachIndexed { index, participantInfo ->
-//                                                if (participantInfo?.userData?.userId == userEntity?.userId)
-//                                                    participantInfoIndex = index
-//                                            }
-                                    }
-
-                                    timerCmInfo.update { currentInfo }
-                                    manageTimerActionState(timerActionState = timerCmInfo.value.timerActionState)
-                                }
-
-                                is PayloadType.RejectJoin -> {
-                                    onOpenDialog(
-                                        DialogScreen.DialogWarning(
-                                            payloadType.rejectMessage,
-                                            isError = true,
-                                            isReject = true
-                                        )
-                                    )
-                                }
-
-                                else -> {}
-                            }
-                        }
-                    }
-
-                    // 연결이 성공적으로 됨
-                    is ClientEvent.SuccessConnect -> {
-                        if (userEntity != null) {
-                            val payloadType = PayloadType.ClientJoinTimer(userEntity)
-                            val payloadTypeJson =
-                                Json.encodeToString(PayloadType.serializer(), payloadType)
-
-                            sendPayloadUseCase(
-                                bytes = payloadTypeJson.toByteArray(),
-                                endpointId = hostEndpointId,
-                                onFailure = {
-
-                                }
-                            )
-                        }
-                    }
-
-                    // host와 연결이 끊어졌을 때
-                    is ClientEvent.Disconnect -> {
-                        if (timerCmInfo.value.timerActionState != TimerActionState.TimerFinished) {
-                            timerPause()
-                            timerCmInfo.update {
-                                it.copy(
-                                    timerActionState = TimerActionState.TimerError(
-                                        errorMsg = "호스트와 연결이 끊어져\n" +
-                                                "타이머가 중단되었습니다."
-                                    )
-                                )
-                            }
-
-                            onNotifyWarning(
-                                title = "타이머가 중단되었습니다.",
-                                text = "호스트와 연결이 끊어져\n타이머가 중단되었습니다."
-                            )
-                        }
-                    }
-
-                    is ClientEvent.ClientConnectionFailure -> {
-
-                    }
-
-                    else -> {}
-                }
-            }
+//            connectToHostUseCase(
+//                userId = userEntity?.userId ?: "",
+//                endpointId = hostEndpointId
+//            ).collectLatest { event ->
+//                when (event) {
+//                    // host에게 데이터가 왔을 때
+//                    is ClientEvent.PayloadReceived -> {
+//                        val payloadTypeJson =
+//                            event.payload.asBytes()?.toString(Charset.defaultCharset())
+//
+//                        if (payloadTypeJson != null) {
+//                            val payloadType = Json.decodeFromString(
+//                                PayloadType.serializer(),
+//                                payloadTypeJson
+//                            )
+//
+//                            when (payloadType) {
+//                                is PayloadType.UpdateTimerCmInfo -> {
+//                                    val currentInfo = payloadType.timerCommunicateInfo
+//                                    if (currentInfo.participantInfoList.size
+//                                        != timerCmInfo.value.participantInfoList.size
+//                                    ) {
+////                                        currentInfo.participantInfoList
+////                                            .forEachIndexed { index, participantInfo ->
+////                                                if (participantInfo?.userData?.userId == userEntity?.userId)
+////                                                    participantInfoIndex = index
+////                                            }
+//                                    }
+//
+//                                    timerCmInfo.update { currentInfo }
+//                                    manageTimerActionState(timerActionState = timerCmInfo.value.timerActionState)
+//                                }
+//
+//                                is PayloadType.RejectJoin -> {
+//                                    onOpenDialog(
+//                                        DialogScreen.DialogWarning(
+//                                            payloadType.rejectMessage,
+//                                            isError = true,
+//                                            isReject = true
+//                                        )
+//                                    )
+//                                }
+//
+//                                else -> {}
+//                            }
+//                        }
+//                    }
+//
+//                    // 연결이 성공적으로 됨
+//                    is ClientEvent.SuccessConnect -> {
+//                        if (userEntity != null) {
+//                            val payloadType = PayloadType.ClientJoinTimer(userEntity)
+//                            val payloadTypeJson =
+//                                Json.encodeToString(PayloadType.serializer(), payloadType)
+//
+//                            sendPayloadUseCase(
+//                                bytes = payloadTypeJson.toByteArray(),
+//                                endpointId = hostEndpointId,
+//                                onFailure = {
+//
+//                                }
+//                            )
+//                        }
+//                    }
+//
+//                    // host와 연결이 끊어졌을 때
+//                    is ClientEvent.Disconnect -> {
+//                        if (timerCmInfo.value.timerActionState != TimerActionState.TimerFinished) {
+//                            timerPause()
+//                            timerCmInfo.update {
+//                                it.copy(
+//                                    timerActionState = TimerActionState.TimerError(
+//                                        errorMsg = "호스트와 연결이 끊어져\n" +
+//                                                "타이머가 중단되었습니다."
+//                                    )
+//                                )
+//                            }
+//
+//                            onNotifyWarning(
+//                                title = "타이머가 중단되었습니다.",
+//                                text = "호스트와 연결이 끊어져\n타이머가 중단되었습니다."
+//                            )
+//                        }
+//                    }
+//
+//                    is ClientEvent.ClientConnectionFailure -> {
+//
+//                    }
+//
+//                    else -> {}
+//                }
+//            }
         }
 
     fun startForegroundService() {

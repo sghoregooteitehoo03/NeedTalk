@@ -7,6 +7,7 @@ import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -79,11 +80,11 @@ fun JoinTalkScreen(
                 .background(
                     color = MaterialTheme.colors.secondary
                 )
-                .padding(start = 14.dp, end = 14.dp),
-            contentAlignment = Alignment.CenterStart
+                .padding(start = 14.dp, end = 14.dp)
         ) {
             Icon(
                 modifier = Modifier
+                    .align(Alignment.CenterStart)
                     .clip(CircleShape)
                     .size(24.dp)
                     .clickable { onEvent(JoinTalkUiEvent.ClickBackArrow) },
@@ -91,12 +92,13 @@ fun JoinTalkScreen(
                 contentDescription = "NavigateUp",
                 tint = MaterialTheme.colors.onSecondary
             )
-            if(uiState.searchNearDevice is SearchNearDevice.Load) {
+            if (uiState.searchNearDevice is SearchNearDevice.Load) {
                 Icon(
                     modifier = Modifier
+                        .align(Alignment.CenterEnd)
                         .clip(CircleShape)
                         .size(24.dp)
-                        .clickable {  },
+                        .clickable { onEvent(JoinTalkUiEvent.ClickResearch) },
                     painter = painterResource(id = R.drawable.ic_refresh),
                     contentDescription = "Refresh",
                     tint = MaterialTheme.colors.onSecondary
@@ -141,7 +143,13 @@ fun JoinTalkScreen(
                     }
                 }
 
-                is SearchNearDevice.Load -> {}
+                is SearchNearDevice.Load -> {
+                    TimerInfoPager(
+                        timerInfoList = uiState.searchNearDevice.timerInfoList,
+                        loadTimerInfo = { onEvent(JoinTalkUiEvent.LoadTimerInfo(it)) },
+                        onClickJoin = { onEvent(JoinTalkUiEvent.ClickJoin(it)) }
+                    )
+                }
             }
         }
     }
@@ -233,7 +241,6 @@ fun TimerInfoPager(
 ) {
     val pagerState = rememberPagerState(pageCount = { timerInfoList.size })
     val currentPage = pagerState.currentPage
-    val isLoaded = timerInfoList[currentPage] != null
 
     LaunchedEffect(
         key1 = currentPage,
@@ -245,7 +252,7 @@ fun TimerInfoPager(
     )
 
     ConstraintLayout(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxSize()
             .background(
                 color = MaterialTheme.colors.background,
@@ -287,29 +294,24 @@ fun TimerInfoPager(
                 }
             }
         }
-        if (isLoaded) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .constrainAs(mainLayout) {
-                        top.linkTo(pageDot.bottom)
-                        start.linkTo(parent.start)
-                        end.linkTo(parent.end)
-                        bottom.linkTo(host.top)
-                        height = Dimension.fillToConstraints
-                    }
-            ) {
-                HorizontalPager(
-                    modifier = modifier.fillMaxWidth(),
-                    state = pagerState
-                ) { index ->
-                    TimerInfoItem(
-                        modifier = Modifier.padding(14.dp),
-                        timerInfo = timerInfoList[index]!!,
-                    )
-                }
+        HorizontalPager(
+            modifier = Modifier
+                .constrainAs(mainLayout) {
+                    top.linkTo(pageDot.bottom)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(button.top)
+                    height = Dimension.fillToConstraints
+                },
+            state = pagerState,
+            userScrollEnabled = timerInfoList[currentPage] != null
+        ) { index ->
+            if (timerInfoList[index] != null) {
+                TimerInfoItem(timerInfo = timerInfoList[index]!!)
             }
+        }
 
+        if (timerInfoList[currentPage] != null) {
             Row(
                 modifier = Modifier.constrainAs(host) {
                     start.linkTo(parent.start)
@@ -317,7 +319,7 @@ fun TimerInfoPager(
                 },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val hostInfo = timerInfoList[currentPage]!!.participantInfoList[0]
+                val hostInfo = timerInfoList[currentPage]!!.participantInfoList[0]!!
                 ProfileImage(
                     backgroundSize = 36.dp,
                     imageSize = 26.dp,
@@ -350,7 +352,7 @@ fun TimerInfoPager(
                 bottom.linkTo(parent.bottom, 10.dp)
             },
             text = "참가하기",
-            isEnabled = isLoaded,
+            isEnabled = timerInfoList[currentPage] != null,
             onClick = { onClickJoin(timerInfoList[currentPage]!!) }
         )
     }
@@ -361,7 +363,10 @@ fun TimerInfoItem(
     modifier: Modifier = Modifier,
     timerInfo: TimerInfo
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         TimerInfoLayout(title = "대화 시간") {
             Text(
                 text = parseMinuteSecond(timerInfo.timerTime),
@@ -371,27 +376,25 @@ fun TimerInfoItem(
                 )
             )
         }
+        Spacer(modifier = Modifier.height(14.dp))
         TimerInfoLayout(title = "인원 (${timerInfo.participantInfoList.size}/${timerInfo.maxMember})") {
-            Row {
-                repeat(timerInfo.participantInfoList.size) {
-                    ProfileImage(
-                        backgroundSize = 42.dp,
-                        imageSize = 32.dp,
-                        profileImage = byteArrayToBitmap(timerInfo.participantInfoList[it].profileImage).asImageBitmap()
-                    )
-                    if (it != timerInfo.participantInfoList.size - 1) {
-                        Spacer(modifier = Modifier.width(8.dp))
+            Column {
+                Spacer(modifier = Modifier.height(10.dp))
+                Row {
+                    repeat(timerInfo.participantInfoList.size) {
+                        ProfileImage(
+                            backgroundSize = 42.dp,
+                            imageSize = 32.dp,
+                            profileImage = byteArrayToBitmap(timerInfo.participantInfoList[it]!!.profileImage).asImageBitmap()
+                        )
+                        if (it != timerInfo.participantInfoList.size - 1) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                        }
                     }
                 }
             }
-            Text(
-                text = parseMinuteSecond(timerInfo.timerTime),
-                style = MaterialTheme.typography.h2.copy(
-                    color = MaterialTheme.colors.onPrimary,
-                    fontSize = 40.sp
-                )
-            )
         }
+        Spacer(modifier = Modifier.height(14.dp))
         TimerInfoLayout(title = "상태") {
             Text(
                 text = if (timerInfo.isStart) {
@@ -444,8 +447,12 @@ fun TimerInfoLayout(
 ) {
     Column(
         modifier = modifier
-            .fillMaxWidth()
             .shadow(2.dp, shape = MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .fillMaxWidth()
             .padding(14.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -466,7 +473,7 @@ fun OptionLayout(
     icon: Painter
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .background(
                 color = colorResource(id = R.color.light_gray),
                 shape = MaterialTheme.shapes.medium
@@ -475,11 +482,10 @@ fun OptionLayout(
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Icon(
+        Image(
             modifier = Modifier.size(24.dp),
             painter = icon,
-            contentDescription = "icon",
-            tint = MaterialTheme.colors.onPrimary
+            contentDescription = "iconImage",
         )
         Spacer(modifier = Modifier.width(8.dp))
         Text(
