@@ -119,11 +119,10 @@ class JoinTalkViewModel @Inject constructor(
     }
 
     // 생성한 호스트가 만든 타이머의 정보를 가져옴
-    fun loadTimerInfo(index: Int) {
+    fun loadTimerInfo(userId: String, index: Int) {
         val previousLoadData =
             _uiState.value.searchNearDevice as SearchNearDevice.Load
         val endpointId = previousLoadData.endpointIdList[index]
-        val userId = _uiState.value.userEntity?.userId ?: ""
 
         connectJob?.cancel()
         connectJob = viewModelScope.launch {

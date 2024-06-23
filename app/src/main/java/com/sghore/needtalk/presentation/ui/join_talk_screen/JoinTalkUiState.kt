@@ -4,7 +4,6 @@ import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
 
 data class JoinUiState(
-    val userEntity: UserEntity? = null,
     val searchNearDevice: SearchNearDevice = SearchNearDevice.Searching(false)
 )
 

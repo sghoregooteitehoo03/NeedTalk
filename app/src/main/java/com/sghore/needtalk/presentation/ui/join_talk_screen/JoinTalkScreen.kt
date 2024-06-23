@@ -10,9 +10,9 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,37 +34,40 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.asImageBitmap
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
-import com.sghore.needtalk.presentation.ui.AdmobBanner
-import com.sghore.needtalk.presentation.ui.NameTag
-import com.sghore.needtalk.presentation.ui.RoundedButton
+import com.sghore.needtalk.presentation.ui.DefaultButton
+import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.util.byteArrayToBitmap
 import com.sghore.needtalk.util.parseMinuteSecond
 import kotlinx.coroutines.launch
 
 @Composable
-fun JoinScreen(
+fun JoinTalkScreen(
     uiState: JoinUiState,
     onEvent: (JoinTalkUiEvent) -> Unit
 ) {
-    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+    ConstraintLayout(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(color = MaterialTheme.colors.secondary)
+    ) {
         val (toolbar, layout, adview) = createRefs()
         Box(
             modifier = Modifier
@@ -73,6 +76,9 @@ fun JoinScreen(
                 }
                 .fillMaxWidth()
                 .height(54.dp)
+                .background(
+                    color = MaterialTheme.colors.secondary
+                )
                 .padding(start = 14.dp, end = 14.dp),
             contentAlignment = Alignment.CenterStart
         ) {
@@ -80,75 +86,62 @@ fun JoinScreen(
                 modifier = Modifier
                     .clip(CircleShape)
                     .size(24.dp)
-                    .clickable {
-                        onEvent(JoinTalkUiEvent.ClickBackArrow)
-                    },
+                    .clickable { onEvent(JoinTalkUiEvent.ClickBackArrow) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "NavigateUp",
-                tint = MaterialTheme.colors.onPrimary
+                tint = MaterialTheme.colors.onSecondary
             )
+            if(uiState.searchNearDevice is SearchNearDevice.Load) {
+                Icon(
+                    modifier = Modifier
+                        .clip(CircleShape)
+                        .size(24.dp)
+                        .clickable {  },
+                    painter = painterResource(id = R.drawable.ic_refresh),
+                    contentDescription = "Refresh",
+                    tint = MaterialTheme.colors.onSecondary
+                )
+            }
         }
 
-        AdmobBanner(modifier = Modifier.constrainAs(adview) {
-            bottom.linkTo(parent.bottom)
-        })
+//        AdmobBanner(modifier = Modifier.constrainAs(adview) {
+//            bottom.linkTo(parent.bottom)
+//        })
 
-        Column(
+        Box(
             modifier = Modifier
+                .fillMaxWidth()
                 .constrainAs(layout) {
-                    top.linkTo(parent.top)
+                    top.linkTo(toolbar.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
-                },
-            horizontalAlignment = Alignment.CenterHorizontally
-        )
-        {
+                    height = Dimension.fillToConstraints
+                }
+        ) {
             when (uiState.searchNearDevice) {
                 is SearchNearDevice.Searching -> {
-                    FoundingNearDevice(
-                        modifier = Modifier.padding(14.dp),
-                        isFound = uiState.searchNearDevice.isFound
-                    )
-                    Spacer(modifier = Modifier.height(28.dp))
-                    Text(
-                        text = "근처에 있는 사용자를 찾고있어요...",
-                        style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
-                    )
-                }
-
-                is SearchNearDevice.Load -> {
-                    val researchColor = colorResource(id = R.color.teal_200)
-
-                    TimerInfoPager(
-                        timerInfoList = uiState.searchNearDevice.timerInfoList,
-                        loadTimerInfo = { onEvent(JoinTalkUiEvent.LoadTimerInfo(it)) },
-                        onJoinClick = { onEvent(JoinTalkUiEvent.ClickJoin(it)) }
-                    )
-                    Spacer(modifier = Modifier.height(28.dp))
-                    Text(
-                        text = "근처에 있는 사용자를 발견했어요!",
-                        style = MaterialTheme.typography.h4.copy(color = colorResource(id = R.color.gray))
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
+                    Column(
                         modifier = Modifier
-                            .drawBehind {
-                                val strokeWidthPx = 2.dp.toPx()
-                                val verticalOffset = size.height
-                                drawLine(
-                                    color = researchColor,
-                                    strokeWidth = strokeWidthPx,
-                                    cap = StrokeCap.Round,
-                                    start = Offset(0f, verticalOffset),
-                                    end = Offset(size.width - 3, verticalOffset)
-                                )
-                            }
-                            .clickable { onEvent(JoinTalkUiEvent.ClickResearch) },
-                        text = "재탐색",
-                        style = MaterialTheme.typography.h5.copy(color = researchColor),
-                    )
+                            .align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        FoundingNearDevice(
+                            modifier = Modifier.padding(14.dp),
+                            isFound = uiState.searchNearDevice.isFound
+                        )
+                        Spacer(modifier = Modifier.height(42.dp))
+                        Text(
+                            text = "근처 대화방을 찾는 중이에요…",
+                            style = MaterialTheme.typography.h4.copy(
+                                color = MaterialTheme.colors.onSecondary,
+                                fontWeight = FontWeight.Bold
+                            )
+                        )
+                    }
                 }
+
+                is SearchNearDevice.Load -> {}
             }
         }
     }
@@ -191,7 +184,7 @@ fun FoundingNearDevice(
                 .height(maxWidth)
                 .scale(scaleAnim1.value)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.2f))
+                .background(color = Color.White.copy(alpha = 0.2f))
         )
         Box(
             modifier = Modifier
@@ -199,14 +192,14 @@ fun FoundingNearDevice(
                 .height(maxWidth - 80.dp)
                 .scale(scaleAnim2.value)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.3f))
+                .background(color = Color.White.copy(alpha = 0.3f))
         )
         Box(
             modifier = Modifier
                 .width(maxWidth - 160.dp)
                 .height(maxWidth - 160.dp)
                 .clip(CircleShape)
-                .background(color = MaterialTheme.colors.secondary.copy(alpha = 0.4f)),
+                .background(color = Color.White.copy(alpha = 0.4f)),
             contentAlignment = Alignment.Center
         ) {
             Crossfade(targetState = isFound, label = "", animationSpec = tween(300)) {
@@ -229,167 +222,272 @@ fun FoundingNearDevice(
     }
 }
 
+// TODO: Feat: 나중에 확장 애니메이션 구현
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimerInfoPager(
     modifier: Modifier = Modifier,
     timerInfoList: List<TimerInfo?>,
     loadTimerInfo: (index: Int) -> Unit,
-    onJoinClick: (TimerInfo) -> Unit
+    onClickJoin: (TimerInfo) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { timerInfoList.size })
     val currentPage = pagerState.currentPage
-    val maxWidth = LocalConfiguration.current.screenWidthDp.dp - 56.dp
+    val isLoaded = timerInfoList[currentPage] != null
 
     LaunchedEffect(
         key1 = currentPage,
         block = {
             if (timerInfoList[currentPage] == null) {
-                loadTimerInfo(currentPage)
+                loadTimerInfo(currentPage) // 타이머 정보를 가져옴
             }
         }
     )
 
-    Box(
+    ConstraintLayout(
         modifier = Modifier
-            .width(maxWidth)
-            .height(maxWidth),
-        contentAlignment = Alignment.Center
+            .fillMaxSize()
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+            )
+            .padding(14.dp)
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Row {
-                repeat(timerInfoList.size) {
-                    Box(
-                        modifier = Modifier
-                            .size(8.dp)
-                            .clip(CircleShape)
-                            .then(
-                                if (currentPage == it) {
-                                    Modifier.background(
-                                        color = MaterialTheme.colors.secondary,
-                                        shape = CircleShape
-                                    )
-                                } else {
-                                    Modifier.border(
-                                        width = 1.dp,
-                                        color = MaterialTheme.colors.secondary,
-                                        shape = CircleShape
-                                    )
-                                }
-                            )
-
-                    )
-                    if (it != timerInfoList.size - 1) {
-                        Spacer(modifier = Modifier.width(12.dp))
-                    }
-                }
+        val (pageDot, loading, mainLayout, host, button) = createRefs()
+        Row(
+            modifier = Modifier.constrainAs(pageDot) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                top.linkTo(parent.top)
             }
-            Spacer(modifier = Modifier.height(16.dp))
-            HorizontalPager(
-                modifier = modifier.fillMaxWidth(),
-                state = pagerState
-            ) { index ->
+        ) {
+            repeat(timerInfoList.size) {
                 Box(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    TimerInfoItem(
-                        modifier = Modifier.padding(14.dp),
-                        timerInfo = timerInfoList[index],
-                        onJoinClick = onJoinClick
-                    )
+                    modifier = Modifier
+                        .size(8.dp)
+                        .clip(CircleShape)
+                        .then(
+                            if (currentPage == it) {
+                                Modifier.background(
+                                    color = MaterialTheme.colors.secondary,
+                                    shape = CircleShape
+                                )
+                            } else {
+                                Modifier.border(
+                                    width = 1.dp,
+                                    color = MaterialTheme.colors.secondary,
+                                    shape = CircleShape
+                                )
+                            }
+                        )
+
+                )
+                if (it != timerInfoList.size - 1) {
+                    Spacer(modifier = Modifier.width(12.dp))
                 }
             }
         }
+        if (isLoaded) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .constrainAs(mainLayout) {
+                        top.linkTo(pageDot.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(host.top)
+                        height = Dimension.fillToConstraints
+                    }
+            ) {
+                HorizontalPager(
+                    modifier = modifier.fillMaxWidth(),
+                    state = pagerState
+                ) { index ->
+                    TimerInfoItem(
+                        modifier = Modifier.padding(14.dp),
+                        timerInfo = timerInfoList[index]!!,
+                    )
+                }
+            }
+
+            Row(
+                modifier = Modifier.constrainAs(host) {
+                    start.linkTo(parent.start)
+                    bottom.linkTo(button.top, 12.dp)
+                },
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val hostInfo = timerInfoList[currentPage]!!.participantInfoList[0]
+                ProfileImage(
+                    backgroundSize = 36.dp,
+                    imageSize = 26.dp,
+                    profileImage = byteArrayToBitmap(hostInfo.profileImage).asImageBitmap()
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Text(
+                    text = hostInfo.name,
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                )
+            }
+        } else {
+            CircularProgressIndicator(
+                modifier = Modifier.constrainAs(loading) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    top.linkTo(pageDot.bottom)
+                    bottom.linkTo(button.top)
+                },
+                color = MaterialTheme.colors.onPrimary
+            )
+        }
+
+        DefaultButton(
+            modifier = Modifier.constrainAs(button) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom, 10.dp)
+            },
+            text = "참가하기",
+            isEnabled = isLoaded,
+            onClick = { onClickJoin(timerInfoList[currentPage]!!) }
+        )
     }
 }
 
 @Composable
 fun TimerInfoItem(
     modifier: Modifier = Modifier,
-    timerInfo: TimerInfo?,
-    onJoinClick: (TimerInfo) -> Unit
+    timerInfo: TimerInfo
 ) {
-    Box(
-        modifier = Modifier
-            .width(260.dp)
-            .clip(RoundedCornerShape(20.dp))
-            .background(
-                color = MaterialTheme.colors.background,
-                shape = RoundedCornerShape(20.dp)
+    Column(modifier = modifier) {
+        TimerInfoLayout(title = "대화 시간") {
+            Text(
+                text = parseMinuteSecond(timerInfo.timerTime),
+                style = MaterialTheme.typography.h2.copy(
+                    color = MaterialTheme.colors.onPrimary,
+                    fontSize = 40.sp
+                )
             )
-            .border(
-                2.dp,
-                color = colorResource(id = R.color.light_gray),
-                RoundedCornerShape(20.dp)
+        }
+        TimerInfoLayout(title = "인원 (${timerInfo.participantInfoList.size}/${timerInfo.maxMember})") {
+            Row {
+                repeat(timerInfo.participantInfoList.size) {
+                    ProfileImage(
+                        backgroundSize = 42.dp,
+                        imageSize = 32.dp,
+                        profileImage = byteArrayToBitmap(timerInfo.participantInfoList[it].profileImage).asImageBitmap()
+                    )
+                    if (it != timerInfo.participantInfoList.size - 1) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                    }
+                }
+            }
+            Text(
+                text = parseMinuteSecond(timerInfo.timerTime),
+                style = MaterialTheme.typography.h2.copy(
+                    color = MaterialTheme.colors.onPrimary,
+                    fontSize = 40.sp
+                )
             )
-            .then(modifier),
-        contentAlignment = Alignment.Center
+        }
+        TimerInfoLayout(title = "상태") {
+            Text(
+                text = if (timerInfo.isStart) {
+                    "대화 시작 됨"
+                } else {
+                    "대기 중"
+                },
+                style = MaterialTheme.typography.h2.copy(
+                    color = MaterialTheme.colors.onPrimary,
+                    fontSize = 40.sp
+                )
+            )
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Row {
+            OptionLayout(
+                text = if (timerInfo.timerTime > 0) {
+                    "타이머"
+                } else {
+                    "스톱워치"
+                },
+                icon = if (timerInfo.timerTime > 0) {
+                    painterResource(id = R.drawable.ic_timer)
+                } else {
+                    painterResource(id = R.drawable.ic_timer_off)
+                }
+            )
+            Spacer(modifier = Modifier.width(16.dp))
+            OptionLayout(
+                text = if (timerInfo.isAllowMic) {
+                    "녹음 허용"
+                } else {
+                    "녹음 비허용"
+                },
+                icon = if (timerInfo.isAllowMic) {
+                    painterResource(id = R.drawable.ic_mic)
+                } else {
+                    painterResource(id = R.drawable.ic_mic_off)
+                }
+            )
+        }
+    }
+}
+
+@Composable
+fun TimerInfoLayout(
+    modifier: Modifier = Modifier,
+    title: String,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(2.dp, shape = MaterialTheme.shapes.medium)
+            .padding(14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (timerInfo == null) {
-            CircularProgressIndicator(
-                modifier = Modifier.size(80.dp),
+        Text(
+            text = title,
+            style = MaterialTheme.typography.h5.copy(
+                color = colorResource(id = R.color.gray)
+            )
+        )
+        content()
+    }
+}
+
+@Composable
+fun OptionLayout(
+    modifier: Modifier = Modifier,
+    text: String,
+    icon: Painter
+) {
+    Row(
+        modifier = Modifier
+            .background(
+                color = colorResource(id = R.color.light_gray),
+                shape = MaterialTheme.shapes.medium
+            )
+            .padding(top = 6.dp, bottom = 6.dp, start = 12.dp, end = 12.dp),
+        horizontalArrangement = Arrangement.Center,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Icon(
+            modifier = Modifier.size(24.dp),
+            painter = icon,
+            contentDescription = "icon",
+            tint = MaterialTheme.colors.onPrimary
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.body1.copy(
                 color = MaterialTheme.colors.onPrimary
             )
-        }
-
-        Column(
-            modifier = Modifier.alpha(if (timerInfo != null) 1f else 0f),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            NameTag(
-                name = timerInfo?.hostUser?.name ?: "",
-                color = Color(timerInfo?.hostUser?.color ?: 0),
-                interval = 6.dp,
-                colorSize = 16.dp,
-                textStyle = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary)
-            )
-            Spacer(modifier = Modifier.height(12.dp))
-            Text(
-                text = parseMinuteSecond(timerInfo?.timerTime ?: 0L),
-                style = MaterialTheme.typography.h3.copy(
-                    color = MaterialTheme.colors.onPrimary
-                )
-            )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = "대화 시간",
-                style = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onPrimary.copy(
-                        alpha = 0.6f
-                    )
-                )
-            )
-            Spacer(modifier = Modifier.height(24.dp))
-            Row {
-                Icon(
-                    modifier = Modifier.size(20.dp),
-                    painter = painterResource(id = R.drawable.ic_people),
-                    contentDescription = "People",
-                    tint = colorResource(id = R.color.gray)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "${timerInfo?.currentMember ?: 0}/${timerInfo?.maxMember ?: 0}",
-                    style = MaterialTheme.typography.body1.copy(
-                        color = colorResource(id = R.color.gray)
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            RoundedButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = "참가하기",
-                color = MaterialTheme.colors.secondary,
-                textStyle = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onSecondary,
-                    fontWeight = FontWeight.Medium
-                ),
-                paddingValues = PaddingValues(14.dp),
-                enable = (timerInfo?.currentMember ?: 0) != (timerInfo?.maxMember ?: 0),
-                onClick = { onJoinClick(timerInfo!!) }
-            )
-        }
+        )
     }
 }
 
@@ -400,32 +498,6 @@ fun FoundingNearDevicePreview() {
         FoundingNearDevice(
             modifier = Modifier,
             isFound = false
-        )
-    }
-}
-
-@Preview
-@Composable
-fun TimerInfoPagerPreview() {
-    NeedTalkTheme {
-        val timerInfoList = listOf(
-            TimerInfo(
-                hostUser = UserEntity(
-                    userId = "asdfasdf",
-                    name = "방가방",
-                    color = Color.Blue.toArgb()
-                ),
-                timerTime = 3520000,
-                currentMember = 2,
-                maxMember = 4,
-            ),
-            null,
-            null
-        )
-        TimerInfoPager(
-            timerInfoList = timerInfoList,
-            loadTimerInfo = {},
-            onJoinClick = {}
         )
     }
 }

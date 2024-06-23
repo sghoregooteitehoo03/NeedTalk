@@ -21,7 +21,7 @@ import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateTalkRoute
 import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
 import com.sghore.needtalk.presentation.ui.groups_detail_screen.GroupsDetailRoute
 import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
-import com.sghore.needtalk.presentation.ui.join_talk_screen.JoinRoute
+import com.sghore.needtalk.presentation.ui.join_talk_screen.JoinTalkRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
@@ -165,7 +165,8 @@ fun AppNavHost(
         composable(
             route = UiScreen.JoinTalkScreen.route,
         ) {
-            JoinRoute(
+            JoinTalkRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimerScreen = { timerInfo ->
                     navigateToClientTimerScreen(

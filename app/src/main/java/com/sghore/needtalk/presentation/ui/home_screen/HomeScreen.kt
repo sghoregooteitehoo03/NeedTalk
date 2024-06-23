@@ -47,6 +47,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.main.GlobalViewModel
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
@@ -86,22 +87,11 @@ fun HomeScreen(
                     modifier = Modifier.clickable { navigateToOther(UiScreen.ProfileScreen.route) },
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Box(
-                        modifier = Modifier
-                            .size(32.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = colorResource(id = R.color.light_gray_200),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Image(
-                            bitmap = userData.profileImage,
-                            contentDescription = "Profile Image",
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
+                    ProfileImage(
+                        backgroundSize = 32.dp,
+                        imageSize = 24.dp,
+                        profileImage = userData.profileImage
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = userData.name,

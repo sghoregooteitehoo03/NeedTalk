@@ -32,6 +32,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
+import com.sghore.needtalk.presentation.ui.ProfileImage
 
 @Composable
 fun ProfileScreen(
@@ -162,22 +163,11 @@ fun MyProfileLayout(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (userData != null) {
-                Box(
-                    modifier = Modifier
-                        .size(120.dp)
-                        .clip(CircleShape)
-                        .background(
-                            color = colorResource(id = R.color.light_gray_200),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(
-                        bitmap = userData.profileImage,
-                        contentDescription = "ProfileImage",
-                        modifier = Modifier.size(100.dp)
-                    )
-                }
+                ProfileImage(
+                    backgroundSize = 120.dp,
+                    imageSize = 100.dp,
+                    profileImage = userData.profileImage
+                )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = userData.name,

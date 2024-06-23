@@ -17,7 +17,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -40,8 +39,9 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -679,5 +679,30 @@ fun EmptyTalkUserInfo(
             .height(54.dp)
     ) {
         content(Modifier.align(alignment))
+    }
+}
+
+@Composable
+fun ProfileImage(
+    modifier: Modifier = Modifier,
+    backgroundSize: Dp,
+    imageSize: Dp,
+    profileImage: ImageBitmap
+) {
+    Box(
+        modifier = modifier
+            .size(backgroundSize)
+            .clip(CircleShape)
+            .background(
+                color = colorResource(id = R.color.light_gray_200),
+                shape = CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Image(
+            bitmap = profileImage,
+            contentDescription = "ProfileImage",
+            modifier = Modifier.size(imageSize)
+        )
     }
 }

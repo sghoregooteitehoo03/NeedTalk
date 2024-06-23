@@ -80,6 +80,7 @@ class CreateTalkViewModel @Inject constructor(
 
         // 타이머 화면으로 이동
         navigateToTimer(
+            // 대화방 타이머의 설정 정보를 생성
             TimerCommunicateInfo(
                 participantInfoList = listOf(
                     ParticipantInfo(
