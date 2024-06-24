@@ -36,12 +36,12 @@ import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
+import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DialogTalkTopics
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
-import com.sghore.needtalk.presentation.ui.timer_screen.TimerTalkTopicItem
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -50,6 +50,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun HostTimerRoute(
     viewModel: HostTimerViewModel = hiltViewModel(),
+    userData: UserData?,
     navigateUp: () -> Unit,
     showSnackBar: suspend (String) -> Unit
 ) {
@@ -220,7 +221,13 @@ fun HostTimerRoute(
 //        })
 
 //    BackHandler {}
-
+    if (userData != null) {
+        TimerScreen(
+            userData = userData,
+            uiState = uiState,
+            isHost = true
+        )
+    }
 //    Surface {
 //        TimerScreen(
 //            uiState = uiState,

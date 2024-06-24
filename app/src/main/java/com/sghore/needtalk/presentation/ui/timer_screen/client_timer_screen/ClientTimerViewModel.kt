@@ -56,7 +56,7 @@ class ClientTimerViewModel @Inject constructor(
 
             _uiState.update {
                 it.copy(
-                    userEntity = userEntity,
+//                    userEntity = userEntity,
                     hostEndpointId = hostEndpointId
                 )
             }

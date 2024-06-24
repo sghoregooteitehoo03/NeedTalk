@@ -42,7 +42,6 @@ import com.sghore.needtalk.presentation.ui.DialogTalkTopics
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
-import com.sghore.needtalk.presentation.ui.timer_screen.TimerTalkTopicItem
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
 import kotlinx.coroutines.flow.collectLatest
@@ -62,12 +61,12 @@ fun ClientTimerRoute(
         object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
                 service = (binder as ClientTimerService.LocalBinder).getService()
-                service?.connectToHost(
-                    userEntity = uiState.userEntity,
-                    hostEndpointId = uiState.hostEndpointId,
-                    onOpenDialog = viewModel::setDialogScreen,
-                    onError = {}
-                )
+//                service?.connectToHost(
+//                    userEntity = uiState.userEntity,
+//                    hostEndpointId = uiState.hostEndpointId,
+//                    onOpenDialog = viewModel::setDialogScreen,
+//                    onError = {}
+//                )
             }
 
             override fun onServiceDisconnected(className: ComponentName?) {
@@ -235,11 +234,11 @@ fun ClientTimerRoute(
     BackHandler {}
 
     Surface {
-        TimerScreen(
-            uiState = uiState,
-            onEvent = viewModel::handelEvent,
-            isHost = false
-        )
+//        TimerScreen(
+//            uiState = uiState,
+//            onEvent = viewModel::handelEvent,
+//            isHost = false
+//        )
 
         when (val dialogScreen = uiState.dialogScreen) {
             is DialogScreen.DialogWarning -> {
@@ -311,48 +310,6 @@ fun ClientTimerRoute(
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 24.dp)
                 )
-            }
-
-            is DialogScreen.DialogTalkTopics -> {
-                var talkTopics by remember {
-                    mutableStateOf(listOf<TalkTopicEntity>())
-                }
-
-                if (talkTopics.isEmpty()) {
-                    viewModel.getTalkTopics(
-                        groupCode = dialogScreen.groupCode,
-                        updateTopics = {
-                            talkTopics = it
-                        }
-                    )
-                }
-
-                DialogTalkTopics(
-                    modifier = Modifier
-                        .background(
-                            color = MaterialTheme.colors.background,
-                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-                        )
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-                        .padding(14.dp),
-                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
-                    topicCategory = dialogScreen.topicCategory,
-                    talkTopics = talkTopics,
-                    talkTopicItem = { talkTopicEntity ->
-                        TimerTalkTopicItem(
-                            talkTopicEntity = talkTopicEntity,
-                            onPinnedTopic = {
-                                service?.pinnedTalkTopic(
-                                    PinnedTalkTopic(
-                                        talkTopic = it,
-                                        pinnedUser = uiState.userEntity!!
-                                    ), uiState.hostEndpointId
-                                )
-
-                                viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-                            }
-                        )
-                    })
             }
 
             else -> {}

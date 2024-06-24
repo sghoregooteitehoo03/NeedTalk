@@ -41,7 +41,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
@@ -62,8 +62,10 @@ import com.google.android.gms.ads.AdView
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
+import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.Constants
+import com.sghore.needtalk.util.byteArrayToBitmap
 
 @Composable
 fun DisposableEffectWithLifeCycle(
@@ -607,7 +609,6 @@ fun FriendshipPointBar(
     }
 }
 
-// TODO: 인원 수 UI 구현
 @Composable
 fun TalkUserInfo(
     modifier: Modifier = Modifier,
@@ -655,6 +656,60 @@ fun TalkUserInfo(
         Spacer(modifier = Modifier.width(8.dp))
         Text(
             text = userData.name,
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onPrimary
+            )
+        )
+    }
+}
+
+@Composable
+fun ParticipantInfoItem(
+    modifier: Modifier = Modifier,
+    participantInfo: ParticipantInfo,
+    isCurrentUser: Boolean
+) {
+    Row(
+        modifier = modifier
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .then(
+                if (isCurrentUser) {
+                    Modifier.border(
+                        width = 2.dp,
+                        color = MaterialTheme.colors.secondary,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                } else {
+                    Modifier
+                }
+            )
+            .padding(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(38.dp)
+                .clip(CircleShape)
+                .background(
+                    color = colorResource(id = R.color.light_gray_200),
+                    shape = CircleShape
+                ),
+            contentAlignment = Alignment.Center
+        ) {
+            Image(
+                bitmap = byteArrayToBitmap(participantInfo.profileImage).asImageBitmap(),
+                contentDescription = "ProfileImage",
+                modifier = Modifier.size(28.dp)
+            )
+        }
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(
+            text = participantInfo.name,
             style = MaterialTheme.typography.h5.copy(
                 color = MaterialTheme.colors.onPrimary
             )

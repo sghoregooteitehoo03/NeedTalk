@@ -190,6 +190,7 @@ fun AppNavHost(
             )
         ) {
             HostTimerRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = {
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
