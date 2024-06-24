@@ -28,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
@@ -37,6 +38,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.holix.android.bottomsheetdialog.compose.BottomSheetBehaviorProperties
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialogProperties
@@ -61,6 +63,8 @@ fun TimerScreen(
             .fillMaxSize()
             .background(color = MaterialTheme.colors.secondary)
     ) {
+        val timerCmInfo = uiState.timerCommunicateInfo
+
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -68,10 +72,10 @@ fun TimerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            when (val timerActionState = uiState.timerCommunicateInfo.timerActionState) {
+            when (val timerActionState = timerCmInfo.timerActionState) {
                 !is TimerActionState.TimerRunning, !is TimerActionState.StopWatchRunning -> {
                     TimerWithButton(
-                        timerTime = uiState.timerCommunicateInfo.currentTime,
+                        timerTime = timerCmInfo.currentTime,
                         timerActionState = timerActionState,
                         isHost = isHost
                     )
@@ -93,8 +97,12 @@ fun TimerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.72f)
+                    .padding(14.dp)
             ) {
-
+                TimerStateInfo(
+                    timerActionState = timerCmInfo.timerActionState,
+                    isAvailableStart = timerCmInfo.participantInfoList.size == timerCmInfo.maxMember
+                )
             }
             Column(
                 modifier = Modifier
@@ -103,8 +111,8 @@ fun TimerScreen(
             ) {
                 Participants(
                     currentUser = userData,
-                    participantInfoList = uiState.timerCommunicateInfo.participantInfoList,
-                    maxMember = uiState.timerCommunicateInfo.maxMember
+                    participantInfoList = timerCmInfo.participantInfoList,
+                    maxMember = timerCmInfo.maxMember
                 )
             }
         }
@@ -179,6 +187,50 @@ fun TimerButton(
             style = MaterialTheme.typography.body1.copy(
                 color = MaterialTheme.colors.onSecondary
             )
+        )
+    }
+}
+
+@Composable
+fun TimerStateInfo(
+    modifier: Modifier = Modifier,
+    timerActionState: TimerActionState,
+    isAvailableStart: Boolean
+) {
+    val stateText = when (timerActionState) {
+        is TimerActionState.TimerWaiting -> {
+            if (isAvailableStart) {
+                "멤버가 모두 들어왔어요.\n대화를 시작해보세요!"
+            } else {
+                "멤버가 모두 들어올 때 까지\n잠시 기다려주세요."
+            }
+        }
+
+        is TimerActionState.TimerReady,
+        is TimerActionState.TimerPause,
+        is TimerActionState.StopWatchPause -> "모든 사용자가 휴대폰을 내려놓으면\n타이머가 시작됩니다."
+
+        is TimerActionState.TimerFinished -> "즐거운 대화가 되셨나요?\n지정하신 타이머가 끝났어요."
+        else -> ""
+    }
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            )
+            .padding(top = 20.dp, bottom = 20.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = stateText,
+            style = MaterialTheme.typography.h5.copy(
+                color = MaterialTheme.colors.onPrimary.copy(alpha = 0.6f),
+                fontSize = 18.sp
+            ),
+            textAlign = TextAlign.Center
         )
     }
 }
