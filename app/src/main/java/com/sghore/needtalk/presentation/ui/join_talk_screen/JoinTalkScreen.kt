@@ -237,7 +237,7 @@ fun TimerInfoPager(
     modifier: Modifier = Modifier,
     timerInfoList: List<TimerInfo?>,
     loadTimerInfo: (index: Int) -> Unit,
-    onClickJoin: (TimerInfo) -> Unit
+    onClickJoin: (String) -> Unit
 ) {
     val pagerState = rememberPagerState(pageCount = { timerInfoList.size })
     val currentPage = pagerState.currentPage
@@ -353,7 +353,7 @@ fun TimerInfoPager(
             },
             text = "참가하기",
             isEnabled = timerInfoList[currentPage] != null,
-            onClick = { onClickJoin(timerInfoList[currentPage]!!) }
+            onClick = { onClickJoin(timerInfoList[currentPage]!!.hostEndpointId) }
         )
     }
 }

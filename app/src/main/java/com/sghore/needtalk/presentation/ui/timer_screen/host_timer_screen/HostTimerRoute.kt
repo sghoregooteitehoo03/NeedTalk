@@ -129,9 +129,9 @@ fun HostTimerRoute(
         }
     )
 
-//    LaunchedEffect(
-//        key1 = service,
-//        block = {
+    LaunchedEffect(
+        key1 = service,
+        block = {
 //            launch {
 //                viewModel.uiEvent.collectLatest { event ->
 //                    when (event) {
@@ -198,36 +198,35 @@ fun HostTimerRoute(
 //                    }
 //                }
 //            }
-//
-//            launch {
-//                service?.timerCmInfo?.collectLatest {
-//                    if (it.timerActionState is TimerActionState.TimerError) {
-//                        service?.deviceFlip(false)
+
+            launch {
+                service?.timerCmInfo?.collectLatest { // 타이머 정보 업데이트
+                    if (it.timerActionState is TimerActionState.TimerError) {
+                        service?.deviceFlip(false)
 //                        stopSensor(context, sensorListener)
-//
-//                        viewModel.setDialogScreen(
-//                            DialogScreen.DialogWarning(
-//                                it.timerActionState.errorMsg,
-//                                isError = true
-//                            )
-//                        )
-//                    } else if (it.timerActionState is TimerActionState.TimerFinished) {
+
+                        viewModel.setDialogScreen(
+                            DialogScreen.DialogWarning(
+                                it.timerActionState.errorMsg,
+                                isError = true
+                            )
+                        )
+                    } else if (it.timerActionState is TimerActionState.TimerFinished) {
 //                        stopSensor(context, sensorListener)
-//                    }
-//
-//                    viewModel.updateTimerCommunicateInfo(it)
-//                }
-//            }
-//        })
+                    }
+
+                    // UI 업데이트
+                    viewModel.updateTimerCommunicateInfo(it)
+                }
+            }
+        })
 
 //    BackHandler {}
-    if (userData != null) {
-        TimerScreen(
-            userData = userData,
-            uiState = uiState,
-            isHost = true
-        )
-    }
+    TimerScreen(
+        userData = userData,
+        uiState = uiState,
+        isHost = true
+    )
 //    Surface {
 //        TimerScreen(
 //            uiState = uiState,

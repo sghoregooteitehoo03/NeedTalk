@@ -172,11 +172,10 @@ fun AppNavHost(
             JoinTalkRoute(
                 userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
-                navigateToTimerScreen = { timerInfo ->
+                navigateToTimerScreen = { hostEndpointId ->
                     navigateToClientTimerScreen(
                         navController = navController,
-                        userEntity = gViewModel.getUserEntity(),
-                        hostEndpointId = timerInfo.hostEndpointId
+                        hostEndpointId = hostEndpointId
                     )
                 },
                 showSnackBar = showSnackBar
@@ -200,13 +199,13 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.ClientTimerScreen.route +
-                    "?userEntity={userEntity}&hostEndpointId={hostEndpointId}",
+                    "?hostEndpointId={hostEndpointId}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
                 navArgument("hostEndpointId") { type = NavType.StringType }
             )
         ) {
             ClientTimerRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = {
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
@@ -277,17 +276,12 @@ private fun navigateToHostTimerScreen(
 
 private fun navigateToClientTimerScreen(
     navController: NavHostController,
-    userEntity: UserEntity?,
     hostEndpointId: String
 ) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-
-        navController.navigate(
-            UiScreen.ClientTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&hostEndpointId=${hostEndpointId}"
-        )
-    }
+    navController.navigate(
+        UiScreen.ClientTimerScreen.route +
+                "?hostEndpointId=${hostEndpointId}"
+    )
 }
 
 private fun navigateToHome(navController: NavHostController) {

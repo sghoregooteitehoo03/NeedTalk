@@ -63,12 +63,12 @@ class ExampleUnitTest {
 //                byteArr.toString(Charset.defaultCharset())
 //            )
 //        )
-        val payloadType = PayloadType.ClientJoinTimer(userEntity)
-        val json = Json.encodeToString(PayloadType.serializer(), payloadType)
-        val type = Json.decodeFromString(PayloadType.serializer(), json)
-
-        println(json)
-        println(type)
+//        val payloadType = PayloadType.ClientJoinTimer(userEntity)
+//        val json = Json.encodeToString(PayloadType.serializer(), payloadType)
+//        val type = Json.decodeFromString(PayloadType.serializer(), json)
+//
+//        println(json)
+//        println(type)
     }
 
     @Test

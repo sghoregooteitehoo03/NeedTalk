@@ -191,13 +191,11 @@ class HostTimerService : LifecycleService() {
                                             .toMutableList()
 
                                         // 참가자 인원 리스트 추가
-//                                        participantInfoList.add(
-//                                            ParticipantInfo(
-//                                                userData = payloadType.user,
-//                                                endpointId = event.endpointId,
-//                                                isReady = null
-//                                            )
-//                                        )
+                                        participantInfoList.add(
+                                            payloadType.participant.copy(
+                                                endpointId = event.endpointId
+                                            )
+                                        )
                                         // 인원이 추가된 데이터로 업데이트함
                                         timerCmInfo.update {
                                             it.copy(participantInfoList = participantInfoList)

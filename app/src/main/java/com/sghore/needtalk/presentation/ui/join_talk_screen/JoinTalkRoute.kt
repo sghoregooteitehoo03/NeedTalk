@@ -19,7 +19,7 @@ fun JoinTalkRoute(
     viewModel: JoinTalkViewModel = hiltViewModel(),
     userData: UserData?,
     navigateUp: () -> Unit,
-    navigateToTimerScreen: (TimerInfo) -> Unit,
+    navigateToTimerScreen: (String) -> Unit,
     showSnackBar: suspend (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
@@ -48,8 +48,7 @@ fun JoinTalkRoute(
                     }
 
                     is JoinTalkUiEvent.ClickJoin -> {
-                        // TODO: 타이머 화면 구현 후 구현
-//                        navigateToTimerScreen(event.timerInfo)
+                        navigateToTimerScreen(event.hostEndPointId)
                     }
 
                     is JoinTalkUiEvent.ClickResearch -> {

@@ -5,7 +5,7 @@ import com.sghore.needtalk.domain.model.TimerInfo
 sealed interface JoinTalkUiEvent {
     data object ClickBackArrow : JoinTalkUiEvent
 
-    data class ClickJoin(val timerInfo: TimerInfo) : JoinTalkUiEvent
+    data class ClickJoin(val hostEndPointId: String) : JoinTalkUiEvent
 
     data object ClickResearch : JoinTalkUiEvent
 

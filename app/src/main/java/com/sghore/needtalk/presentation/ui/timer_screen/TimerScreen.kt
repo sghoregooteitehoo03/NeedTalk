@@ -53,7 +53,7 @@ import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
 fun TimerScreen(
-    userData: UserData,
+    userData: UserData?,
     uiState: TimerUiState,
 //    onEvent: (TimerUiEvent) -> Unit,
     isHost: Boolean
@@ -238,7 +238,7 @@ fun TimerStateInfo(
 @Composable
 fun Participants(
     modifier: Modifier = Modifier,
-    currentUser: UserData,
+    currentUser: UserData?,
     participantInfoList: List<ParticipantInfo?>,
     maxMember: Int
 ) {
@@ -258,7 +258,7 @@ fun Participants(
                             .padding(4.dp)
                             .width(maxWidth.div(2)),
                         participantInfo = participantInfo,
-                        isCurrentUser = currentUser.userId == participantInfo.userId
+                        isCurrentUser = (currentUser?.userId ?: "") == participantInfo.userId
                     )
                 } else {
                     EmptyTalkUserInfo(
