@@ -330,6 +330,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
+    // 타이머 준비 동작
     fun timerReady(
         onOpenDialog: (DialogScreen) -> Unit
     ) {

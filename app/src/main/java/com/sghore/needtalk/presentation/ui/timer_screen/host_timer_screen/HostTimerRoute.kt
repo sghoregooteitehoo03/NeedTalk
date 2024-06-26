@@ -132,77 +132,76 @@ fun HostTimerRoute(
     LaunchedEffect(
         key1 = service,
         block = {
-//            launch {
-//                viewModel.uiEvent.collectLatest { event ->
-//                    when (event) {
-//                        is TimerUiEvent.ClickExit -> {
-//                            val message =
-//                                when (uiState.timerCommunicateInfo.timerActionState) {
-//                                    is TimerActionState.TimerWaiting,
-//                                    is TimerActionState.TimerReady ->
-//                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
-//
-//                                    is TimerActionState.TimerRunning,
-//                                    is TimerActionState.TimerPause,
-//                                    is TimerActionState.StopWatchPause ->
-//                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
-//
-//                                    else -> ""
-//                                }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
-//                        }
-//
-//                        is TimerUiEvent.ClickTopicCategory -> {
+            launch {
+                viewModel.uiEvent.collectLatest { event ->
+                    when (event) {
+                        is TimerUiEvent.ClickExit -> {
+                            val message =
+                                when (uiState.timerCommunicateInfo.timerActionState) {
+                                    is TimerActionState.TimerWaiting,
+                                    is TimerActionState.TimerReady ->
+                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+
+                                    is TimerActionState.TimerPause,
+                                    is TimerActionState.StopWatchPause ->
+                                        "대화에 집중 하고 있어요.\n정말로 나가시겠습니까?"
+
+                                    else -> ""
+                                }
+
+                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
+                        }
+
+                        is TimerUiEvent.ClickTopicCategory -> {
 //                            viewModel.setDialogScreen(
 //                                DialogScreen.DialogTalkTopics(
 //                                    event.topicCategory,
 //                                    event.groupCode
 //                                )
 //                            )
-//                        }
-//
-//                        is TimerUiEvent.CancelPinnedTopic -> {
+                        }
+
+                        is TimerUiEvent.CancelPinnedTopic -> {
 //                            service?.pinnedTalkTopic(null)
-//                        }
-//
-//                        is TimerUiEvent.ClickStart -> {
-//                            if (event.isEnabled) {
+                        }
+
+                        is TimerUiEvent.ClickStart -> {
+                            if (event.isEnabled) {
 //                                viewModel.saveOtherUserData()
-//
-//                                service?.timerReady(onOpenDialog = viewModel::setDialogScreen)
+
+                                service?.timerReady(onOpenDialog = viewModel::setDialogScreen)
 //                                startSensor(context, sensorListener)
-//                            } else {
-//                                showSnackBar("멤버가 모두 모이지 않았습니다.")
-//                            }
-//                        }
-//
-//                        is TimerUiEvent.ClickFinished -> {
-//                            if (uiState.timerCommunicateInfo.isStopWatch) {
-//                                viewModel.setDialogScreen(
-//                                    DialogScreen.DialogWarning(
-//                                        "아직 대화중인 인원들이 있어요\n" +
-//                                                "정말로 나가시겠습니까?"
-//                                    )
-//                                )
-//                            } else {
+                            } else {
+                                showSnackBar("멤버가 모두 모이지 않았습니다.")
+                            }
+                        }
+
+                        is TimerUiEvent.ClickFinished -> {
+                            if (uiState.timerCommunicateInfo.isStopWatch) {
+                                viewModel.setDialogScreen(
+                                    DialogScreen.DialogWarning(
+                                        "아직 대화중인 인원들이 있어요\n" +
+                                                "정말로 나가시겠습니까?"
+                                    )
+                                )
+                            } else {
 //                                viewModel.saveTalkHistory {
 //                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                        .show()
 //                                }
-//
-//                                service = null
-//                                navigateUp()
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+
+                                service = null
+                                navigateUp()
+                            }
+                        }
+                    }
+                }
+            }
 
             launch {
                 service?.timerCmInfo?.collectLatest { // 타이머 정보 업데이트
                     if (it.timerActionState is TimerActionState.TimerError) {
-                        service?.deviceFlip(false)
+//                        service?.deviceFlip(false)
 //                        stopSensor(context, sensorListener)
 
                         viewModel.setDialogScreen(
@@ -221,24 +220,21 @@ fun HostTimerRoute(
             }
         })
 
-//    BackHandler {}
-    TimerScreen(
-        userData = userData,
-        uiState = uiState,
-        isHost = true
-    )
-//    Surface {
-//        TimerScreen(
-//            uiState = uiState,
-//            onEvent = viewModel::handelEvent,
-//            isHost = true
-//        )
-//
-//        when (val dialogScreen = uiState.dialogScreen) {
-//            is DialogScreen.DialogWarning -> {
-//                if (dialogScreen.isError) {
+    BackHandler {}
+
+    Surface {
+        TimerScreen(
+            userData = userData,
+            uiState = uiState,
+            onEvent = viewModel::handelEvent,
+            isHost = true
+        )
+
+        when (val dialogScreen = uiState.dialogScreen) {
+            is DialogScreen.DialogWarning -> { // 경고 다이얼로그
+                if (dialogScreen.isError) { // 오류 발생 시
 //                    stopSensor(context, sensorListener)
-//
+
 //                    WarningDialog(
 //                        modifier = Modifier
 //                            .background(
@@ -263,96 +259,51 @@ fun HostTimerRoute(
 //                        isError = true,
 //                        onDismiss = {}
 //                    )
-//                } else {
-//                    WarningDialog(
-//                        modifier = Modifier
-//                            .background(
-//                                color = MaterialTheme.colors.background,
-//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                            )
-//                            .fillMaxWidth()
-//                            .padding(14.dp),
-//                        message = dialogScreen.message,
-//                        possibleButtonText = "나가기",
-//                        onPossibleClick = {
+                } else {
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
 //                            viewModel.saveTalkHistory {
 //                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                    .show()
 //                            }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//
-//                            service = null
-//                            navigateUp()
-//                        },
-//                        negativeButtonText = "취소",
-//                        onNegativeClick = {
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                        },
-//                        onDismiss = {
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                        }
-//                    )
-//                }
-//            }
-//
-//            is DialogScreen.DialogTimerReady -> {
-//                TimerReadyDialog(
-//                    modifier = Modifier
-//                        .background(
-//                            color = MaterialTheme.colors.background,
-//                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                        )
-//                        .fillMaxWidth()
-//                        .padding(top = 24.dp, bottom = 24.dp)
-//                )
-//            }
-//
-//            is DialogScreen.DialogTalkTopics -> {
-//                var talkTopics by remember {
-//                    mutableStateOf(listOf<TalkTopicEntity>())
-//                }
-//
-//                if (talkTopics.isEmpty()) {
-//                    viewModel.getTalkTopics(
-//                        groupCode = dialogScreen.groupCode,
-//                        updateTopics = {
-//                            talkTopics = it
-//                        }
-//                    )
-//                }
-//
-//                DialogTalkTopics(
-//                    modifier = Modifier
-//                        .background(
-//                            color = MaterialTheme.colors.background,
-//                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                        )
-//                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp))
-//                        .padding(14.dp),
-//                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
-//                    topicCategory = dialogScreen.topicCategory,
-//                    talkTopics = talkTopics,
-//                    talkTopicItem = { talkTopicEntity ->
-//                        TimerTalkTopicItem(
-//                            talkTopicEntity = talkTopicEntity,
-//                            onPinnedTopic = {
-//                                service?.pinnedTalkTopic(
-//                                    PinnedTalkTopic(
-//                                        talkTopic = it,
-//                                        pinnedUser = uiState.userEntity!!
-//                                    )
-//                                )
-//
-//                                viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                            }
-//                        )
-//                    })
-//            }
-//
-//            else -> {}
-//        }
-//    }
+
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+
+                            service = null
+                            navigateUp()
+                        },
+                        negativeButtonText = "취소",
+                        onDismiss = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                        }
+                    )
+                }
+            }
+
+            is DialogScreen.DialogTimerReady -> {
+                TimerReadyDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 24.dp)
+                )
+            }
+
+            else -> {}
+        }
+    }
 }
 
 private fun startService(

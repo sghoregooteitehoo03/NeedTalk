@@ -46,16 +46,16 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.EmptyTalkUserInfo
 import com.sghore.needtalk.presentation.ui.ParticipantInfoItem
-import com.sghore.needtalk.presentation.ui.RoundedButton
 import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
 fun TimerScreen(
     userData: UserData?,
     uiState: TimerUiState,
-//    onEvent: (TimerUiEvent) -> Unit,
+    onEvent: (TimerUiEvent) -> Unit,
     isHost: Boolean
 ) {
     Column(
@@ -77,7 +77,21 @@ fun TimerScreen(
                     TimerWithButton(
                         timerTime = timerCmInfo.currentTime,
                         timerActionState = timerActionState,
-                        isHost = isHost
+                        isHost = isHost,
+                        onClickExit = { isFinished ->
+                            if (isFinished) { // 타이머, 스톱워치 동작을 마무리 지었을 때
+                                onEvent(TimerUiEvent.ClickFinished)
+                            } else { // 중간에 나갔을 때
+                                onEvent(TimerUiEvent.ClickExit)
+                            }
+                        },
+                        onClickStart = {
+                            onEvent(
+                                TimerUiEvent.ClickStart(
+                                    timerCmInfo.participantInfoList.size == timerCmInfo.maxMember
+                                )
+                            )
+                        }
                     )
                 }
 
@@ -125,6 +139,8 @@ fun TimerWithButton(
     timerTime: Long,
     timerActionState: TimerActionState,
     isHost: Boolean,
+    onClickExit: (Boolean) -> Unit,
+    onClickStart: () -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -141,14 +157,14 @@ fun TimerWithButton(
             TimerButton(
                 buttonText = "나가기",
                 buttonIcon = painterResource(id = R.drawable.ic_exit),
-                onClick = {}
+                onClick = { onClickExit(false) }
             )
             if (isHost) {
                 Spacer(modifier = Modifier.width(20.dp))
                 TimerButton(
                     buttonText = "시작",
                     buttonIcon = painterResource(id = R.drawable.ic_start),
-                    onClick = {}
+                    onClick = { onClickStart() }
                 )
             }
         }
@@ -280,7 +296,6 @@ fun WarningDialog(
     possibleButtonText: String,
     negativeButtonText: String = "",
     onPossibleClick: () -> Unit,
-    onNegativeClick: () -> Unit = {},
     isError: Boolean = false,
     onDismiss: () -> Unit
 ) {
@@ -310,34 +325,55 @@ fun WarningDialog(
                 )
             )
             Spacer(modifier = Modifier.height(24.dp))
-            RoundedButton(
-                modifier = Modifier.fillMaxWidth(),
-                text = possibleButtonText,
-                color = MaterialTheme.colors.secondary,
-                textStyle = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onSecondary
-                ),
-                paddingValues = PaddingValues(14.dp),
-                onClick = onPossibleClick
-            )
-            if (negativeButtonText.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(8.dp))
-                RoundedButton(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .border(
-                            width = 2.dp,
-                            color = colorResource(id = R.color.light_gray),
-                            shape = MaterialTheme.shapes.large
-                        ),
-                    text = negativeButtonText,
-                    color = Color.Transparent,
-                    textStyle = MaterialTheme.typography.body1.copy(
-                        color = colorResource(id = R.color.gray)
-                    ),
-                    paddingValues = PaddingValues(14.dp),
-                    onClick = onNegativeClick
-                )
+            Row(modifier = Modifier.fillMaxWidth()) {
+                if (negativeButtonText.isNotEmpty()) {
+                    val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(40.dp)
+                    Box(
+                        modifier = Modifier
+                            .width(maxWidth.div(2))
+                            .height(46.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(
+                                color = colorResource(id = R.color.light_gray_200),
+                                shape = MaterialTheme.shapes.medium
+                            )
+                            .clickable { onDismiss() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = negativeButtonText,
+                            style = MaterialTheme.typography.body1.copy(
+                                color = MaterialTheme.colors.onSecondary
+                            )
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Box(
+                        modifier = Modifier
+                            .width(maxWidth.div(2))
+                            .height(46.dp)
+                            .clip(MaterialTheme.shapes.medium)
+                            .background(
+                                color = MaterialTheme.colors.secondary,
+                                shape = MaterialTheme.shapes.medium
+                            )
+                            .clickable { onPossibleClick() },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = possibleButtonText,
+                            style = MaterialTheme.typography.body1.copy(
+                                color = MaterialTheme.colors.onSecondary
+                            )
+                        )
+                    }
+                } else {
+                    DefaultButton(
+                        text = possibleButtonText,
+                        buttonHeight = 46.dp,
+                        onClick = onPossibleClick
+                    )
+                }
             }
         }
     }

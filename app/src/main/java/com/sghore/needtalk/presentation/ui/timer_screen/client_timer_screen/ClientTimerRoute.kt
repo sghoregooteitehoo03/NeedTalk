@@ -140,61 +140,60 @@ fun ClientTimerRoute(
     LaunchedEffect(
         key1 = service,
         block = {
-//            launch {
-//                viewModel.uiEvent.collectLatest { event ->
-//                    when (event) {
-//                        is TimerUiEvent.ClickExit -> {
-//                            val message =
-//                                when (uiState.timerCommunicateInfo.timerActionState) {
-//                                    is TimerActionState.TimerWaiting,
-//                                    is TimerActionState.TimerReady ->
-//                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
-//
-//                                    is TimerActionState.TimerRunning,
-//                                    is TimerActionState.TimerPause,
-//                                    is TimerActionState.StopWatchPause ->
-//                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
-//
-//                                    else -> ""
-//                                }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
-//                        }
-//
-//                        is TimerUiEvent.ClickTopicCategory -> {
+            launch {
+                viewModel.uiEvent.collectLatest { event ->
+                    when (event) {
+                        is TimerUiEvent.ClickExit -> {
+                            val message =
+                                when (uiState.timerCommunicateInfo.timerActionState) {
+                                    is TimerActionState.TimerWaiting,
+                                    is TimerActionState.TimerReady ->
+                                        "아직 대화가 시작되지 않았어요\n정말로 나가시겠습니까?"
+
+                                    is TimerActionState.TimerPause,
+                                    is TimerActionState.StopWatchPause ->
+                                        "대화에 집중하고 있어요\n정말로 나가시겠습니까?"
+
+                                    else -> ""
+                                }
+
+                            viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
+                        }
+
+                        is TimerUiEvent.ClickTopicCategory -> {
 //                            viewModel.setDialogScreen(
 //                                DialogScreen.DialogTalkTopics(
 //                                    event.topicCategory,
 //                                    event.groupCode
 //                                )
 //                            )
-//                        }
-//
-//                        is TimerUiEvent.CancelPinnedTopic -> {
+                        }
+
+                        is TimerUiEvent.CancelPinnedTopic -> {
 //                            service?.pinnedTalkTopic(null, uiState.hostEndpointId)
-//                        }
-//
-//                        is TimerUiEvent.ClickFinished -> {
-//                            if (uiState.timerCommunicateInfo.isStopWatch) {
-//                                viewModel.setDialogScreen(
-//                                    DialogScreen.DialogWarning(
-//                                        "아직 대화중인 인원들이 있어요\n" +
-//                                                "정말로 나가시겠습니까?"
-//                                    )
-//                                )
-//                            } else {
+                        }
+
+                        is TimerUiEvent.ClickFinished -> {
+                            if (uiState.timerCommunicateInfo.isStopWatch) {
+                                viewModel.setDialogScreen(
+                                    DialogScreen.DialogWarning(
+                                        "아직 대화중인 인원들이 있어요\n" +
+                                                "정말로 나가시겠습니까?"
+                                    )
+                                )
+                            } else {
 //                                viewModel.saveTalkHistory {
 //                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                        .show()
 //                                }
-//
-//                                service = null
-//                                navigateUp()
-//                            }
-//                        }
-//                    }
-//                }
-//            }
+
+                                service = null
+                                navigateUp()
+                            }
+                        }
+                    }
+                }
+            }
             launch {
                 service?.timerCmInfo?.collectLatest { // 타이머 정보 업데이트
                     when (it.timerActionState) {
@@ -237,108 +236,106 @@ fun ClientTimerRoute(
             }
         })
 
-//    BackHandler {}
+    BackHandler {}
 
-    if (uiState.timerCommunicateInfo.participantInfoList.isNotEmpty()) {
-        TimerScreen(
-            userData = userData,
-            uiState = uiState,
-            isHost = false
-        )
-    } else { // 타이머 정보를 받아오는 중에 표시할 로딩 뷰
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp)
-        ) {
-            CircularProgressIndicator(
-                modifier = Modifier.align(Alignment.Center),
-                color = MaterialTheme.colors.onPrimary
+    Surface {
+        if (uiState.timerCommunicateInfo.participantInfoList.isNotEmpty()) {
+            TimerScreen(
+                userData = userData,
+                uiState = uiState,
+                onEvent = viewModel::handelEvent,
+                isHost = false
             )
-            DefaultButton(
-                modifier = Modifier.align(Alignment.BottomCenter),
-                text = "나가기",
-                onClick = { navigateUp() }
-            )
+        } else { // 타이머 정보를 받아오는 중에 표시할 로딩 뷰
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(14.dp)
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.Center),
+                    color = MaterialTheme.colors.onPrimary
+                )
+                DefaultButton(
+                    modifier = Modifier.align(Alignment.BottomCenter),
+                    text = "나가기",
+                    onClick = { navigateUp() }
+                )
+            }
         }
-    }
-//    Surface {
-//
-//        when (val dialogScreen = uiState.dialogScreen) {
-//            is DialogScreen.DialogWarning -> {
-//                if (dialogScreen.isError) {
-//                    WarningDialog(
-//                        modifier = Modifier
-//                            .background(
-//                                color = MaterialTheme.colors.background,
-//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                            )
-//                            .fillMaxWidth()
-//                            .padding(14.dp),
-//                        message = dialogScreen.message,
-//                        possibleButtonText = "나가기",
-//                        onPossibleClick = {
-//                            if (!dialogScreen.isReject) {
+
+        when (val dialogScreen = uiState.dialogScreen) {
+            is DialogScreen.DialogWarning -> { // 경고 다이얼로그
+                if (dialogScreen.isError) { // 오류 발생 시
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
+                            if (!dialogScreen.isReject) {
 //                                viewModel.saveTalkHistory {
 //                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                        .show()
 //                                }
-//                            }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                            service = null
-//                            navigateUp()
-//                        },
-//                        isError = true,
-//                        onDismiss = {}
-//                    )
-//                } else {
-//                    WarningDialog(
-//                        modifier = Modifier
-//                            .background(
-//                                color = MaterialTheme.colors.background,
-//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                            )
-//                            .fillMaxWidth()
-//                            .padding(14.dp),
-//                        message = dialogScreen.message,
-//                        possibleButtonText = "나가기",
-//                        onPossibleClick = {
+                            }
+
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                            service = null
+                            navigateUp()
+                        },
+                        isError = true,
+                        onDismiss = {}
+                    )
+                } else {
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
 //                            viewModel.saveTalkHistory {
 //                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                    .show()
 //                            }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                            service = null
-//                            navigateUp()
-//                        },
-//                        negativeButtonText = "취소",
-//                        onNegativeClick = {
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                        },
-//                        onDismiss = {
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//                        }
-//                    )
-//                }
-//            }
-//
-//            is DialogScreen.DialogTimerReady -> {
-//                TimerReadyDialog(
-//                    modifier = Modifier
-//                        .background(
-//                            color = MaterialTheme.colors.background,
-//                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                        )
-//                        .fillMaxWidth()
-//                        .padding(top = 24.dp, bottom = 24.dp)
-//                )
-//            }
-//
-//            else -> {}
-//        }
-//    }
+
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                            service = null
+                            navigateUp()
+                        },
+                        negativeButtonText = "취소",
+                        onDismiss = {
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+                        }
+                    )
+                }
+            }
+
+            is DialogScreen.DialogTimerReady -> {
+                TimerReadyDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .fillMaxWidth()
+                        .padding(top = 24.dp, bottom = 24.dp)
+                )
+            }
+
+            else -> {}
+        }
+    }
 }
 
 private fun startService(
