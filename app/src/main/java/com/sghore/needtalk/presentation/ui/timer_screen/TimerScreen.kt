@@ -121,7 +121,10 @@ fun TimerScreen(
             ) {
                 when (timerCmInfo.timerActionState) {
                     is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
-                        PinnedTalkTopicItem(pinnedTalkTopic = timerCmInfo.pinnedTalkTopic)
+                        PinnedTalkTopicItem(
+                            pinnedTalkTopic = timerCmInfo.pinnedTalkTopic,
+                            onClick = { onEvent(TimerUiEvent.AddPinnedTalkTopic) }
+                        )
                     }
 
                     else -> {
@@ -327,7 +330,8 @@ fun TimerStateInfo(
 @Composable
 fun PinnedTalkTopicItem(
     modifier: Modifier = Modifier,
-    pinnedTalkTopic: PinnedTalkTopic?
+    pinnedTalkTopic: PinnedTalkTopic?,
+    onClick: () -> Unit
 ) {
     Column(
         modifier = modifier
@@ -337,7 +341,8 @@ fun PinnedTalkTopicItem(
             .background(
                 color = MaterialTheme.colors.background,
                 shape = MaterialTheme.shapes.medium
-            ),
+            )
+            .clickable { onClick() },
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {

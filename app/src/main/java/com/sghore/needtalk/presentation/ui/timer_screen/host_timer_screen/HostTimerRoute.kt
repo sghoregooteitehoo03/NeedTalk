@@ -39,6 +39,7 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
+import com.sghore.needtalk.presentation.ui.timer_screen.pinned_talktopic_dialog.PinnedTalkTopicDialog
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -196,6 +197,10 @@ fun HostTimerRoute(
                                 navigateUp()
                             }
                         }
+
+                        is TimerUiEvent.AddPinnedTalkTopic -> {
+                            viewModel.setDialogScreen(DialogScreen.DialogPinnedTalkTopic)
+                        }
                     }
                 }
             }
@@ -300,6 +305,19 @@ fun HostTimerRoute(
                         )
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 24.dp)
+                )
+            }
+
+            is DialogScreen.DialogPinnedTalkTopic -> {
+                PinnedTalkTopicDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .padding(14.dp),
+                    userId = userData?.userId ?: "",
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) }
                 )
             }
 

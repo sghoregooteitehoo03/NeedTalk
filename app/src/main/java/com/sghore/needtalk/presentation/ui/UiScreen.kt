@@ -68,9 +68,7 @@ sealed interface DialogScreen {
 
     data class DialogRemoveFriend(val friend: UserData) : DialogScreen
 
-    data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
-
-    data object DialogAddTopic : DialogScreen
+    data object DialogPinnedTalkTopic : DialogScreen
 
     data class DialogWarning(
         val message: String,
