@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.ClientTimerService
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DefaultButton
@@ -45,6 +46,7 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
+import com.sghore.needtalk.presentation.ui.timer_screen.pinned_talktopic_dialog.PinnedTalkTopicDialog
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
@@ -164,19 +166,6 @@ fun ClientTimerRoute(
                             viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                         }
 
-                        is TimerUiEvent.ClickTopicCategory -> {
-//                            viewModel.setDialogScreen(
-//                                DialogScreen.DialogTalkTopics(
-//                                    event.topicCategory,
-//                                    event.groupCode
-//                                )
-//                            )
-                        }
-
-                        is TimerUiEvent.CancelPinnedTopic -> {
-//                            service?.pinnedTalkTopic(null, uiState.hostEndpointId)
-                        }
-
                         is TimerUiEvent.ClickFinished -> {
                             if (uiState.timerCommunicateInfo.isTimer) {
                                 viewModel.setDialogScreen(
@@ -194,6 +183,14 @@ fun ClientTimerRoute(
                                 service = null
                                 navigateUp()
                             }
+                        }
+
+                        is TimerUiEvent.AddPinnedTalkTopic -> {
+                            viewModel.setDialogScreen(DialogScreen.DialogPinnedTalkTopic)
+                        }
+
+                        is TimerUiEvent.CancelPinnedTopic -> {
+                            service?.pinnedTalkTopic(null, uiState.hostEndpointId)
                         }
                     }
                 }
@@ -334,6 +331,31 @@ fun ClientTimerRoute(
                         )
                         .fillMaxWidth()
                         .padding(top = 24.dp, bottom = 24.dp)
+                )
+            }
+
+            is DialogScreen.DialogPinnedTalkTopic -> {
+                PinnedTalkTopicDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .padding(14.dp),
+                    userId = userData?.userId ?: "",
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    onPinnedTalkTopic = {
+                        val pinnedTalkTopic = PinnedTalkTopic(
+                            talkTopic = it,
+                            pinnedUserId = userData?.userId ?: "",
+                            pinnedUserName = userData?.name ?: ""
+                        )
+
+                        service?.pinnedTalkTopic(
+                            pinnedTalkTopic,
+                            hostEndpointId = uiState.hostEndpointId
+                        )
+                    }
                 )
             }
 

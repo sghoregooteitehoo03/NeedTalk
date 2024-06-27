@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DialogScreen
@@ -155,19 +156,6 @@ fun HostTimerRoute(
                             viewModel.setDialogScreen(DialogScreen.DialogWarning(message))
                         }
 
-                        is TimerUiEvent.ClickTopicCategory -> {
-//                            viewModel.setDialogScreen(
-//                                DialogScreen.DialogTalkTopics(
-//                                    event.topicCategory,
-//                                    event.groupCode
-//                                )
-//                            )
-                        }
-
-                        is TimerUiEvent.CancelPinnedTopic -> {
-//                            service?.pinnedTalkTopic(null)
-                        }
-
                         is TimerUiEvent.ClickStart -> {
                             if (event.isEnabled) {
 //                                viewModel.saveOtherUserData()
@@ -200,6 +188,11 @@ fun HostTimerRoute(
 
                         is TimerUiEvent.AddPinnedTalkTopic -> {
                             viewModel.setDialogScreen(DialogScreen.DialogPinnedTalkTopic)
+                        }
+
+                        is TimerUiEvent.CancelPinnedTopic -> {
+                            // 대화주제 고정 해제
+                            service?.pinnedTalkTopic(null)
                         }
                     }
                 }
@@ -317,7 +310,16 @@ fun HostTimerRoute(
                         )
                         .padding(14.dp),
                     userId = userData?.userId ?: "",
-                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) }
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    onPinnedTalkTopic = {
+                        val pinnedTalkTopic = PinnedTalkTopic(
+                            talkTopic = it,
+                            pinnedUserId = userData?.userId ?: "",
+                            pinnedUserName = userData?.name ?: ""
+                        )
+
+                        service?.pinnedTalkTopic(pinnedTalkTopic)
+                    }
                 )
             }
 

@@ -51,6 +51,7 @@ fun PinnedTalkTopicDialog(
     viewModel: PinnedTalkTopicViewModel = hiltViewModel(),
     userId: String,
     onDismiss: () -> Unit,
+    onPinnedTalkTopic: (TalkTopic) -> Unit
 ) {
     BottomSheetDialog(onDismissRequest = {
         onDismiss()
@@ -79,7 +80,12 @@ fun PinnedTalkTopicDialog(
                             viewModel.clearData()
                         },
                         title = viewModel.title,
-                        talkTopicsFlow = viewModel.talkTopics!!
+                        talkTopicsFlow = viewModel.talkTopics!!,
+                        onPinnedTalkTopic = {
+                            onDismiss()
+                            viewModel.clearData()
+                            onPinnedTalkTopic(it)
+                        }
                     )
                 }
             }
@@ -133,7 +139,8 @@ fun PinTalkTopic(
     navigateUp: () -> Unit,
     onDismiss: () -> Unit,
     title: String,
-    talkTopicsFlow: Flow<PagingData<TalkTopic>>
+    talkTopicsFlow: Flow<PagingData<TalkTopic>>,
+    onPinnedTalkTopic: (TalkTopic) -> Unit
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         val talkTopics = talkTopicsFlow.collectAsLazyPagingItems()
@@ -168,7 +175,10 @@ fun PinTalkTopic(
         Spacer(modifier = Modifier.height(16.dp))
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(talkTopics.itemCount) { index ->
-                TalkTopicItem(talkTopic = talkTopics[index]!!)
+                TalkTopicItem(
+                    talkTopic = talkTopics[index]!!,
+                    onPinnedTalkTopic = onPinnedTalkTopic
+                )
                 Spacer(modifier = Modifier.width(12.dp))
             }
         }
@@ -227,7 +237,8 @@ fun GroupItem(
 @Composable
 fun TalkTopicItem(
     modifier: Modifier = Modifier,
-    talkTopic: TalkTopic
+    talkTopic: TalkTopic,
+    onPinnedTalkTopic: (TalkTopic) -> Unit
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus((28 + 72).dp)
     Box(
@@ -266,7 +277,7 @@ fun TalkTopicItem(
                             start = 12.dp,
                             end = 12.dp
                         ),
-                        textStyle = MaterialTheme.typography.body1.copy(
+                        textStyle = MaterialTheme.typography.subtitle1.copy(
                             color = MaterialTheme.colors.onPrimary
                         )
                     )
@@ -288,7 +299,9 @@ fun TalkTopicItem(
         Icon(
             modifier = Modifier
                 .size(24.dp)
-                .align(Alignment.BottomCenter),
+                .align(Alignment.BottomCenter)
+                .clip(CircleShape)
+                .clickable { onPinnedTalkTopic(talkTopic) },
             painter = painterResource(id = R.drawable.ic_pin),
             contentDescription = "Pin",
             tint = colorResource(id = R.color.gray)

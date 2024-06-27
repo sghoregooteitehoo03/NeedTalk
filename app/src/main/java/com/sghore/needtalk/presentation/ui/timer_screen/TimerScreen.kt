@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.timer_screen
 
+import android.widget.Toast
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -24,6 +25,7 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -32,6 +34,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -39,6 +42,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import androidx.constraintlayout.compose.Dimension
 import com.holix.android.bottomsheetdialog.compose.BottomSheetBehaviorProperties
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialogProperties
@@ -50,6 +54,7 @@ import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.EmptyTalkUserInfo
 import com.sghore.needtalk.presentation.ui.ParticipantInfoItem
+import com.sghore.needtalk.presentation.ui.TalkTopicCategoryTag
 import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
@@ -123,7 +128,9 @@ fun TimerScreen(
                     is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                         PinnedTalkTopicItem(
                             pinnedTalkTopic = timerCmInfo.pinnedTalkTopic,
-                            onClick = { onEvent(TimerUiEvent.AddPinnedTalkTopic) }
+                            currentUserId = userData?.userId ?: "",
+                            onClick = { onEvent(TimerUiEvent.AddPinnedTalkTopic) },
+                            onCancelPinned = { onEvent(TimerUiEvent.CancelPinnedTopic) }
                         )
                     }
 
@@ -330,9 +337,13 @@ fun TimerStateInfo(
 @Composable
 fun PinnedTalkTopicItem(
     modifier: Modifier = Modifier,
+    currentUserId: String,
     pinnedTalkTopic: PinnedTalkTopic?,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onCancelPinned: () -> Unit
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -342,7 +353,13 @@ fun PinnedTalkTopicItem(
                 color = MaterialTheme.colors.background,
                 shape = MaterialTheme.shapes.medium
             )
-            .clickable { onClick() },
+            .then(
+                if (pinnedTalkTopic == null) {
+                    Modifier.clickable { onClick() }
+                } else {
+                    Modifier
+                }
+            ),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -360,6 +377,105 @@ fun PinnedTalkTopicItem(
                     color = colorResource(id = R.color.gray)
                 )
             )
+        } else {
+            val talkTopic = pinnedTalkTopic.talkTopic
+            ConstraintLayout(
+                modifier = modifier
+                    .fillMaxSize()
+                    .shadow(2.dp, MaterialTheme.shapes.medium)
+                    .clip(MaterialTheme.shapes.medium)
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = MaterialTheme.shapes.medium
+                    )
+                    .padding(14.dp),
+            ) {
+                val (tags, topic, pinned) = createRefs()
+                Row(
+                    modifier = Modifier.constrainAs(tags) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    }
+                ) {
+                    val tagList = remember {
+                        listOf(
+                            talkTopic.category1.title,
+                            talkTopic.category2?.title ?: "",
+                            talkTopic.category3?.title ?: ""
+                        ).filter { it.isNotEmpty() }
+                    }
+
+                    tagList.forEachIndexed { index, tagName ->
+                        TalkTopicCategoryTag(
+                            tagName = tagName,
+                            paddingValues = PaddingValues(
+                                top = 6.dp,
+                                bottom = 6.dp,
+                                start = 12.dp,
+                                end = 12.dp
+                            ),
+                            textStyle = MaterialTheme.typography.subtitle1.copy(
+                                color = MaterialTheme.colors.onPrimary
+                            )
+                        )
+                        if (index < 1) {
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                    }
+                }
+                Text(
+                    modifier = Modifier.constrainAs(topic) {
+                        top.linkTo(tags.bottom, 16.dp)
+                        bottom.linkTo(pinned.top, 16.dp)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        height = Dimension.fillToConstraints
+                    },
+                    text = talkTopic.topic,
+                    style = MaterialTheme.typography.h4.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        textAlign = TextAlign.Center
+                    )
+                )
+                Column(
+                    modifier = Modifier.constrainAs(pinned) {
+                        bottom.linkTo(parent.bottom)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                    },
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Text(
+                        text = "(${pinnedTalkTopic.pinnedUserName}) 지정한 주제",
+                        style = MaterialTheme.typography.body1.copy(
+                            color = colorResource(id = R.color.gray)
+                        )
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Icon(
+                        modifier = Modifier
+                            .size(24.dp)
+                            .clip(CircleShape)
+                            .clickable {
+                                if (pinnedTalkTopic.pinnedUserId == currentUserId) {
+                                    onCancelPinned()
+                                } else {
+                                    Toast
+                                        .makeText(
+                                            context,
+                                            "고정한 사용자만 해제할 수 있습니다.",
+                                            Toast.LENGTH_SHORT
+                                        )
+                                        .show()
+                                }
+                            },
+                        painter = painterResource(id = R.drawable.ic_pin),
+                        contentDescription = "Pin",
+                        tint = MaterialTheme.colors.secondary
+                    )
+                }
+            }
         }
     }
 }

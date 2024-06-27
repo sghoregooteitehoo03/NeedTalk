@@ -9,7 +9,5 @@ interface TimerUiEvent {
 
     data object AddPinnedTalkTopic : TimerUiEvent
 
-    data class ClickTopicCategory(val topicCategory: String, val groupCode: Int) : TimerUiEvent
-
     data object CancelPinnedTopic : TimerUiEvent
 }

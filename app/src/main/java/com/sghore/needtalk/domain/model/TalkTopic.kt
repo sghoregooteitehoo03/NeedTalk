@@ -1,5 +1,8 @@
 package com.sghore.needtalk.domain.model
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class TalkTopic(
     val topicId: String,
     val uid: String,
