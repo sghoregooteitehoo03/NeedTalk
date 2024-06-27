@@ -108,7 +108,7 @@ class HostTimerViewModel @Inject constructor(
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
         if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
-            val talkTime = if (updateTimerInfo.isStopWatch)
+            val talkTime = if (updateTimerInfo.isTimer)
                 updateTimerInfo.currentTime
             else
                 updateTimerInfo.maxTime - updateTimerInfo.currentTime

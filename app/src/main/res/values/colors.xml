@@ -13,5 +13,7 @@
     <color name="light_orange">#FFFFF0D1</color>
     <color name="orange_80">#FFE49A0D</color>
 
+    <color name="light_green">#331DBF55</color>
+
     <color name="status_color">#FFFFFF</color>
 </resources>

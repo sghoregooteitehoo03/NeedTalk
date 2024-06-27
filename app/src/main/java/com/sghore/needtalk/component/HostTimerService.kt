@@ -19,7 +19,6 @@ import androidx.lifecycle.lifecycleScope
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.repository.ConnectionEvent
 import com.sghore.needtalk.data.repository.NearByRepository
-import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
@@ -31,7 +30,6 @@ import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -89,6 +87,7 @@ class HostTimerService : LifecycleService() {
             timerCmInfo.update { initTimerCmInfo }
             val packageName = applicationContext.packageName
 
+            // 광고 수행
             nearByRepository.startAdvertising(
                 userId = initTimerCmInfo.participantInfoList[0]?.userId ?: "",
                 serviceId = packageName
@@ -209,8 +208,11 @@ class HostTimerService : LifecycleService() {
                                     }
                                 }
 
+                                // 다른 유저들의 기기 기울임 여부에 대한 정보
                                 is PayloadType.ClientReady -> {
                                     val currentInfo = timerCmInfo.value
+
+                                    // 특정 유저의 기기 기울임 여부 설정
                                     val updateParticipantInfo = currentInfo.participantInfoList
                                         .toMutableList()
                                         .apply {
@@ -222,10 +224,11 @@ class HostTimerService : LifecycleService() {
                                             )
                                         }
 
+                                    // 정보 업데이트
                                     timerCmInfo.update {
                                         it.copy(participantInfoList = updateParticipantInfo)
                                     }
-                                    isAvailableTimerStart()
+                                    isAvailableTimerStart() // 타이머 동작 가능한 지 확인
 
                                     sendUpdateTimerCmInfo(
                                         updateTimerCmInfo = timerCmInfo.value,
@@ -254,7 +257,9 @@ class HostTimerService : LifecycleService() {
             }
         }
 
+    // 포그라운드 서비스 시작
     fun startForegroundService() {
+        // 알림 클릭 시 동작 이벤트(화면 표시)
         val actionPendingIntent = PendingIntent.getActivity(
             applicationContext,
             0,
@@ -265,6 +270,8 @@ class HostTimerService : LifecycleService() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             }
         )
+
+        // 기본 알림
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
                 .setAutoCancel(true)
@@ -273,6 +280,7 @@ class HostTimerService : LifecycleService() {
                 .setContentIntent(actionPendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
 
+        // 타이머 상태에 따른 알림 내용 설정
         when (timerCmInfo.value.timerActionState) {
             is TimerActionState.TimerWaiting -> {
                 baseNotification
@@ -307,8 +315,8 @@ class HostTimerService : LifecycleService() {
             else -> {}
         }
 
-        acquireWakeLock()
-        ServiceCompat.startForeground(
+        acquireWakeLock() // WakeLock 설정
+        ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
             baseNotification!!.build(),
@@ -346,9 +354,10 @@ class HostTimerService : LifecycleService() {
         onOpenDialog(DialogScreen.DialogTimerReady)
     }
 
+    // 호스트 기기 기울임에 따른 타이머 동작 설정
     fun deviceFlip(isFlip: Boolean) {
         val participantInfo = timerCmInfo.value.participantInfoList[participantInfoIndex]
-        val updateParticipantInfo = participantInfo?.copy(isReady = isFlip)
+        val updateParticipantInfo = participantInfo?.copy(isReady = isFlip) // 호스트 유저에 대한 정보 업데이트
 
         timerCmInfo.update {
             it.copy(
@@ -356,32 +365,34 @@ class HostTimerService : LifecycleService() {
                     .apply { set(participantInfoIndex, updateParticipantInfo) }
             )
         }
-        isAvailableTimerStart()
+        isAvailableTimerStart() // 타이머가 동작 가능한 지 확인
 
+        // 정보 업데이트
         sendUpdateTimerCmInfo(
             updateTimerCmInfo = timerCmInfo.value,
             onFailure = {}
         )
     }
 
+    // 타이머 동작
     private fun timerStartOrResume(
         startTime: Long,
         onUpdateTime: (Long) -> Unit,
-        isStopwatch: Boolean
+        isTimer: Boolean
     ) {
-        timerJob?.cancel()
+        timerJob?.cancel() // 기존에 타이머 동작이 있으면 취소하고 새로 시작
         timerJob =
-            CoroutineScope(Dispatchers.IO).launch {
+            lifecycleScope.launch(context = Dispatchers.Default) {
                 var time = startTime
                 var oldTimeMills = System.currentTimeMillis()
 
-                if (isStopwatch) {
+                if (!isTimer) {
                     while (true) {
                         if (!isActive)
                             break
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
-                        if (delayMills >= 1000L) {
+                        if (delayMills >= 1000L) { // 1초마다 동작
                             time += 1000
                             oldTimeMills = System.currentTimeMillis()
 
@@ -395,7 +406,7 @@ class HostTimerService : LifecycleService() {
                             break
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
-                        if (delayMills >= 1000L) {
+                        if (delayMills >= 1000L) { // 1초마다 동작
                             time -= 1000
                             oldTimeMills = System.currentTimeMillis()
 
@@ -407,11 +418,13 @@ class HostTimerService : LifecycleService() {
             }
     }
 
+    // 타이머 정지
     private fun timerPause() {
         timerJob?.cancel()
         timerJob = null
     }
 
+    // 업데이트 된 타이머 정보를 특정 기기에게 전달
     private fun sendUpdateTimerCmInfo(
         updateTimerCmInfo: TimerCommunicateInfo?,
         endpointId: String,
@@ -435,6 +448,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
+    // 업데이트 된 타이머 정보를 모든 기기에게 전달
     private fun sendUpdateTimerCmInfo(
         updateTimerCmInfo: TimerCommunicateInfo?,
         onFailure: (Exception) -> Unit
@@ -480,19 +494,22 @@ class HostTimerService : LifecycleService() {
         )
     }
 
-    // 사용자들이 모두 기기를 내려놓았는지 확인
+    // 타이머가 동작 조건에 맞는지 확인
     private fun isAvailableTimerStart() {
         val participantInfoList = timerCmInfo.value.participantInfoList
-        val isStopwatch = timerCmInfo.value.isStopWatch
+        val isTimer = timerCmInfo.value.isTimer
 
+        // 사용자가 기기를 모두 내려놓았는지 확인
         if (participantInfoList.none { it?.isReady != true }) {
+            // 타이머 상태 업데이트
             val timerActionState =
-                if (isStopwatch) TimerActionState.StopWatchRunning else TimerActionState.TimerRunning
+                if (isTimer) TimerActionState.StopWatchRunning else TimerActionState.TimerRunning
 
             timerCmInfo.update {
                 it.copy(timerActionState = timerActionState)
             }
 
+            // 타이머 동작
             timerStartOrResume(
                 startTime = timerCmInfo.value.currentTime,
                 onUpdateTime = { updateTime ->
@@ -516,16 +533,18 @@ class HostTimerService : LifecycleService() {
                         )
                     }
                 },
-                isStopwatch = isStopwatch
+                isTimer = isTimer
             )
         } else if (timerCmInfo.value.timerActionState == TimerActionState.TimerRunning ||
             timerCmInfo.value.timerActionState == TimerActionState.StopWatchRunning
-        ) {
-            val timerActionState = if (isStopwatch) {
-                val isFinished = timerCmInfo.value.currentTime >= 60000
+        ) { // 타이머가 동작되는 도중 기기를 들어올린 유저가 존재하는 경우
+            val timerActionState = if (!isTimer) {
+                // 스톱워치 5분 이상 대화할 경우 끝내기 가능
+                val isFinished = timerCmInfo.value.currentTime >= 300000
                 TimerActionState.StopWatchPause(isFinished = isFinished)
             } else TimerActionState.TimerPause
 
+            // 타이머 상태 업데이트
             timerCmInfo.update { it.copy(timerActionState = timerActionState) }
 
             timerPause()
@@ -542,6 +561,7 @@ class HostTimerService : LifecycleService() {
         sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
     }
 
+    // 알림 내용 업데이트
     private fun onNotifyUpdate(
         contentText: String
     ) {
@@ -559,6 +579,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
+    // 오류 알림 표시
     private fun onNotifyWarning(title: String, text: String) {
         if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
             val actionPendingIntent = PendingIntent.getActivity(
@@ -594,6 +615,7 @@ class HostTimerService : LifecycleService() {
         }
     }
 
+    // Wakelock 동작 설정
     @SuppressLint("InvalidWakeLockTag", "WakelockTimeout")
     private fun acquireWakeLock() {
         val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager

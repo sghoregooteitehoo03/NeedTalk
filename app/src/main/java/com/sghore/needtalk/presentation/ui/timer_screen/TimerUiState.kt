@@ -7,6 +7,6 @@ data class TimerUiState(
     val timerCommunicateInfo: TimerCommunicateInfo = TimerCommunicateInfo(),
     val hostEndpointId: String = "",
     val talkTopic: String = "",
-    val isFlip: Boolean = false,
+    val isFlip: Boolean = false, // 한번만 동작되게 하기 위한 변수
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss,
 )

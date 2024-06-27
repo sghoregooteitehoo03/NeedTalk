@@ -103,7 +103,7 @@ class CreateTalkViewModel @Inject constructor(
                 } else {
                     -1L
                 },
-                isStopWatch = talkSetting.isTimer,
+                isTimer = talkSetting.isTimer,
                 isAllowMic = talkSetting.isAllowMic,
                 maxMember = talkSetting.numberOfPeople,
                 timerActionState = TimerActionState.TimerWaiting

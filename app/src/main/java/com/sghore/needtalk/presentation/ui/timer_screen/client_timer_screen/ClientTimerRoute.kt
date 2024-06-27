@@ -13,7 +13,6 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
-import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -46,6 +45,7 @@ import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.WarningDialog
+import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -60,13 +60,14 @@ fun ClientTimerRoute(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     )
     var service: ClientTimerService? by remember { mutableStateOf(null) }
-    var isSensorStart by remember { mutableStateOf(false) }
+    var isSensorStart by remember { mutableStateOf(false) } // 타이머 준비 여부
 
+    // 서비스 바인드 동작
     val connection = remember {
         object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
-                service = (binder as ClientTimerService.LocalBinder).getService()
-                service?.connectToHost(
+                service = (binder as ClientTimerService.LocalBinder).getService() // 서비스 바인드
+                service?.connectToHost( // 호스트에 연결
                     userData = userData,
                     hostEndpointId = uiState.hostEndpointId,
                     onRejectJoin = viewModel::setDialogScreen,
@@ -79,6 +80,7 @@ fun ClientTimerRoute(
             }
         }
     }
+    // 센서 동작
     val sensorListener = remember {
         object : SensorEventListener2 {
             override fun onSensorChanged(event: SensorEvent?) {
@@ -87,7 +89,8 @@ fun ClientTimerRoute(
                 Log.i("Check", "e: $eventZ")
 
                 // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
-                if (eventZ > SensorManager.GRAVITY_EARTH * 0.95f && !uiState.isFlip) {
+                if (eventZ > SensorManager.GRAVITY_EARTH * Constants.DEVICE_FLIP && !uiState.isFlip) {
+                    // 타이머 준비 다이얼로그인 경우에만
                     if (timerActionState is TimerActionState.TimerReady) {
                         viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                     }
@@ -95,7 +98,7 @@ fun ClientTimerRoute(
                     vibrate(context)
                     service?.deviceFlip(isFlip = true, hostEndpointId = uiState.hostEndpointId)
                     viewModel.flipState(true)
-                } else if (eventZ < 7f && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
+                } else if (eventZ < Constants.DEVICE_NON_FLIP && uiState.isFlip) { // 타이머가 동작이 되었으며, 기기가 들려진 경우
                     service?.deviceFlip(isFlip = false, hostEndpointId = uiState.hostEndpointId)
                     viewModel.flipState(false)
                 }
@@ -116,23 +119,24 @@ fun ClientTimerRoute(
         },
         onResume = {
             val timerActionState = uiState.timerCommunicateInfo.timerActionState
-//            service?.stopForegroundService()
+            service?.stopForegroundService() // 포그라운드 서비스 중지
 
             if (timerActionState != TimerActionState.TimerWaiting
                 && timerActionState != TimerActionState.TimerFinished
                 && timerActionState !is TimerActionState.TimerError
             ) {
-//                startSensor(
-//                    context,
-//                    sensorListener
-//                )
+                // 타이머 상태가 해당 상태가 아닌경우에만 센서 재동작
+                startSensor(context, sensorListener)
             }
         },
         onStop = {
-//            service?.startForegroundService()
-//            stopSensor(context, sensorListener)
+            // 포그라운드 서비스 동작
+            service?.startForegroundService()
+            // 센서 동작 중지
+            stopSensor(context, sensorListener)
         },
         onDispose = {
+            // 서비스 중지
             stopService(context = context, connection = connection)
         }
     )
@@ -174,7 +178,7 @@ fun ClientTimerRoute(
                         }
 
                         is TimerUiEvent.ClickFinished -> {
-                            if (uiState.timerCommunicateInfo.isStopWatch) {
+                            if (uiState.timerCommunicateInfo.isTimer) {
                                 viewModel.setDialogScreen(
                                     DialogScreen.DialogWarning(
                                         "아직 대화중인 인원들이 있어요\n" +
@@ -215,16 +219,16 @@ fun ClientTimerRoute(
                             if (!isSensorStart) {
                                 viewModel.setDialogScreen(DialogScreen.DialogTimerReady)
 
-//                                startSensor(context, sensorListener)
+                                startSensor(context, sensorListener)
                                 isSensorStart = true
                             }
                         }
 
                         is TimerActionState.TimerFinished -> {
-//                            stopSensor(
-//                                context,
-//                                sensorListener
-//                            )
+                            stopSensor(
+                                context,
+                                sensorListener
+                            )
                         }
 
                         else -> {}
@@ -338,6 +342,7 @@ fun ClientTimerRoute(
     }
 }
 
+// 서비스 시작
 private fun startService(
     context: Context,
     connection: ServiceConnection
@@ -351,10 +356,12 @@ private fun startService(
     }
 }
 
+// 서비스 중지
 private fun stopService(context: Context, connection: ServiceConnection) {
     context.unbindService(connection)
 }
 
+// 센서 시작
 private fun startSensor(context: Context, sensorListener: SensorEventListener2) {
     val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)
@@ -366,6 +373,7 @@ private fun startSensor(context: Context, sensorListener: SensorEventListener2) 
     )
 }
 
+// 센서 중지
 private fun stopSensor(context: Context, sensorListener: SensorEventListener2) {
     val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as SensorManager
     val sensor = sensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY)

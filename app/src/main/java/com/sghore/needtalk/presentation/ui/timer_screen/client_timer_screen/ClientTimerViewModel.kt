@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import javax.inject.Inject
 
 @HiltViewModel
@@ -112,7 +111,7 @@ class ClientTimerViewModel @Inject constructor(
         val updateTimerInfo = _uiState.value.timerCommunicateInfo
 
         if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
-            val talkTime = if (updateTimerInfo.isStopWatch)
+            val talkTime = if (updateTimerInfo.isTimer)
                 updateTimerInfo.currentTime
             else
                 updateTimerInfo.maxTime - updateTimerInfo.currentTime

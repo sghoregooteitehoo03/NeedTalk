@@ -64,7 +64,7 @@ class ClientTimerService : LifecycleService() {
 
     private var baseNotification: NotificationCompat.Builder? = null
     private var timerJob: Job? = null
-    private var participantInfoIndex = -1
+    private var participantInfoIndex = -1 // 나의 인덱스
     private var wakeLock: PowerManager.WakeLock? = null
 
     override fun onBind(intent: Intent): IBinder {
@@ -73,12 +73,12 @@ class ClientTimerService : LifecycleService() {
     }
 
     override fun onDestroy() {
-        timerPause()
+        timerPause() // 타이머 동작 끝
         releaseWakeLock()
-
         super.onDestroy()
     }
 
+    // 호스트에 연결
     fun connectToHost(
         userData: UserData?,
         hostEndpointId: String,
@@ -111,10 +111,11 @@ class ClientTimerService : LifecycleService() {
                                         currentInfo.participantInfoList
                                             .forEachIndexed { index, participantInfo ->
                                                 if (participantInfo?.userId == userData?.userId)
-                                                    participantInfoIndex = index // 참가자들의 인덱스 저장
+                                                    participantInfoIndex = index // 나의 인덱스 저장
                                             }
                                     }
 
+                                    // 타이머 정보 업데이트
                                     timerCmInfo.update { currentInfo }
                                     manageTimerActionState(timerActionState = timerCmInfo.value.timerActionState)
                                 }
@@ -191,6 +192,7 @@ class ClientTimerService : LifecycleService() {
         }
 
     fun startForegroundService() {
+        // 알림 클릭 시 동작 이벤트(화면 표시)
         val actionPendingIntent = PendingIntent.getActivity(
             applicationContext,
             0,
@@ -201,6 +203,7 @@ class ClientTimerService : LifecycleService() {
                 PendingIntent.FLAG_UPDATE_CURRENT
             }
         )
+        // 기본 알림
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
@@ -209,6 +212,7 @@ class ClientTimerService : LifecycleService() {
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
 
+        // 타이머 상태에 따른 알림 내용 설정
         when (timerCmInfo.value.timerActionState) {
             is TimerActionState.TimerWaiting -> {
                 baseNotification
@@ -243,8 +247,8 @@ class ClientTimerService : LifecycleService() {
             else -> {}
         }
 
-        acquireWakeLock()
-        ServiceCompat.startForeground(
+        acquireWakeLock() // WakeLock 설정
+        ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
             baseNotification!!.build(),
@@ -266,7 +270,9 @@ class ClientTimerService : LifecycleService() {
         }
     }
 
+    // 기기에 기울어짐 여부를 호스트에 전송
     fun deviceFlip(isFlip: Boolean, hostEndpointId: String) {
+        // 현재 해당 유저에 대한 정보 업데이트
         val participantInfo = timerCmInfo.value.participantInfoList[participantInfoIndex]
         val updateParticipantInfo = participantInfo?.copy(isReady = isFlip)
 
@@ -277,6 +283,7 @@ class ClientTimerService : LifecycleService() {
             )
         }
 
+        // 호스트에 정보 전송
         val payloadType = PayloadType.ClientReady(isReady = isFlip, participantInfoIndex)
         val payloadTypeJson =
             Json.encodeToString(PayloadType.serializer(), payloadType)
@@ -290,24 +297,25 @@ class ClientTimerService : LifecycleService() {
         )
     }
 
+    // 타이머 동작
     private fun timerStartOrResume(
         startTime: Long,
         onUpdateTime: (Long) -> Unit,
-        isStopwatch: Boolean
+        isTimer: Boolean
     ) {
-        timerJob?.cancel()
+        timerJob?.cancel() // 기존에 타이머 동작이 있으면 취소하고 새로 시작
         timerJob =
             lifecycleScope.launch(context = Dispatchers.Default) {
                 var time = startTime
                 var oldTimeMills = System.currentTimeMillis()
 
-                if (isStopwatch) {
+                if (!isTimer) {
                     while (true) {
                         if (!isActive)
                             break
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
-                        if (delayMills >= 1000L) {
+                        if (delayMills >= 1000L) { // 1초마다 동작
                             time += 1000
                             oldTimeMills = System.currentTimeMillis()
 
@@ -320,7 +328,7 @@ class ClientTimerService : LifecycleService() {
                             break
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
-                        if (delayMills >= 1000L) {
+                        if (delayMills >= 1000L) { // 1초마다 동작
                             time -= 1000
                             oldTimeMills = System.currentTimeMillis()
 
@@ -331,17 +339,20 @@ class ClientTimerService : LifecycleService() {
             }
     }
 
+    // 타이머 정지
     private fun timerPause() {
         timerJob?.cancel()
         timerJob = null
     }
 
+    // 타이머 상태에 따른 동작
     private fun manageTimerActionState(timerActionState: TimerActionState) {
         when (timerActionState) {
             is TimerActionState.TimerReady -> {}
 
             is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                 if (timerJob == null) {
+                    // 타이머 동작
                     timerStartOrResume(
                         startTime = timerCmInfo.value.currentTime,
                         onUpdateTime = { updateTime ->
@@ -359,19 +370,20 @@ class ClientTimerService : LifecycleService() {
                                     )
                                 }
 
+                                // foreground로 동작 시 알림 업데이트
                                 onNotifyWarning(
                                     text = "대화 타이머가 끝났어요.",
                                     title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
-                                ) // foreground로 동작 시 알림 업데이트
+                                )
                             }
                         },
-                        isStopwatch = timerCmInfo.value.isStopWatch
+                        isTimer = timerCmInfo.value.isTimer
                     )
                 }
             }
 
             is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
-                timerPause()
+                timerPause() // 타이머 정지
                 onNotifyUpdate(
                     parseMinuteSecond(
                         timerCmInfo.value.currentTime
@@ -400,6 +412,7 @@ class ClientTimerService : LifecycleService() {
         )
     }
 
+    // 알림 내용 업데이트
     private fun onNotifyUpdate(
         contentText: String
     ) {
@@ -416,6 +429,7 @@ class ClientTimerService : LifecycleService() {
         }
     }
 
+    // 오류 알림 표시
     private fun onNotifyWarning(title: String, text: String) {
         if (baseNotification != null) { // foreground로 동작 시 알림 업데이트
             val actionPendingIntent = PendingIntent.getActivity(
