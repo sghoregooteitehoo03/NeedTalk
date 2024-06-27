@@ -168,7 +168,7 @@ fun HostTimerRoute(
                         }
 
                         is TimerUiEvent.ClickFinished -> {
-                            if (uiState.timerCommunicateInfo.isTimer) {
+                            if (!uiState.timerCommunicateInfo.isTimer) {
                                 viewModel.setDialogScreen(
                                     DialogScreen.DialogWarning(
                                         "아직 대화중인 인원들이 있어요\n" +

@@ -18,10 +18,13 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -34,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.paging.LoadState
 import androidx.paging.PagingData
 import androidx.paging.compose.collectAsLazyPagingItems
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
@@ -144,6 +148,7 @@ fun PinTalkTopic(
 ) {
     Column(modifier = modifier.fillMaxSize()) {
         val talkTopics = talkTopicsFlow.collectAsLazyPagingItems()
+        val isLoading by remember { derivedStateOf { talkTopics.loadState.refresh is LoadState.Loading } }
         Box(modifier = Modifier.fillMaxWidth()) {
             Icon(
                 modifier = Modifier
@@ -173,13 +178,22 @@ fun PinTalkTopic(
             )
         }
         Spacer(modifier = Modifier.height(16.dp))
-        LazyRow(modifier = Modifier.fillMaxWidth()) {
-            items(talkTopics.itemCount) { index ->
-                TalkTopicItem(
-                    talkTopic = talkTopics[index]!!,
-                    onPinnedTalkTopic = onPinnedTalkTopic
-                )
-                Spacer(modifier = Modifier.width(12.dp))
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = MaterialTheme.colors.onPrimary)
+            }
+        } else {
+            LazyRow(modifier = Modifier.fillMaxWidth()) {
+                items(talkTopics.itemCount) { index ->
+                    TalkTopicItem(
+                        talkTopic = talkTopics[index]!!,
+                        onPinnedTalkTopic = onPinnedTalkTopic
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                }
             }
         }
     }

@@ -90,6 +90,8 @@ fun TimerScreen(
                     TimerWithButton(
                         timerTime = timerCmInfo.currentTime,
                         isWaiting = timerCmInfo.timerActionState == TimerActionState.TimerWaiting,
+                        isFinished = timerCmInfo.timerActionState == TimerActionState.TimerFinished ||
+                                (timerCmInfo.timerActionState is TimerActionState.StopWatchPause && timerCmInfo.timerActionState.isFinished),
                         isHost = isHost,
                         onClickExit = { isFinished ->
                             if (isFinished) { // 타이머, 스톱워치 동작을 마무리 지었을 때
@@ -222,6 +224,7 @@ fun TimerWithButton(
     timerTime: Long,
     isWaiting: Boolean,
     isHost: Boolean,
+    isFinished: Boolean,
     onClickExit: (Boolean) -> Unit,
     onClickStart: () -> Unit
 ) {
@@ -237,11 +240,19 @@ fun TimerWithButton(
         )
         Spacer(modifier = Modifier.height(24.dp))
         Row {
-            TimerButton(
-                buttonText = "나가기",
-                buttonIcon = painterResource(id = R.drawable.ic_exit),
-                onClick = { onClickExit(false) }
-            )
+            if (isFinished) {
+                TimerButton(
+                    buttonText = "끝내기",
+                    buttonIcon = painterResource(id = R.drawable.ic_check),
+                    onClick = { onClickExit(true) }
+                )
+            } else {
+                TimerButton(
+                    buttonText = "나가기",
+                    buttonIcon = painterResource(id = R.drawable.ic_exit),
+                    onClick = { onClickExit(false) }
+                )
+            }
             if (isHost && isWaiting) {
                 Spacer(modifier = Modifier.width(20.dp))
                 TimerButton(
@@ -615,6 +626,7 @@ fun TimerReadyDialog(
 ) {
     BottomSheetDialog(
         onDismissRequest = {},
+
         properties = BottomSheetDialogProperties(
             behaviorProperties = BottomSheetBehaviorProperties(isDraggable = false)
         )
