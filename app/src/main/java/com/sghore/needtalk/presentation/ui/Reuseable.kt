@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -667,53 +668,68 @@ fun TalkUserInfo(
 fun ParticipantInfoItem(
     modifier: Modifier = Modifier,
     participantInfo: ParticipantInfo,
-    isCurrentUser: Boolean
+    isCurrentUser: Boolean,
+    isReady: Boolean?
 ) {
-    Row(
-        modifier = modifier
-            .shadow(2.dp, MaterialTheme.shapes.medium)
-            .clip(MaterialTheme.shapes.medium)
-            .background(
-                color = MaterialTheme.colors.background,
-                shape = MaterialTheme.shapes.medium
-            )
-            .then(
-                if (isCurrentUser) {
-                    Modifier.border(
-                        width = 2.dp,
-                        color = MaterialTheme.colors.secondary,
-                        shape = MaterialTheme.shapes.medium
-                    )
-                } else {
-                    Modifier
-                }
-            )
-            .padding(8.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
+    Box(modifier = modifier) {
+        Row(
             modifier = Modifier
-                .size(38.dp)
-                .clip(CircleShape)
+                .fillMaxWidth()
+                .shadow(2.dp, MaterialTheme.shapes.medium)
+                .clip(MaterialTheme.shapes.medium)
                 .background(
-                    color = colorResource(id = R.color.light_gray_200),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+                    color = MaterialTheme.colors.background,
+                    shape = MaterialTheme.shapes.medium
+                )
+                .then(
+                    if (isCurrentUser) {
+                        Modifier.border(
+                            width = 2.dp,
+                            color = MaterialTheme.colors.secondary,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                    } else {
+                        Modifier
+                    }
+                )
+                .padding(8.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Image(
-                bitmap = byteArrayToBitmap(participantInfo.profileImage).asImageBitmap(),
-                contentDescription = "ProfileImage",
-                modifier = Modifier.size(28.dp)
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(CircleShape)
+                    .background(
+                        color = colorResource(id = R.color.light_gray_200),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    bitmap = byteArrayToBitmap(participantInfo.profileImage).asImageBitmap(),
+                    contentDescription = "ProfileImage",
+                    modifier = Modifier.size(28.dp)
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = participantInfo.name,
+                style = MaterialTheme.typography.h5.copy(
+                    color = MaterialTheme.colors.onPrimary
+                )
             )
         }
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(
-            text = participantInfo.name,
-            style = MaterialTheme.typography.h5.copy(
-                color = MaterialTheme.colors.onPrimary
+        if (isReady == true) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(54.dp)
+                    .background(
+                        color = colorResource(id = R.color.light_green),
+                        shape = MaterialTheme.shapes.medium
+                    )
             )
-        )
+        }
     }
 }
 

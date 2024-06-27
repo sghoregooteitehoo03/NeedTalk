@@ -2,7 +2,6 @@ package com.sghore.needtalk.presentation.ui.timer_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,11 +38,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.constraintlayout.compose.ConstraintLayout
 import com.holix.android.bottomsheetdialog.compose.BottomSheetBehaviorProperties
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialogProperties
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.ParticipantInfo
+import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DefaultButton
@@ -73,10 +74,17 @@ fun TimerScreen(
             verticalArrangement = Arrangement.Center
         ) {
             when (val timerActionState = timerCmInfo.timerActionState) {
-                !is TimerActionState.TimerRunning, !is TimerActionState.StopWatchRunning -> {
+                is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
+                    TimerWithMic(
+                        timerTime = timerCmInfo.currentTime,
+                        isAllowMic = timerCmInfo.isAllowMic
+                    )
+                }
+
+                else -> {
                     TimerWithButton(
                         timerTime = timerCmInfo.currentTime,
-                        timerActionState = timerActionState,
+                        isWaiting = timerCmInfo.timerActionState == TimerActionState.TimerWaiting,
                         isHost = isHost,
                         onClickExit = { isFinished ->
                             if (isFinished) { // 타이머, 스톱워치 동작을 마무리 지었을 때
@@ -94,8 +102,6 @@ fun TimerScreen(
                         }
                     )
                 }
-
-                else -> {}
             }
         }
         Column(
@@ -111,12 +117,21 @@ fun TimerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight(0.72f)
-                    .padding(14.dp)
+                    .padding(top = 14.dp, start = 14.dp, end = 14.dp)
             ) {
-                TimerStateInfo(
-                    timerActionState = timerCmInfo.timerActionState,
-                    isAvailableStart = timerCmInfo.participantInfoList.size == timerCmInfo.maxMember
-                )
+                when (timerCmInfo.timerActionState) {
+                    is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
+                        PinnedTalkTopicItem(pinnedTalkTopic = timerCmInfo.pinnedTalkTopic)
+                    }
+
+                    else -> {
+                        TimerStateInfo(
+                            timerActionState = timerCmInfo.timerActionState,
+                            isAvailableStart = timerCmInfo.participantInfoList.size == timerCmInfo.maxMember
+                        )
+                    }
+                }
+
             }
             Column(
                 modifier = Modifier
@@ -134,10 +149,68 @@ fun TimerScreen(
 }
 
 @Composable
+fun TimerWithMic(
+    modifier: Modifier = Modifier,
+    timerTime: Long,
+    isAllowMic: Boolean
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
+            val (text, mic) = createRefs()
+            Text(
+                modifier = Modifier.constrainAs(text) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                text = parseMinuteSecond(timerTime),
+                style = MaterialTheme.typography.h1.copy(
+                    color = MaterialTheme.colors.onSecondary,
+                )
+            )
+            if (isAllowMic) {
+                Box(
+                    modifier = Modifier
+                        .constrainAs(mic) {
+                            start.linkTo(text.end, 12.dp)
+                            top.linkTo(parent.top)
+                            bottom.linkTo(parent.bottom)
+                        }
+                        .size(18.dp)
+                        .background(
+                            color = Color.Red,
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(24.dp))
+        Row {
+            repeat(12) { index ->
+                Box(
+                    modifier = Modifier
+                        .width(10.dp)
+                        .height(24.dp)
+                        .background(
+                            color = colorResource(id = R.color.light_orange),
+                            shape = CircleShape
+                        )
+                )
+                if (index < 11) {
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun TimerWithButton(
     modifier: Modifier = Modifier,
     timerTime: Long,
-    timerActionState: TimerActionState,
+    isWaiting: Boolean,
     isHost: Boolean,
     onClickExit: (Boolean) -> Unit,
     onClickStart: () -> Unit
@@ -152,14 +225,14 @@ fun TimerWithButton(
                 color = MaterialTheme.colors.onSecondary,
             )
         )
-        Spacer(modifier = Modifier.height(28.dp))
+        Spacer(modifier = Modifier.height(24.dp))
         Row {
             TimerButton(
                 buttonText = "나가기",
                 buttonIcon = painterResource(id = R.drawable.ic_exit),
                 onClick = { onClickExit(false) }
             )
-            if (isHost) {
+            if (isHost && isWaiting) {
                 Spacer(modifier = Modifier.width(20.dp))
                 TimerButton(
                     buttonText = "시작",
@@ -252,6 +325,41 @@ fun TimerStateInfo(
 }
 
 @Composable
+fun PinnedTalkTopicItem(
+    modifier: Modifier = Modifier,
+    pinnedTalkTopic: PinnedTalkTopic?
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .shadow(2.dp, MaterialTheme.shapes.medium)
+            .clip(MaterialTheme.shapes.medium)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.medium
+            ),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        if (pinnedTalkTopic == null) {
+            Icon(
+                modifier = Modifier.size(180.dp),
+                painter = painterResource(id = R.drawable.ic_add),
+                contentDescription = "PinTalkTopic",
+                tint = colorResource(id = R.color.gray)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            Text(
+                text = "대화주제를 지정하여\n대화를 나누어보세요.",
+                style = MaterialTheme.typography.h4.copy(
+                    color = colorResource(id = R.color.gray)
+                )
+            )
+        }
+    }
+}
+
+@Composable
 fun Participants(
     modifier: Modifier = Modifier,
     currentUser: UserData?,
@@ -274,7 +382,8 @@ fun Participants(
                             .padding(4.dp)
                             .width(maxWidth.div(2)),
                         participantInfo = participantInfo,
-                        isCurrentUser = (currentUser?.userId ?: "") == participantInfo.userId
+                        isCurrentUser = (currentUser?.userId ?: "") == participantInfo.userId,
+                        isReady = participantInfo.isReady
                     )
                 } else {
                     EmptyTalkUserInfo(
@@ -401,11 +510,11 @@ fun TimerReadyDialog(
             )
             Spacer(modifier = Modifier.height(12.dp))
             Text(
-                text = "모든 사용자가 휴대폰을 내려놓으면\n타이머가 시작됩니다.",
+                text = "휴대폰을 내려놓아주세요.",
                 style = MaterialTheme.typography.h5.copy(
-                    color = colorResource(id = R.color.gray),
+                    color = MaterialTheme.colors.onPrimary,
                     fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
+                    fontSize = 18.sp
                 )
             )
         }

@@ -235,32 +235,32 @@ fun HostTimerRoute(
         when (val dialogScreen = uiState.dialogScreen) {
             is DialogScreen.DialogWarning -> { // 경고 다이얼로그
                 if (dialogScreen.isError) { // 오류 발생 시
-//                    stopSensor(context, sensorListener)
+                    stopSensor(context, sensorListener)
 
-//                    WarningDialog(
-//                        modifier = Modifier
-//                            .background(
-//                                color = MaterialTheme.colors.background,
-//                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
-//                            )
-//                            .fillMaxWidth()
-//                            .padding(14.dp),
-//                        message = dialogScreen.message,
-//                        possibleButtonText = "나가기",
-//                        onPossibleClick = {
+                    WarningDialog(
+                        modifier = Modifier
+                            .background(
+                                color = MaterialTheme.colors.background,
+                                shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                            )
+                            .fillMaxWidth()
+                            .padding(14.dp),
+                        message = dialogScreen.message,
+                        possibleButtonText = "나가기",
+                        onPossibleClick = {
 //                            viewModel.saveTalkHistory {
 //                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
 //                                    .show()
 //                            }
-//
-//                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
-//
-//                            service = null
-//                            navigateUp()
-//                        },
-//                        isError = true,
-//                        onDismiss = {}
-//                    )
+
+                            viewModel.setDialogScreen(DialogScreen.DialogDismiss)
+
+                            service = null
+                            navigateUp()
+                        },
+                        isError = true,
+                        onDismiss = {}
+                    )
                 } else {
                     WarningDialog(
                         modifier = Modifier
