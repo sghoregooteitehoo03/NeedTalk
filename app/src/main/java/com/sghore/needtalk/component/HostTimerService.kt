@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.hardware.SensorManager
+import android.media.MediaRecorder
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -28,6 +29,7 @@ import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
+import com.sghore.needtalk.util.getMediaRecord
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -38,10 +40,13 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
 
-// TODO: . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
+// TODO:
+//  . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
+//  . fix: 백그라운드에서 녹음이 되지 않는 버그 존재
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -66,6 +71,8 @@ class HostTimerService : LifecycleService() {
     private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = 0
     private var wakeLock: PowerManager.WakeLock? = null
+    private var mediaRecorder: MediaRecorder? = null
+    private var isFirst: Boolean = true // 녹음 start/resume 구분 용
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -74,17 +81,22 @@ class HostTimerService : LifecycleService() {
 
     override fun onDestroy() {
         timerPause()
+        stopRecording()
         releaseWakeLock()
+
         super.onDestroy()
     }
-
 
     fun startAdvertising(
         initTimerCmInfo: TimerCommunicateInfo,
         onError: (String) -> Unit
     ) =
         lifecycleScope.launch {
-            timerCmInfo.update { initTimerCmInfo }
+            timerCmInfo.update { initTimerCmInfo } // 타이머 정보 업데이트
+            if (initTimerCmInfo.isAllowMic) { // 녹음을 허용하는 경우
+                mediaRecorder = getMediaRecord(applicationContext)
+            }
+
             val packageName = applicationContext.packageName
 
             // 광고 수행
@@ -424,6 +436,31 @@ class HostTimerService : LifecycleService() {
         timerJob = null
     }
 
+    // 녹음 시작
+    private fun startOrResumeRecording() {
+        if (isFirst) {
+            mediaRecorder?.prepare()
+            mediaRecorder?.start()
+            isFirst = false
+        } else {
+            mediaRecorder?.resume()
+        }
+    }
+
+    // 녹음 종료
+    private fun pauseRecording() {
+        mediaRecorder?.pause()
+    }
+
+    // 녹음 끝내기
+    private fun stopRecording() {
+        if (!isFirst) {
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+            mediaRecorder = null
+        }
+    }
+
     // 업데이트 된 타이머 정보를 특정 기기에게 전달
     private fun sendUpdateTimerCmInfo(
         updateTimerCmInfo: TimerCommunicateInfo?,
@@ -535,6 +572,8 @@ class HostTimerService : LifecycleService() {
                 },
                 isTimer = isTimer
             )
+            // 녹음 시작
+            startOrResumeRecording()
         } else if (timerCmInfo.value.timerActionState == TimerActionState.TimerRunning ||
             timerCmInfo.value.timerActionState == TimerActionState.StopWatchRunning
         ) { // 타이머가 동작되는 도중 기기를 들어올린 유저가 존재하는 경우
@@ -547,7 +586,8 @@ class HostTimerService : LifecycleService() {
             // 타이머 상태 업데이트
             timerCmInfo.update { it.copy(timerActionState = timerActionState) }
 
-            timerPause()
+            timerPause() // 타이머 정지
+            pauseRecording() // 녹음 정지
             onNotifyUpdate(
                 parseMinuteSecond(timerCmInfo.value.currentTime)
                         + " (일시 정지)"

@@ -7,11 +7,15 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
+import android.media.MediaRecorder
+import android.os.Build
+import android.os.Environment
 import androidx.compose.ui.graphics.Color
 import androidx.palette.graphics.Palette
 import com.sghore.needtalk.domain.model.TalkTopicCategory
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.util.Calendar
@@ -149,3 +153,45 @@ fun generateTalkTopicId(userId: String, currentTime: Long): String {
 
     return bytes.joinToString("") { "%02x".format(it) }
 }
+
+// TODO: . 녹음 파일 경로 어디로 지정할지 고민, 녹음 을질 퀄리티 올리기
+fun getMediaRecord(context: Context) =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // 미디어 레코드 설정
+        MediaRecorder(context).apply {
+            // 경로 설정
+            val musicDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            val tempDir = File(musicDir, "NeedTalk/Temp")
+
+            if (!tempDir.exists()) {
+                tempDir.mkdirs()
+            }
+            val outputFilePath =
+                File(tempDir, "temp_${System.currentTimeMillis()}.m4a").absolutePath
+
+            // 미디어 옵션 설정
+            setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(outputFilePath)
+        }
+    } else {
+        MediaRecorder().apply {
+            // 경로 설정
+            val musicDir =
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_MUSIC)
+            val tempDir = File(musicDir, "NeedTalk/Temp")
+
+            if (!tempDir.exists()) {
+                tempDir.mkdirs()
+            }
+            val outputFilePath =
+                File(tempDir, "temp_${System.currentTimeMillis()}.m4a").absolutePath
+
+            // 미디어 옵션 설정
+            setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setOutputFile(outputFilePath)
+        }
+    }

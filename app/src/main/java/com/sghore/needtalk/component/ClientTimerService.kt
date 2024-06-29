@@ -7,6 +7,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.hardware.SensorManager
+import android.media.MediaRecorder
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -31,6 +32,7 @@ import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.bitmapToByteArray
+import com.sghore.needtalk.util.getMediaRecord
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -66,6 +68,8 @@ class ClientTimerService : LifecycleService() {
     private var timerJob: Job? = null
     private var participantInfoIndex = -1 // 나의 인덱스
     private var wakeLock: PowerManager.WakeLock? = null
+    private var mediaRecorder: MediaRecorder? = null
+    private var isFirst: Boolean = true // 녹음 start/resume 구분 용
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -74,7 +78,9 @@ class ClientTimerService : LifecycleService() {
 
     override fun onDestroy() {
         timerPause() // 타이머 동작 끝
+        stopRecording()
         releaseWakeLock()
+
         super.onDestroy()
     }
 
@@ -113,6 +119,11 @@ class ClientTimerService : LifecycleService() {
                                                 if (participantInfo?.userId == userData?.userId)
                                                     participantInfoIndex = index // 나의 인덱스 저장
                                             }
+                                    }
+
+                                    // 녹음을 허용하는 경우
+                                    if (currentInfo.isAllowMic && mediaRecorder == null) {
+                                        mediaRecorder = getMediaRecord(applicationContext)
                                     }
 
                                     // 타이머 정보 업데이트
@@ -345,6 +356,31 @@ class ClientTimerService : LifecycleService() {
         timerJob = null
     }
 
+    // 녹음 시작
+    private fun startOrResumeRecording() {
+        if (isFirst) {
+            mediaRecorder?.prepare()
+            mediaRecorder?.start()
+            isFirst = false
+        } else {
+            mediaRecorder?.resume()
+        }
+    }
+
+    // 녹음 종료
+    private fun pauseRecording() {
+        mediaRecorder?.pause()
+    }
+
+    // 녹음 끝내기
+    private fun stopRecording() {
+        if (!isFirst) {
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+            mediaRecorder = null
+        }
+    }
+
     // 타이머 상태에 따른 동작
     private fun manageTimerActionState(timerActionState: TimerActionState) {
         when (timerActionState) {
@@ -379,11 +415,14 @@ class ClientTimerService : LifecycleService() {
                         },
                         isTimer = timerCmInfo.value.isTimer
                     )
+                    startOrResumeRecording() // 녹음 시작
                 }
             }
 
             is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
                 timerPause() // 타이머 정지
+                pauseRecording() // 녹음 정지
+
                 onNotifyUpdate(
                     parseMinuteSecond(
                         timerCmInfo.value.currentTime
