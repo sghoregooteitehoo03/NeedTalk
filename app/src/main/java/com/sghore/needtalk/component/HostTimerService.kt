@@ -34,8 +34,11 @@ import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -64,10 +67,14 @@ class HostTimerService : LifecycleService() {
     @Inject
     lateinit var sensorManager: SensorManager
 
-    var timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
+    val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
+    val amplitudeFlow = MutableStateFlow(0)
+
     private val binder = LocalBinder()
 
     private var timerJob: Job? = null
+    private var amplitudeJob: Job? = null
+
     private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = 0
     private var wakeLock: PowerManager.WakeLock? = null
@@ -445,11 +452,18 @@ class HostTimerService : LifecycleService() {
         } else {
             mediaRecorder?.resume()
         }
+
+        if (mediaRecorder != null) {
+            startAmplitudeJob()
+        }
     }
 
     // 녹음 종료
     private fun pauseRecording() {
         mediaRecorder?.pause()
+
+        amplitudeJob?.cancel()
+        amplitudeJob = null
     }
 
     // 녹음 끝내기
@@ -458,6 +472,16 @@ class HostTimerService : LifecycleService() {
             mediaRecorder?.stop()
             mediaRecorder?.release()
             mediaRecorder = null
+        }
+    }
+
+    private fun startAmplitudeJob() {
+        amplitudeJob?.cancel()
+        amplitudeJob = lifecycleScope.launch(context = Dispatchers.Default) {
+            while (true) {
+                amplitudeFlow.update { mediaRecorder?.maxAmplitude ?: 0 }
+                delay(100)
+            }
         }
     }
 
@@ -572,8 +596,7 @@ class HostTimerService : LifecycleService() {
                 },
                 isTimer = isTimer
             )
-            // 녹음 시작
-            startOrResumeRecording()
+            startOrResumeRecording() // 녹음 시작
         } else if (timerCmInfo.value.timerActionState == TimerActionState.TimerRunning ||
             timerCmInfo.value.timerActionState == TimerActionState.StopWatchRunning
         ) { // 타이머가 동작되는 도중 기기를 들어올린 유저가 존재하는 경우

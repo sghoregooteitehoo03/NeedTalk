@@ -37,6 +37,7 @@ import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.update
@@ -61,11 +62,15 @@ class ClientTimerService : LifecycleService() {
     @Inject
     lateinit var sensorManager: SensorManager
 
-    var timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
+    val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
+    val amplitudeFlow = MutableStateFlow(0)
+
     private val binder = LocalBinder()
 
-    private var baseNotification: NotificationCompat.Builder? = null
     private var timerJob: Job? = null
+    private var amplitudeJob: Job? = null
+
+    private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = -1 // 나의 인덱스
     private var wakeLock: PowerManager.WakeLock? = null
     private var mediaRecorder: MediaRecorder? = null
@@ -365,11 +370,18 @@ class ClientTimerService : LifecycleService() {
         } else {
             mediaRecorder?.resume()
         }
+
+        if (mediaRecorder != null) {
+            startAmplitudeJob()
+        }
     }
 
     // 녹음 종료
     private fun pauseRecording() {
         mediaRecorder?.pause()
+
+        amplitudeJob?.cancel()
+        amplitudeJob = null
     }
 
     // 녹음 끝내기
@@ -378,6 +390,16 @@ class ClientTimerService : LifecycleService() {
             mediaRecorder?.stop()
             mediaRecorder?.release()
             mediaRecorder = null
+        }
+    }
+
+    private fun startAmplitudeJob() {
+        amplitudeJob?.cancel()
+        amplitudeJob = lifecycleScope.launch(context = Dispatchers.Default) {
+            while (true) {
+                amplitudeFlow.update { mediaRecorder?.maxAmplitude ?: 0 }
+                delay(100)
+            }
         }
     }
 

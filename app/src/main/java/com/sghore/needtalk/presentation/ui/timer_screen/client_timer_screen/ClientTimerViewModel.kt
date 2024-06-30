@@ -70,6 +70,12 @@ class ClientTimerViewModel @Inject constructor(
         }
     }
 
+    fun updateAmplitudeValue(amplitude: Int) {
+        _uiState.update {
+            it.copy(amplitudeValue = amplitude)
+        }
+    }
+
     // 해당하는 카테고리의 대화 주제들을 가져옴
     fun getTalkTopics(
         groupCode: Int,

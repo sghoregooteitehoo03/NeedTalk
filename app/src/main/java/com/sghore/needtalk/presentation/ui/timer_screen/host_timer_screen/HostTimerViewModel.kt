@@ -28,7 +28,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HostTimerViewModel @Inject constructor(
-    private val getTalkTopicsUseCase: GetTalkTopicsUseCase,
     private val insertTalkEntityUseCase: InsertTalkEntityUseCase,
     private val insertUserEntityUseCase: InsertUserEntityUseCase,
     savedStateHandle: SavedStateHandle
@@ -66,13 +65,9 @@ class HostTimerViewModel @Inject constructor(
         }
     }
 
-    // 해당하는 카테고리의 대화 주제들을 가져옴
-    fun getTalkTopics(
-        groupCode: Int,
-        updateTopics: (List<TalkTopicEntity>) -> Unit
-    ) = viewModelScope.launch {
-        getTalkTopicsUseCase(groupCode).collectLatest {
-            updateTopics(it)
+    fun updateAmplitudeValue(amplitude: Int) {
+        _uiState.update {
+            it.copy(amplitudeValue = amplitude)
         }
     }
 

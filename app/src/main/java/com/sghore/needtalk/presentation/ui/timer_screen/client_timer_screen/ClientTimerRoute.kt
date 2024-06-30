@@ -235,6 +235,10 @@ fun ClientTimerRoute(
                     viewModel.updateTimerCommunicateInfo(it)
                 }
             }
+
+            launch {
+                service?.amplitudeFlow?.collectLatest { viewModel.updateAmplitudeValue(it) }
+            }
         })
 
     BackHandler {}

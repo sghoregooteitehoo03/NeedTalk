@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -217,6 +218,10 @@ fun HostTimerRoute(
                     // UI 업데이트
                     viewModel.updateTimerCommunicateInfo(it)
                 }
+            }
+
+            launch {
+                service?.amplitudeFlow?.collectLatest { viewModel.updateAmplitudeValue(it) }
             }
         })
 

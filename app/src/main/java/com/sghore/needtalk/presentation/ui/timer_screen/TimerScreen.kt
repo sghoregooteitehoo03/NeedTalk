@@ -82,7 +82,8 @@ fun TimerScreen(
                 is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                     TimerWithMic(
                         timerTime = timerCmInfo.currentTime,
-                        isAllowMic = timerCmInfo.isAllowMic
+                        isAllowMic = timerCmInfo.isAllowMic,
+                        amplitudeValue = uiState.amplitudeValue
                     )
                 }
 
@@ -164,6 +165,8 @@ fun TimerScreen(
 fun TimerWithMic(
     modifier: Modifier = Modifier,
     timerTime: Long,
+    amplitudeValue: Int,
+    maxAmplitudeValue: Int = 32760,
     isAllowMic: Boolean
 ) {
     Column(
@@ -206,7 +209,12 @@ fun TimerWithMic(
                         .width(10.dp)
                         .height(24.dp)
                         .background(
-                            color = colorResource(id = R.color.light_orange),
+                            // TODO: fix. 조건 값 조절하기
+                            color = if (amplitudeValue >= maxAmplitudeValue * index / 12) {
+                                colorResource(id = R.color.orange_80)
+                            } else {
+                                colorResource(id = R.color.light_orange)
+                            },
                             shape = CircleShape
                         )
                 )
