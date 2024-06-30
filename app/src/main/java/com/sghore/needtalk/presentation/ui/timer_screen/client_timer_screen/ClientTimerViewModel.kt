@@ -3,14 +3,9 @@ package com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
-import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase
-import com.sghore.needtalk.domain.usecase.InsertTalkEntityUseCase
-import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
@@ -18,20 +13,15 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class ClientTimerViewModel @Inject constructor(
-    private val getTalkTopicsUseCase: GetTalkTopicsUseCase,
-    private val insertTalkEntityUseCase: InsertTalkEntityUseCase,
-    private val insertUserEntityUseCase: InsertUserEntityUseCase,
-    savedStateHandle: SavedStateHandle
-) : ViewModel() {
+class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
     private var userList = listOf<UserEntity?>()
@@ -76,16 +66,6 @@ class ClientTimerViewModel @Inject constructor(
         }
     }
 
-    // 해당하는 카테고리의 대화 주제들을 가져옴
-    fun getTalkTopics(
-        groupCode: Int,
-        updateTopics: (List<TalkTopicEntity>) -> Unit
-    ) = viewModelScope.launch {
-        getTalkTopicsUseCase(groupCode).collectLatest {
-            updateTopics(it)
-        }
-    }
-
     fun handelEvent(event: TimerUiEvent) = viewModelScope.launch {
         _uiEvent.emit(event)
     }
@@ -112,32 +92,32 @@ class ClientTimerViewModel @Inject constructor(
     }
 
     // 타이머 끝났을 떄 취하는 동작
-    fun saveTalkHistory(showToastBar: (String) -> Unit) = viewModelScope.launch {
-        // TODO: .fix 타이머 동작 중 호스트가 끊기게 되면 유저 정보 저장되지 않는 버그 발견
-        val updateTimerInfo = _uiState.value.timerCommunicateInfo
+    fun finishedTalk(
+        recordFilePath: String,
+        navigateOtherScreen: (Boolean) -> Unit
+    ) {
+        val timerCmInfo = _uiState.value.timerCommunicateInfo
+        val currentTime = if (timerCmInfo.isTimer) {
+            timerCmInfo.maxTime - timerCmInfo.currentTime
+        } else {
+            timerCmInfo.currentTime
+        }
+        val isFinished = currentTime >= 300000
 
-        if (updateTimerInfo.timerActionState != TimerActionState.TimerWaiting) {
-            val talkTime = if (updateTimerInfo.isTimer)
-                updateTimerInfo.currentTime
-            else
-                updateTimerInfo.maxTime - updateTimerInfo.currentTime
+        if (isFinished) {
+            navigateOtherScreen(true)
+        } else {
+            removeTempRecordFile(recordFilePath)
+            navigateOtherScreen(false)
+        }
+    }
 
-            if (talkTime >= 60000) {
-                if (userList.size > 1) {
-                    val talkHistory = TalkHistory(
-                        talkTime = talkTime,
-                        users = userList,
-                        createTimeStamp = System.currentTimeMillis()
-                    )
+    // 임시 레코드 파일을 지움
+    private fun removeTempRecordFile(recordFilePath: String) {
+        val recordFile = File(recordFilePath)
 
-                    // 대화 정보를 저장함
-                    insertTalkEntityUseCase(talkHistory)
-                } else {
-                    showToastBar("대화 기록 저장 간 오류가 발생하였습니다.")
-                }
-            } else {
-                showToastBar("1분 이하의 대화는 기록되지 않습니다.")
-            }
+        if (recordFile.exists()) {
+            recordFile.delete()
         }
     }
 }

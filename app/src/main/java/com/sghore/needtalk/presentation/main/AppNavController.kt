@@ -194,6 +194,7 @@ fun AppNavHost(
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
                 },
+                navigateResultScreen = navController::navigate,
                 showSnackBar = showSnackBar
             )
         }
@@ -209,7 +210,8 @@ fun AppNavHost(
                 navigateUp = {
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
-                }
+                },
+                navigateResultScreen = navController::navigate
             )
         }
         composable(

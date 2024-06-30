@@ -69,6 +69,7 @@ class ClientTimerService : LifecycleService() {
 
     private var timerJob: Job? = null
     private var amplitudeJob: Job? = null
+    var outputFile = ""
 
     private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = -1 // 나의 인덱스
@@ -128,7 +129,10 @@ class ClientTimerService : LifecycleService() {
 
                                     // 녹음을 허용하는 경우
                                     if (currentInfo.isAllowMic && mediaRecorder == null) {
-                                        mediaRecorder = getMediaRecord(applicationContext)
+                                        mediaRecorder = getMediaRecord(
+                                            context = applicationContext,
+                                            setOutputFileName = { outputFile = it }
+                                        )
                                     }
 
                                     // 타이머 정보 업데이트
@@ -264,6 +268,9 @@ class ClientTimerService : LifecycleService() {
         }
 
         acquireWakeLock() // WakeLock 설정
+        if (mediaRecorder != null) {
+            cancelAmplitudeJob() // 마이크 높낮이 수집 X
+        }
         ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
@@ -282,6 +289,9 @@ class ClientTimerService : LifecycleService() {
             baseNotification = null
 
             releaseWakeLock()
+            if (mediaRecorder != null) {
+                startAmplitudeJob()
+            }
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
@@ -379,14 +389,14 @@ class ClientTimerService : LifecycleService() {
     // 녹음 종료
     private fun pauseRecording() {
         mediaRecorder?.pause()
-
-        amplitudeJob?.cancel()
-        amplitudeJob = null
+        cancelAmplitudeJob()
     }
 
     // 녹음 끝내기
     private fun stopRecording() {
         if (!isFirst) {
+            cancelAmplitudeJob()
+
             mediaRecorder?.stop()
             mediaRecorder?.release()
             mediaRecorder = null
@@ -401,6 +411,11 @@ class ClientTimerService : LifecycleService() {
                 delay(100)
             }
         }
+    }
+
+    private fun cancelAmplitudeJob() {
+        amplitudeJob?.cancel()
+        amplitudeJob = null
     }
 
     // 타이머 상태에 따른 동작

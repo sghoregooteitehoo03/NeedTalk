@@ -13,6 +13,7 @@ import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -55,7 +56,8 @@ import kotlinx.coroutines.launch
 fun ClientTimerRoute(
     viewModel: ClientTimerViewModel = hiltViewModel(),
     userData: UserData?,
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    navigateResultScreen: (String) -> Unit,
 ) {
     val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
@@ -175,10 +177,21 @@ fun ClientTimerRoute(
                                     )
                                 )
                             } else {
-//                                viewModel.saveTalkHistory {
-//                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
-//                                        .show()
-//                                }
+                                viewModel.finishedTalk(
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { isFinished ->
+                                        if (isFinished) {
+                                            navigateResultScreen("")
+                                        } else {
+                                            navigateUp()
+                                            Toast.makeText(
+                                                context,
+                                                "5분 미만의 대화는 기록되지 않습니다.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
 
                                 service = null
                                 navigateUp()
@@ -284,10 +297,21 @@ fun ClientTimerRoute(
                         possibleButtonText = "나가기",
                         onPossibleClick = {
                             if (!dialogScreen.isReject) {
-//                                viewModel.saveTalkHistory {
-//                                    Toast.makeText(context, it, Toast.LENGTH_SHORT)
-//                                        .show()
-//                                }
+                                viewModel.finishedTalk(
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { isFinished ->
+                                        if (isFinished) {
+                                            navigateResultScreen("")
+                                        } else {
+                                            navigateUp()
+                                            Toast.makeText(
+                                                context,
+                                                "5분 미만의 대화는 기록되지 않습니다.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
+                                    }
+                                )
                             }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
@@ -309,10 +333,21 @@ fun ClientTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
-//                            viewModel.saveTalkHistory {
-//                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
-//                                    .show()
-//                            }
+                            viewModel.finishedTalk(
+                                recordFilePath = service?.outputFile ?: "",
+                                navigateOtherScreen = { isFinished ->
+                                    if (isFinished) {
+                                        navigateResultScreen("")
+                                    } else {
+                                        navigateUp()
+                                        Toast.makeText(
+                                            context,
+                                            "5분 미만의 대화는 기록되지 않습니다.",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
+                                    }
+                                }
+                            )
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             service = null

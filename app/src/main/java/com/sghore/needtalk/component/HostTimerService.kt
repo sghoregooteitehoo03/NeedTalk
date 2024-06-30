@@ -36,14 +36,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
 
@@ -69,6 +66,7 @@ class HostTimerService : LifecycleService() {
 
     val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
     val amplitudeFlow = MutableStateFlow(0)
+    var outputFile = ""
 
     private val binder = LocalBinder()
 
@@ -101,7 +99,10 @@ class HostTimerService : LifecycleService() {
         lifecycleScope.launch {
             timerCmInfo.update { initTimerCmInfo } // 타이머 정보 업데이트
             if (initTimerCmInfo.isAllowMic) { // 녹음을 허용하는 경우
-                mediaRecorder = getMediaRecord(applicationContext)
+                mediaRecorder = getMediaRecord(
+                    context = applicationContext,
+                    setOutputFileName = { outputFile = it }
+                )
             }
 
             val packageName = applicationContext.packageName
@@ -335,6 +336,9 @@ class HostTimerService : LifecycleService() {
         }
 
         acquireWakeLock() // WakeLock 설정
+        if (mediaRecorder != null) {
+            cancelAmplitudeJob() // 마이크 높낮이 수집 X
+        }
         ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
@@ -353,6 +357,9 @@ class HostTimerService : LifecycleService() {
             baseNotification = null
 
             releaseWakeLock()
+            if (mediaRecorder != null) {
+                startAmplitudeJob()
+            }
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
@@ -461,14 +468,14 @@ class HostTimerService : LifecycleService() {
     // 녹음 종료
     private fun pauseRecording() {
         mediaRecorder?.pause()
-
-        amplitudeJob?.cancel()
-        amplitudeJob = null
+        cancelAmplitudeJob()
     }
 
     // 녹음 끝내기
     private fun stopRecording() {
         if (!isFirst) {
+            cancelAmplitudeJob()
+
             mediaRecorder?.stop()
             mediaRecorder?.release()
             mediaRecorder = null
@@ -483,6 +490,11 @@ class HostTimerService : LifecycleService() {
                 delay(100)
             }
         }
+    }
+
+    private fun cancelAmplitudeJob() {
+        amplitudeJob?.cancel()
+        amplitudeJob = null
     }
 
     // 업데이트 된 타이머 정보를 특정 기기에게 전달
