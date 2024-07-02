@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopicCategory
+import com.sghore.needtalk.presentation.ui.BaselineTextField
 import com.sghore.needtalk.presentation.ui.theme.Green50
 
 @Composable
@@ -95,8 +96,9 @@ fun AddTalkTopicScreen(
                 .fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) {
-            InputTalkTopic(
-                talkTopicText = uiState.talkTopicText,
+            BaselineTextField(
+                hint = "대화주제를 제작해보세요.",
+                text = uiState.talkTopicText,
                 onValueChange = { onEvent(AddTalkTopicUiEvent.ChangeTalkTopicText(it)) }
             )
         }
@@ -116,81 +118,6 @@ fun AddTalkTopicScreen(
                 onClick = { onEvent(AddTalkTopicUiEvent.ClickSetPublic) }
             )
         }
-    }
-}
-
-@Composable
-fun InputTalkTopic(
-    modifier: Modifier = Modifier,
-    talkTopicText: String,
-    onValueChange: (String) -> Unit,
-    maxTextLength: Int = 100
-) {
-    val underlineColor = if (talkTopicText.isNotEmpty()) {
-        MaterialTheme.colors.onPrimary
-    } else {
-        colorResource(id = R.color.gray)
-    }
-
-    Column(
-        modifier = modifier.padding(start = 14.dp, end = 14.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Box(contentAlignment = Alignment.Center) {
-            if (talkTopicText.isEmpty()) {
-                Text(
-                    modifier = Modifier
-                        .drawBehind {
-                            val strokeWidth = 2.dp.toPx()
-                            val y = size.height - strokeWidth / 2 + (4.dp.toPx())
-                            drawLine(
-                                color = underlineColor,
-                                start = Offset(0f, y),
-                                end = Offset(size.width + 6.dp.toPx(), y),
-                                strokeWidth = strokeWidth
-                            )
-                        },
-                    text = "대화주제를 제작해보세요.",
-                    style = MaterialTheme.typography.h4.copy(
-                        fontSize = 24.sp,
-                        color = colorResource(id = R.color.gray)
-                    )
-                )
-            }
-            BasicTextField(
-                modifier = Modifier
-                    .drawBehind {
-                        if (talkTopicText.isNotEmpty()) {
-                            val strokeWidth = 2.dp.toPx()
-                            val y = size.height - strokeWidth / 2 + (4.dp.toPx())
-                            drawLine(
-                                color = underlineColor,
-                                start = Offset(0f, y),
-                                end = Offset(size.width + 6.dp.toPx(), y),
-                                strokeWidth = strokeWidth
-                            )
-                        }
-                    },
-                value = talkTopicText,
-                onValueChange = {
-                    if (it.length <= maxTextLength) {
-                        onValueChange(it)
-                    }
-                },
-                textStyle = MaterialTheme.typography.h4.copy(
-                    fontSize = 24.sp,
-                    textAlign = TextAlign.Center
-                ),
-                maxLines = 8,
-            )
-        }
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = "${talkTopicText.length}/$maxTextLength",
-            style = MaterialTheme.typography.body1.copy(
-                color = colorResource(id = R.color.gray)
-            )
-        )
     }
 }
 

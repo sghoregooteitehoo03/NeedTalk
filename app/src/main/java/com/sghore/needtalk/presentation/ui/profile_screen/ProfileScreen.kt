@@ -214,6 +214,7 @@ fun FriendInfoItem(
                 color = MaterialTheme.colors.background,
                 shape = MaterialTheme.shapes.large
             )
+            .height(106.dp)
             .padding(14.dp)
     ) {
         val (profileImage, info, remove) = createRefs()
@@ -243,7 +244,6 @@ fun FriendInfoItem(
                 top.linkTo(parent.top)
                 start.linkTo(profileImage.end, margin = 16.dp)
                 end.linkTo(remove.start, margin = 16.dp)
-                bottom.linkTo(parent.bottom)
                 width = Dimension.fillToConstraints
             }
         ) {

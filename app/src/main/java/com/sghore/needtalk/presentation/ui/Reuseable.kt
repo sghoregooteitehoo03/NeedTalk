@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -321,6 +322,82 @@ fun DefaultTextField(
                 focusedIndicatorColor = Color.Transparent,
                 unfocusedIndicatorColor = Color.Transparent,
                 cursorColor = MaterialTheme.colors.onPrimary
+            )
+        )
+    }
+}
+
+@Composable
+fun BaselineTextField(
+    modifier: Modifier = Modifier,
+    hint: String,
+    text: String,
+    onValueChange: (String) -> Unit,
+    maxTextLength: Int = 100
+) {
+    val underlineColor = if (text.isNotEmpty()) {
+        MaterialTheme.colors.onPrimary
+    } else {
+        colorResource(id = R.color.gray)
+    }
+
+    Column(
+        modifier = modifier.padding(start = 14.dp, end = 14.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Box(contentAlignment = Alignment.Center) {
+            if (text.isEmpty()) {
+                Text(
+                    modifier = Modifier
+                        .drawBehind {
+                            val strokeWidth = 2.dp.toPx()
+                            val y = size.height - strokeWidth / 2 + (4.dp.toPx())
+                            drawLine(
+                                color = underlineColor,
+                                start = Offset(0f, y),
+                                end = Offset(size.width + 6.dp.toPx(), y),
+                                strokeWidth = strokeWidth
+                            )
+                        },
+                    text = hint,
+                    style = MaterialTheme.typography.h4.copy(
+                        fontSize = 24.sp,
+                        color = colorResource(id = R.color.gray)
+                    )
+                )
+            }
+            BasicTextField(
+                modifier = Modifier
+                    .drawBehind {
+                        if (text.isNotEmpty()) {
+                            val strokeWidth = 2.dp.toPx()
+                            val y = size.height - strokeWidth / 2 + (4.dp.toPx())
+                            drawLine(
+                                color = underlineColor,
+                                start = Offset(0f, y),
+                                end = Offset(size.width + 6.dp.toPx(), y),
+                                strokeWidth = strokeWidth
+                            )
+                        }
+                    },
+                value = text,
+                onValueChange = {
+                    if (it.length <= maxTextLength) {
+                        onValueChange(it)
+                    }
+                },
+                textStyle = MaterialTheme.typography.h4.copy(
+                    fontSize = 24.sp,
+                    textAlign = TextAlign.Center
+                ),
+                maxLines = 8,
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
+        Text(
+            text = "${text.length}/$maxTextLength",
+            style = MaterialTheme.typography.body1.copy(
+                color = colorResource(id = R.color.gray)
             )
         )
     }

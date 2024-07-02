@@ -50,6 +50,8 @@ sealed class UiScreen(
 
     data object ClientTimerScreen : UiScreen(route = "ClientTimer")
 
+    data object ResultScreen : UiScreen("ResultScreen")
+
     data object StaticsScreen : UiScreen(route = "StaticsScreen")
 }
 
