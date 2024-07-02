@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
@@ -93,18 +94,20 @@ class HostTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandle)
         navigateOtherScreen: (Boolean) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        val currentTime = if (timerCmInfo.isTimer) {
-            timerCmInfo.maxTime - timerCmInfo.currentTime
-        } else {
-            timerCmInfo.currentTime
-        }
-        val isFinished = currentTime >= 300000
+        if (timerCmInfo.timerActionState != TimerActionState.TimerWaiting) {
+            val currentTime = if (timerCmInfo.isTimer) {
+                timerCmInfo.maxTime - timerCmInfo.currentTime
+            } else {
+                timerCmInfo.currentTime
+            }
+            val isFinished = currentTime >= 300000
 
-        if (isFinished) {
-            navigateOtherScreen(true)
-        } else {
-            removeTempRecordFile(recordFilePath)
-            navigateOtherScreen(false)
+            if (isFinished) {
+                navigateOtherScreen(true)
+            } else {
+                removeTempRecordFile(recordFilePath)
+                navigateOtherScreen(false)
+            }
         }
     }
 

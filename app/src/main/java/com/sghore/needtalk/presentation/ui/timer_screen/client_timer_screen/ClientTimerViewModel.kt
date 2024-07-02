@@ -97,18 +97,20 @@ class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandl
         navigateOtherScreen: (Boolean) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        val currentTime = if (timerCmInfo.isTimer) {
-            timerCmInfo.maxTime - timerCmInfo.currentTime
-        } else {
-            timerCmInfo.currentTime
-        }
-        val isFinished = currentTime >= 300000
+        if (timerCmInfo.timerActionState != TimerActionState.TimerWaiting) {
+            val currentTime = if (timerCmInfo.isTimer) {
+                timerCmInfo.maxTime - timerCmInfo.currentTime
+            } else {
+                timerCmInfo.currentTime
+            }
+            val isFinished = currentTime >= 300000
 
-        if (isFinished) {
-            navigateOtherScreen(true)
-        } else {
-            removeTempRecordFile(recordFilePath)
-            navigateOtherScreen(false)
+            if (isFinished) {
+                navigateOtherScreen(true)
+            } else {
+                removeTempRecordFile(recordFilePath)
+                navigateOtherScreen(false)
+            }
         }
     }
 

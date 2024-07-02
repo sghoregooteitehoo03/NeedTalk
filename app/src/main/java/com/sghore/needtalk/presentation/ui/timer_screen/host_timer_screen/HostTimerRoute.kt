@@ -34,9 +34,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
+import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerReadyDialog
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
@@ -51,7 +53,7 @@ fun HostTimerRoute(
     viewModel: HostTimerViewModel = hiltViewModel(),
     userData: UserData?,
     navigateUp: () -> Unit,
-    navigateResultScreen: (String) -> Unit, // TODO: 결과화면으로 이동 구현
+    navigateResultScreen: (String) -> Unit,
     showSnackBar: suspend (String) -> Unit
 ) {
     val context = LocalContext.current
@@ -180,22 +182,15 @@ fun HostTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { isFinished ->
-                                        if (isFinished) {
-                                            navigateResultScreen("")
-                                        } else {
-                                            navigateUp()
-                                            Toast.makeText(
-                                                context,
-                                                "5분 미만의 대화는 기록되지 않습니다.",
-                                                Toast.LENGTH_SHORT
-                                            ).show()
-                                        }
+                                    navigateOtherScreen = { _ ->
+                                        navigateToResultScreen(
+                                            timerCmInfo = uiState.timerCommunicateInfo,
+                                            navigate = navigateResultScreen
+                                        )
                                     }
                                 )
 
                                 service = null
-                                navigateUp()
                             }
                         }
 
@@ -267,7 +262,10 @@ fun HostTimerRoute(
                                 recordFilePath = service?.outputFile ?: "",
                                 navigateOtherScreen = { isFinished ->
                                     if (isFinished) {
-                                        navigateResultScreen("")
+                                        navigateToResultScreen(
+                                            timerCmInfo = uiState.timerCommunicateInfo,
+                                            navigate = navigateResultScreen
+                                        )
                                     } else {
                                         navigateUp()
                                         Toast.makeText(
@@ -303,7 +301,10 @@ fun HostTimerRoute(
                                 recordFilePath = service?.outputFile ?: "",
                                 navigateOtherScreen = { isFinished ->
                                     if (isFinished) {
-                                        navigateResultScreen("")
+                                        navigateToResultScreen(
+                                            timerCmInfo = uiState.timerCommunicateInfo,
+                                            navigate = navigateResultScreen
+                                        )
                                     } else {
                                         navigateUp()
                                         Toast.makeText(
@@ -357,6 +358,7 @@ fun HostTimerRoute(
                             pinnedUserName = userData?.name ?: ""
                         )
 
+                        // TODO: feat: 이미 설정된게 있으면 무시
                         service?.pinnedTalkTopic(pinnedTalkTopic)
                     }
                 )
@@ -365,6 +367,13 @@ fun HostTimerRoute(
             else -> {}
         }
     }
+}
+
+private fun navigateToResultScreen(
+    timerCmInfo: TimerCommunicateInfo,
+    navigate: (String) -> Unit
+) {
+    navigate(UiScreen.ResultScreen.route)
 }
 
 // 서비스 시작

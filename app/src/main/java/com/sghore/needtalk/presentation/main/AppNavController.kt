@@ -24,6 +24,7 @@ import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
 import com.sghore.needtalk.presentation.ui.join_talk_screen.JoinTalkRoute
 import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
+import com.sghore.needtalk.presentation.ui.result_screen.ResultRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
@@ -188,13 +189,16 @@ fun AppNavHost(
                 navArgument("timerCmInfo") { type = NavType.StringType }
             )
         ) {
+            // TODO: .fix 결과화면으로 이동 안되는 버그 수정
             HostTimerRoute(
                 userData = gViewModel.getUserData(),
                 navigateUp = {
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
                 },
-                navigateResultScreen = navController::navigate,
+                navigateResultScreen = {
+                    navigateToResultScreen(navController)
+                },
                 showSnackBar = showSnackBar
             )
         }
@@ -211,8 +215,13 @@ fun AppNavHost(
                     gViewModel.setIsRefresh(true)
                     navigateToHome(navController)
                 },
-                navigateResultScreen = navController::navigate
+                navigateResultScreen = {
+                    navigateToResultScreen(navController)
+                }
             )
+        }
+        composable(route = UiScreen.ResultScreen.route) {
+            ResultRoute()
         }
         composable(
             route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",
@@ -227,40 +236,6 @@ fun AppNavHost(
 
 @Composable
 fun EmptyScreen() {
-}
-
-private fun navigateToStaticsScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(UiScreen.StaticsScreen.route + "?userEntity=${userEntityJson}")
-    }
-}
-
-private fun navigateToCreateScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(UiScreen.CreateTalkScreen.route + "?userEntity=${userEntityJson}")
-    }
-}
-
-private fun navigateToJoinScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?,
-    packageName: String
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(
-            UiScreen.JoinTalkScreen.route +
-                    "?&userEntity=${userEntityJson}&packageName=${packageName}"
-        )
-    }
 }
 
 private fun navigateToHostTimerScreen(
@@ -288,6 +263,16 @@ private fun navigateToClientTimerScreen(
 
 private fun navigateToHome(navController: NavHostController) {
     navController.popBackStack(route = UiScreen.HomeScreen.route, inclusive = false)
+}
+
+private fun navigateToResultScreen(navController: NavHostController) {
+    navController.navigate(
+        route = UiScreen.ResultScreen.route,
+        builder = {
+            popUpTo(UiScreen.HomeScreen.route) {
+                inclusive = false
+            }
+        })
 }
 
 private fun enterTransition() =
