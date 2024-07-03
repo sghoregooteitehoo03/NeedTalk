@@ -4,6 +4,7 @@ import androidx.compose.ui.graphics.toArgb
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.PayloadType
 import com.sghore.needtalk.presentation.ui.theme.Blue
+import com.sghore.needtalk.util.getRandomExperiencePoint
 import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.junit.Assert.*
@@ -91,6 +92,12 @@ class ExampleUnitTest {
         }.timeInMillis
 
         println("first: ${firstTime}, last: $lastTime")
+    }
+
+    @Test
+    fun getRandomExperiencePointTest() {
+        val point = getRandomExperiencePoint(3600000L)
+        println("point: $point")
     }
 
     @Test

@@ -17,7 +17,9 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.MessageDigest
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
 import java.util.Calendar
+import java.util.Locale
 
 // time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
 fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
@@ -39,6 +41,11 @@ fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
     }
 }
 
+fun getDefaultTalkTitle(): String = SimpleDateFormat(
+    "yy-MM-dd hh:mm 대화",
+    Locale.KOREA
+).format(System.currentTimeMillis())
+
 fun parseMinuteSecond(timeStamp: Long): String {
     return if (timeStamp >= 0L) {
         val decimalFormat = DecimalFormat("#00")
@@ -52,13 +59,29 @@ fun parseMinuteSecond(timeStamp: Long): String {
     }
 }
 
-fun calcDominantColor(drawable: Drawable, onFinish: (Color) -> Unit) {
-    val bmp = (drawable as BitmapDrawable).bitmap.copy(Bitmap.Config.ARGB_8888, true)
+// 대화시간에 따라 랜덤으로 친밀도를 반환
+fun getRandomExperiencePoint(talkTime: Long): Double {
+    val maxDivideTime = 7200000L // 2시간
+    val minDivideTime = 300000L // 5분
+    val maxDivideValue = 24 // 5분단위로 2시간 기준
+    val maxExperiencePoints = (32..35).toList().random()
+    val urgentPoint = maxExperiencePoints.toFloat() / maxDivideValue
+    var divideValue = 0
 
-    Palette.from(bmp).generate { palette ->
-        palette?.dominantSwatch?.rgb?.let { colorValue ->
-            onFinish(Color(colorValue))
+    for (i in 1..maxDivideValue) {
+        if (talkTime < minDivideTime * i) {
+            break
         }
+
+        divideValue = i
+    }
+
+    return if (talkTime > maxDivideTime) {
+        val value = urgentPoint * divideValue + getRandomExperiencePoint(talkTime - maxDivideTime)
+        kotlin.math.round(value * 10) / 10.0
+    } else {
+        val value = urgentPoint * divideValue
+        kotlin.math.round(value * 10) / 10.0
     }
 }
 
