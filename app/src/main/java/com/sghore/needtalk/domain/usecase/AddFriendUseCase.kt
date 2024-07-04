@@ -11,7 +11,7 @@ class AddFriendUseCase @Inject constructor(
     suspend operator fun invoke(friend: UserData) {
         val createdFriend = FriendEntity(
             userId = friend.userId,
-            experiencePoint = 0,
+            experiencePoint = 0f,
             friendshipPoint = 0
         )
 

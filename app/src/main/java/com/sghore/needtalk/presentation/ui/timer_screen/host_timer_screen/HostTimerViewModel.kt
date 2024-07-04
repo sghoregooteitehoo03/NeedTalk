@@ -145,7 +145,7 @@ class HostTimerViewModel @Inject constructor(
                     userId = participantInfo.userId,
                     name = participantInfo.name,
                     profileImage = byteArrayToBitmap(participantInfo.profileImage).asImageBitmap(),
-                    experiencePoint = 0,
+                    experiencePoint = 0f,
                     friendshipPoint = -1
                 )
 
@@ -166,36 +166,34 @@ class HostTimerViewModel @Inject constructor(
         navigateOtherScreen: (Boolean, List<UserTalkResult>, String) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        if (timerCmInfo.timerActionState != TimerActionState.TimerWaiting) {
-            val currentTime = if (timerCmInfo.isTimer) {
-                timerCmInfo.maxTime - timerCmInfo.currentTime
-            } else {
-                timerCmInfo.currentTime
-            }
-            val isFinished = currentTime >= 300000
+        val currentTime = if (timerCmInfo.isTimer) {
+            timerCmInfo.maxTime - timerCmInfo.currentTime
+        } else {
+            timerCmInfo.currentTime
+        }
+        val isFinished = currentTime >= 300000
 
-            if (isFinished) { // 대화가 조건에 만족하여 끝났을 경우
-                val experiencePoint = getRandomExperiencePoint(currentTime)
+        if (isFinished) { // 대화가 조건에 만족하여 끝났을 경우
+            val experiencePoint = getRandomExperiencePoint(currentTime)
 
-                timerCmInfo.participantInfoList
-                    .filterNotNull()
-                    .filter { it.userId != currentUserId }
-                    .forEach { participantInfo ->
-                        userTalkResults.forEachIndexed { i, userTalkResult ->
-                            if (userTalkResult.userId == participantInfo.userId) {
-                                userTalkResults[i] = userTalkResult.copy(
-                                    talkTime = currentTime,
-                                    experiencePoint = experiencePoint
-                                )
-                            }
+            timerCmInfo.participantInfoList
+                .filterNotNull()
+                .filter { it.userId != currentUserId }
+                .forEach { participantInfo ->
+                    userTalkResults.forEachIndexed { i, userTalkResult ->
+                        if (userTalkResult.userId == participantInfo.userId) {
+                            userTalkResults[i] = userTalkResult.copy(
+                                talkTime = currentTime,
+                                experiencePoint = experiencePoint
+                            )
                         }
                     }
-                navigateOtherScreen(true, userTalkResults, recordFilePath)
-            } else {
-                // 저장된 녹음파일 제거
-                removeTempRecordFile(recordFilePath)
-                navigateOtherScreen(false, listOf(), "")
-            }
+                }
+            navigateOtherScreen(true, userTalkResults, recordFilePath)
+        } else {
+            // 저장된 녹음파일 제거
+            removeTempRecordFile(recordFilePath)
+            navigateOtherScreen(false, listOf(), "")
         }
     }
 

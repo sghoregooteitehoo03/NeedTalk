@@ -45,21 +45,21 @@ fun ProfileScreen(
             userId = "",
             name = "민머리",
             profileImage = userData!!.profileImage,
-            experiencePoint = 80,
+            experiencePoint = 80f,
             friendshipPoint = 4
         ),
         UserData(
             userId = "",
             name = "대충 지은 이름",
             profileImage = userData.profileImage,
-            experiencePoint = 50,
+            experiencePoint = 50f,
             friendshipPoint = 7
         ),
         UserData(
             userId = "",
             name = "닉네임",
             profileImage = userData.profileImage,
-            experiencePoint = 13,
+            experiencePoint = 13f,
             friendshipPoint = 0
         )
     )

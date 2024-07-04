@@ -266,26 +266,31 @@ fun HostTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
-                            viewModel.finishedTalk(
-                                currentUserId = userData?.userId ?: "",
-                                recordFilePath = service?.outputFile ?: "",
-                                navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
-                                    if (isFinished) {
-                                        navigateToResultScreen(
-                                            userTalkResult = userTalkResult,
-                                            filePath = recordFilePath,
-                                            navigate = navigateResultScreen
-                                        )
-                                    } else {
-                                        navigateUp()
-                                        Toast.makeText(
-                                            context,
-                                            "5분 미만의 대화는 기록되지 않습니다.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                            val timerActionState = service?.timerCmInfo?.value?.timerActionState
+                            if (timerActionState != TimerActionState.TimerWaiting) {
+                                viewModel.finishedTalk(
+                                    currentUserId = userData?.userId ?: "",
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
+                                        if (isFinished) {
+                                            navigateToResultScreen(
+                                                userTalkResult = userTalkResult,
+                                                filePath = recordFilePath,
+                                                navigate = navigateResultScreen
+                                            )
+                                        } else {
+                                            navigateUp()
+                                            Toast.makeText(
+                                                context,
+                                                "5분 미만의 대화는 기록되지 않습니다.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            } else {
+                                navigateUp()
+                            }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             service = null
@@ -305,26 +310,31 @@ fun HostTimerRoute(
                         message = dialogScreen.message,
                         possibleButtonText = "나가기",
                         onPossibleClick = {
-                            viewModel.finishedTalk(
-                                currentUserId = userData?.userId ?: "",
-                                recordFilePath = service?.outputFile ?: "",
-                                navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
-                                    if (isFinished) {
-                                        navigateToResultScreen(
-                                            userTalkResult = userTalkResult,
-                                            filePath = recordFilePath,
-                                            navigate = navigateResultScreen
-                                        )
-                                    } else {
-                                        navigateUp()
-                                        Toast.makeText(
-                                            context,
-                                            "5분 미만의 대화는 기록되지 않습니다.",
-                                            Toast.LENGTH_SHORT
-                                        ).show()
+                            val timerActionState = service?.timerCmInfo?.value?.timerActionState
+                            if (timerActionState != TimerActionState.TimerWaiting) {
+                                viewModel.finishedTalk(
+                                    currentUserId = userData?.userId ?: "",
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
+                                        if (isFinished) {
+                                            navigateToResultScreen(
+                                                userTalkResult = userTalkResult,
+                                                filePath = recordFilePath,
+                                                navigate = navigateResultScreen
+                                            )
+                                        } else {
+                                            navigateUp()
+                                            Toast.makeText(
+                                                context,
+                                                "5분 미만의 대화는 기록되지 않습니다.",
+                                                Toast.LENGTH_SHORT
+                                            ).show()
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            } else {
+                                navigateUp()
+                            }
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             service = null

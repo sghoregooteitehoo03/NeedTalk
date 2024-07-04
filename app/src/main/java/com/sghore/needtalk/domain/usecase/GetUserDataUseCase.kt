@@ -19,7 +19,7 @@ class GetUserDataUseCase @Inject constructor(
                 userId = userEntity.userId,
                 name = userEntity.name,
                 profileImage = byteArrayToBitmap(userEntity.profileImage).asImageBitmap(),
-                experiencePoint = friendEntity?.experiencePoint ?: -1,
+                experiencePoint = friendEntity?.experiencePoint ?: 0f,
                 friendshipPoint = friendEntity?.friendshipPoint ?: -1
             )
         } else {

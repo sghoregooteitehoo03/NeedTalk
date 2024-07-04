@@ -12,8 +12,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -34,58 +36,81 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.presentation.ui.BaselineTextField
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
 import com.sghore.needtalk.presentation.ui.ProfileImage
+import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
-fun ResultScreen() {
+fun ResultScreen(
+    uiState: ResultUiState
+) {
     Box(modifier = Modifier.fillMaxSize()) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.TopStart)
-                .verticalScroll(rememberScrollState())
-        ) {
-            Box(
-                modifier = Modifier
-                    .padding(start = 14.dp, end = 14.dp)
-                    .fillMaxWidth()
-                    .height(56.dp),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "결과",
-                    style = MaterialTheme.typography.h5.copy(
-                        color = MaterialTheme.colors.onPrimary
-                    )
-                )
-            }
-            Spacer(modifier = Modifier.height(14.dp))
-            SetTalkTitleLayout(
-                fileSize = 1f,
-                title = "",
-                onChangeTitle = {}
+        if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.align(Alignment.Center),
+                color = MaterialTheme.colors.onPrimary
             )
-            Spacer(modifier = Modifier.height(32.dp))
-
-        }
-        DefaultButton(
-            modifier = Modifier.align(Alignment.BottomCenter),
-            text = "확인",
-            onClick = {
-
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopStart)
+                    .verticalScroll(rememberScrollState())
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(start = 14.dp, end = 14.dp)
+                        .fillMaxWidth()
+                        .height(56.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "결과",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    )
+                }
+                SetTalkTitleLayout(
+                    modifier = Modifier.padding(14.dp),
+                    fileSize = uiState.fileSize,
+                    title = uiState.talkTitle,
+                    onChangeTitle = {}
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                repeat(uiState.otherUsers.size) { index ->
+                    if (uiState.otherUsers[index] != null) {
+                        val friend = uiState.otherUsers[index]!!
+                        FriendshipResult(
+                            modifier = Modifier.padding(14.dp),
+                            friend = friend,
+                            talkResult = uiState.userTalkResult[index],
+                            isNotFriend = friend.friendshipPoint == -1
+                        )
+                    }
+                }
             }
-        )
+            DefaultButton(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(14.dp),
+                text = "확인",
+                onClick = {
+
+                }
+            )
+        }
     }
 }
 
 @Composable
 fun SetTalkTitleLayout(
     modifier: Modifier = Modifier,
-    fileSize: Float,
+    fileSize: String,
     title: String,
     onChangeTitle: (String) -> Unit
 ) {
@@ -93,7 +118,7 @@ fun SetTalkTitleLayout(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (fileSize != 0f) {
+        if (fileSize.isNotEmpty()) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -114,7 +139,7 @@ fun SetTalkTitleLayout(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(4.dp),
-                    text = "${fileSize} MB",
+                    text = fileSize,
                     style = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -135,6 +160,7 @@ fun SetTalkTitleLayout(
 fun FriendshipResult(
     modifier: Modifier = Modifier,
     friend: UserData,
+    talkResult: UserTalkResult,
     isNotFriend: Boolean
 ) {
     ConstraintLayout(
@@ -165,6 +191,7 @@ fun FriendshipResult(
             modifier = Modifier.constrainAs(info) {
                 top.linkTo(parent.top)
                 start.linkTo(profileImage.end, margin = 16.dp)
+                end.linkTo(parent.end)
                 width = Dimension.fillToConstraints
             }
         ) {
@@ -221,7 +248,7 @@ fun FriendshipResult(
                 IconWithText(
                     icon = painterResource(id = R.drawable.ic_exp),
                     iconTint = colorResource(id = R.color.gray),
-                    text = "+21",
+                    text = "+${talkResult.experiencePoint}",
                     textStyle = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -230,7 +257,7 @@ fun FriendshipResult(
                 IconWithText(
                     icon = painterResource(id = R.drawable.ic_clock),
                     iconTint = colorResource(id = R.color.gray),
-                    text = "60:00",
+                    text = parseMinuteSecond(talkResult.talkTime),
                     textStyle = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )

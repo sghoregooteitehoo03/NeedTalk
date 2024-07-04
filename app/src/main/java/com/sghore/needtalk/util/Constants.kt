@@ -16,6 +16,6 @@ object Constants {
     const val DEVICE_FLIP = 0.95f
     const val DEVICE_NON_FLIP = 7f
 
-    const val MAX_EXPERIENCE_POINT = 100
+    const val MAX_EXPERIENCE_POINT = 100f
     const val MAX_FRIENDSHIP_POINT = 10
 }

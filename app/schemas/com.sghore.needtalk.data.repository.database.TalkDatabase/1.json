@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "baab85705eb8a9bb76ddade289b68f9b",
+    "identityHash": "12e53677ebcfbcf3919de02de1274614",
     "entities": [
       {
         "tableName": "UserEntity2",
@@ -62,7 +62,7 @@
       },
       {
         "tableName": "FriendEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `experiencePoint` INTEGER NOT NULL, `friendshipPoint` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `experiencePoint` REAL NOT NULL, `friendshipPoint` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
           {
             "fieldPath": "userId",
@@ -73,7 +73,7 @@
           {
             "fieldPath": "experiencePoint",
             "columnName": "experiencePoint",
-            "affinity": "INTEGER",
+            "affinity": "REAL",
             "notNull": true
           },
           {
@@ -382,7 +382,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'baab85705eb8a9bb76ddade289b68f9b')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '12e53677ebcfbcf3919de02de1274614')"
     ]
   }
 }

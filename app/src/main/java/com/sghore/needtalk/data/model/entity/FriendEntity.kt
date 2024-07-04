@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 data class FriendEntity(
     @PrimaryKey
     val userId: String,
-    val experiencePoint: Int,
+    val experiencePoint: Float,
     val friendshipPoint: Int,
     val createTime: Long = System.currentTimeMillis()
 )

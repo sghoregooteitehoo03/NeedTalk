@@ -634,10 +634,10 @@ fun TalkTopicCategoryTag(
 @Composable
 fun ExperiencePointBar(
     modifier: Modifier = Modifier,
-    experiencePoint: Int,
-    maxExperiencePoint: Int = Constants.MAX_EXPERIENCE_POINT
+    experiencePoint: Float,
+    maxExperiencePoint: Float = Constants.MAX_EXPERIENCE_POINT
 ) {
-    val progress = (experiencePoint / maxExperiencePoint.toFloat())
+    val progress = (experiencePoint / maxExperiencePoint)
     val maxWidth = 200.dp.value
 
     Box(
