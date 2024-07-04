@@ -1,6 +1,5 @@
 package com.sghore.needtalk.presentation.ui.result_screen
 
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -14,7 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
@@ -40,6 +38,7 @@ import com.sghore.needtalk.presentation.ui.BaselineTextField
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
+import com.sghore.needtalk.presentation.ui.ProfileImage
 
 @Composable
 fun ResultScreen() {
@@ -121,8 +120,8 @@ fun SetTalkTitleLayout(
                     )
                 )
             }
+            Spacer(modifier = Modifier.height(14.dp))
         }
-        Spacer(modifier = Modifier.height(14.dp))
         BaselineTextField(
             hint = "대화제목을 지정해주세요.",
             text = title,
@@ -151,27 +150,17 @@ fun FriendshipResult(
             .padding(14.dp)
     ) {
         val (profileImage, info, result) = createRefs()
-        Box(
+        ProfileImage(
             modifier = Modifier
                 .constrainAs(profileImage) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     bottom.linkTo(parent.bottom)
-                }
-                .size(56.dp)
-                .clip(CircleShape)
-                .background(
-                    color = colorResource(id = R.color.light_gray_200),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Image(
-                bitmap = friend.profileImage,
-                contentDescription = "ProfileImage",
-                modifier = Modifier.size(46.dp)
-            )
-        }
+                },
+            backgroundSize = 56.dp,
+            imageSize = 46.dp,
+            profileImage = friend.profileImage
+        )
         Column(
             modifier = Modifier.constrainAs(info) {
                 top.linkTo(parent.top)

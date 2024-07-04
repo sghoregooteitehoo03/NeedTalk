@@ -39,8 +39,8 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.ClientTimerService
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
-import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
@@ -53,6 +53,9 @@ import com.sghore.needtalk.presentation.ui.timer_screen.pinned_talktopic_dialog.
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 @Composable
 fun ClientTimerRoute(
@@ -180,10 +183,12 @@ fun ClientTimerRoute(
                                 )
                             } else {
                                 viewModel.finishedTalk(
+                                    currentUserId = userData?.userId ?: "",
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { _ ->
+                                    navigateOtherScreen = { _, userTalkResult, recordFilePath ->
                                         navigateToResultScreen(
-                                            timerCmInfo = uiState.timerCommunicateInfo,
+                                            userTalkResult = userTalkResult,
+                                            filePath = recordFilePath,
                                             navigate = navigateResultScreen
                                         )
                                     }
@@ -240,7 +245,10 @@ fun ClientTimerRoute(
                     }
 
                     // UI 업데이트
-                    viewModel.updateTimerCommunicateInfo(it)
+                    viewModel.updateTimerCommunicateInfo(
+                        timerCommunicateInfo = it,
+                        onTimerStart = { saveOtherUser -> saveOtherUser(userData?.userId ?: "") }
+                    )
                 }
             }
 
@@ -293,11 +301,13 @@ fun ClientTimerRoute(
                         onPossibleClick = {
                             if (!dialogScreen.isReject) {
                                 viewModel.finishedTalk(
+                                    currentUserId = userData?.userId ?: "",
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { isFinished ->
+                                    navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(
-                                                timerCmInfo = uiState.timerCommunicateInfo,
+                                                userTalkResult = userTalkResult,
+                                                filePath = recordFilePath,
                                                 navigate = navigateResultScreen
                                             )
                                         } else {
@@ -314,7 +324,6 @@ fun ClientTimerRoute(
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             service = null
-                            navigateUp()
                         },
                         isError = true,
                         onDismiss = {}
@@ -332,11 +341,13 @@ fun ClientTimerRoute(
                         possibleButtonText = "나가기",
                         onPossibleClick = {
                             viewModel.finishedTalk(
+                                currentUserId = userData?.userId ?: "",
                                 recordFilePath = service?.outputFile ?: "",
-                                navigateOtherScreen = { isFinished ->
+                                navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
                                     if (isFinished) {
                                         navigateToResultScreen(
-                                            timerCmInfo = uiState.timerCommunicateInfo,
+                                            userTalkResult = userTalkResult,
+                                            filePath = recordFilePath,
                                             navigate = navigateResultScreen
                                         )
                                     } else {
@@ -352,7 +363,6 @@ fun ClientTimerRoute(
 
                             viewModel.setDialogScreen(DialogScreen.DialogDismiss)
                             service = null
-                            navigateUp()
                         },
                         negativeButtonText = "취소",
                         onDismiss = {
@@ -405,11 +415,17 @@ fun ClientTimerRoute(
     }
 }
 
+@OptIn(ExperimentalSerializationApi::class)
 private fun navigateToResultScreen(
-    timerCmInfo: TimerCommunicateInfo,
+    userTalkResult: List<UserTalkResult>,
+    filePath: String,
     navigate: (String) -> Unit
 ) {
-    navigate(UiScreen.ResultScreen.route)
+    val userTalkResultJson = Json.encodeToString(userTalkResult)
+    val route = UiScreen.ResultScreen.route +
+            "?filePath=${filePath}&userTalkResults=${userTalkResultJson}"
+
+    navigate(route)
 }
 
 // 서비스 시작

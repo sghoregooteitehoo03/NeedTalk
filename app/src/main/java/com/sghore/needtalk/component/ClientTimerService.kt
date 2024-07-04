@@ -162,8 +162,6 @@ class ClientTimerService : LifecycleService() {
                                 userId = userData.userId,
                                 name = userData.name,
                                 profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap()),
-                                experiencePoint = userData.experiencePoint,
-                                friendshipPoint = userData.friendshipPoint,
                                 endpointId = "",
                                 isReady = null
                             )
@@ -342,7 +340,7 @@ class ClientTimerService : LifecycleService() {
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
                         if (delayMills >= 1000L) { // 1초마다 동작
-                            time += 1000
+                            time += 60000
                             oldTimeMills = System.currentTimeMillis()
 
                             onUpdateTime(time)
@@ -355,7 +353,7 @@ class ClientTimerService : LifecycleService() {
 
                         val delayMills = System.currentTimeMillis() - oldTimeMills
                         if (delayMills >= 1000L) { // 1초마다 동작
-                            time -= 1000
+                            time -= 60000
                             oldTimeMills = System.currentTimeMillis()
 
                             onUpdateTime(time)

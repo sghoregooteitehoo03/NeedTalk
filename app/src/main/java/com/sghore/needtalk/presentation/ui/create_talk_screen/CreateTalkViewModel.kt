@@ -87,8 +87,6 @@ class CreateTalkViewModel @Inject constructor(
                         userId = userData.userId,
                         name = userData.name,
                         profileImage = bitmapToByteArray(userData.profileImage.asAndroidBitmap()),
-                        experiencePoint = userData.experiencePoint,
-                        friendshipPoint = userData.friendshipPoint,
                         endpointId = "",
                         isReady = null
                     )

@@ -12,7 +12,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.add_talktopic_screen.AddTalkTopicRoute
@@ -197,7 +196,13 @@ fun AppNavHost(
                     navigateToHome(navController)
                 },
                 navigateResultScreen = {
-                    navigateToResultScreen(navController)
+                    navController.navigate(
+                        route = it,
+                        builder = {
+                            popUpTo(UiScreen.HomeScreen.route) {
+                                inclusive = false
+                            }
+                        })
                 },
                 showSnackBar = showSnackBar
             )
@@ -216,11 +221,24 @@ fun AppNavHost(
                     navigateToHome(navController)
                 },
                 navigateResultScreen = {
-                    navigateToResultScreen(navController)
-                }
+                    navController.navigate(
+                        route = it,
+                        builder = {
+                            popUpTo(UiScreen.HomeScreen.route) {
+                                inclusive = false
+                            }
+                        })
+                },
             )
         }
-        composable(route = UiScreen.ResultScreen.route) {
+        composable(
+            route = UiScreen.ResultScreen.route +
+                    "?filePath={filePath}&userTalkResults={userTalkResults}",
+            arguments = listOf(
+                navArgument("filePath") { type = NavType.StringType },
+                navArgument("userTalkResults") { type = NavType.StringType }
+            )
+        ) {
             ResultRoute()
         }
         composable(
@@ -263,16 +281,6 @@ private fun navigateToClientTimerScreen(
 
 private fun navigateToHome(navController: NavHostController) {
     navController.popBackStack(route = UiScreen.HomeScreen.route, inclusive = false)
-}
-
-private fun navigateToResultScreen(navController: NavHostController) {
-    navController.navigate(
-        route = UiScreen.ResultScreen.route,
-        builder = {
-            popUpTo(UiScreen.HomeScreen.route) {
-                inclusive = false
-            }
-        })
 }
 
 private fun enterTransition() =

@@ -1,14 +1,20 @@
 package com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen
 
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
+import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.domain.model.UserTalkResult
+import com.sghore.needtalk.domain.usecase.InsertUserEntity2UseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
+import com.sghore.needtalk.util.byteArrayToBitmap
+import com.sghore.needtalk.util.getRandomExperiencePoint
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -21,10 +27,13 @@ import java.io.File
 import javax.inject.Inject
 
 @HiltViewModel
-class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandle) : ViewModel() {
+class ClientTimerViewModel @Inject constructor(
+    private val insertUserEntityUseCase: InsertUserEntity2UseCase,
+    savedStateHandle: SavedStateHandle
+) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())
     private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
-    private var userList = listOf<UserEntity?>()
+    private var userTalkResults = mutableListOf<UserTalkResult>()// 각 유저 별 대화시간 저장
 
     val uiState = _uiState.stateIn(
         viewModelScope,
@@ -44,11 +53,14 @@ class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandl
         }
     }
 
-    fun updateTimerCommunicateInfo(timerCommunicateInfo: TimerCommunicateInfo) {
+    fun updateTimerCommunicateInfo(
+        timerCommunicateInfo: TimerCommunicateInfo,
+        onTimerStart: ((String) -> Unit) -> Unit
+    ) {
         when (timerCommunicateInfo.timerActionState) {
             is TimerActionState.TimerReady -> {
                 if (_uiState.value.timerCommunicateInfo.timerActionState == TimerActionState.TimerWaiting) {
-                    saveOtherUserData()
+                    onTimerStart(::saveOtherUserData) // 타이머가 시작되면 다른 유저 정보 저장
                 }
             }
 
@@ -57,6 +69,47 @@ class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandl
 
         _uiState.update {
             it.copy(timerCommunicateInfo = timerCommunicateInfo)
+        }
+
+        // 참가자가 중간에 나갔는지 확인
+        checkExitParticipant(
+            participantInfoList = timerCommunicateInfo.participantInfoList,
+            talkTime = if (timerCommunicateInfo.isTimer) {
+                timerCommunicateInfo.maxTime - timerCommunicateInfo.currentTime
+            } else {
+                timerCommunicateInfo.currentTime
+            }
+        )
+    }
+
+    // 참가자가 중간에 나갔는지 확인
+    private fun checkExitParticipant(
+        participantInfoList: List<ParticipantInfo?>,
+        talkTime: Long
+    ) {
+        // 참가자가 중간에 나갔을 경우
+        if (participantInfoList.filterNotNull().size - 1 != userTalkResults.size && userTalkResults.isNotEmpty()) {
+            for (i in userTalkResults.indices) {
+                var isFound = false
+
+                // 나간 유저가 누군지 확인
+                for (j in participantInfoList.indices) {
+                    if (participantInfoList[j]?.userId == userTalkResults[i].userId) {
+                        isFound = true
+                        break
+                    }
+                }
+
+                // 나간 유저를 찾은 경우
+                if (!isFound) {
+                    // 나간 유저가 집중한 대화시간을 저장함
+                    userTalkResults[i] = userTalkResults[i].copy(
+                        talkTime = talkTime,
+                        experiencePoint = getRandomExperiencePoint(talkTime)
+                    )
+                    break
+                }
+            }
         }
     }
 
@@ -82,19 +135,44 @@ class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandl
         _uiState.update { it.copy(isFlip = isFlip) }
     }
 
-    private fun saveOtherUserData() = viewModelScope.launch {
-//        val timerCmInfo = _uiState.value.timerCommunicateInfo
-//        userList = timerCmInfo.participantInfoList.map { it?.userData }
-//
-//        for (i in 0 until timerCmInfo.participantInfoList.size) {
-//            insertUserEntityUseCase(timerCmInfo.participantInfoList[i]!!.userData)
-//        }
+    // 참여한 다른 참가자들에 대한 정보를 저장함
+    private fun saveOtherUserData(currentUserId: String) {
+        viewModelScope.launch {
+            val timerCmInfo = _uiState.value.timerCommunicateInfo
+            val participantInfoList = timerCmInfo.participantInfoList
+                .filter { it?.userId != currentUserId } // 사용자의 정보만 제외
+            userTalkResults = participantInfoList
+                .map {
+                    UserTalkResult(userId = it?.userId ?: "", talkTime = 0, experiencePoint = 0.0)
+                }.toMutableList()
+
+            // 참가자들에 정보를 모두 저장함
+            for (participantInfo in participantInfoList) {
+                if (participantInfo != null) {
+                    val userData = UserData(
+                        userId = participantInfo.userId,
+                        name = participantInfo.name,
+                        profileImage = byteArrayToBitmap(participantInfo.profileImage).asImageBitmap(),
+                        experiencePoint = 0,
+                        friendshipPoint = -1
+                    )
+
+                    insertUserEntityUseCase(
+                        userData = userData,
+                        selectedHairImageRes = -1,
+                        selectedFaceImageRes = -1,
+                        selectedAccessoryImageRes = -1
+                    )
+                }
+            }
+        }
     }
 
     // 타이머 끝났을 떄 취하는 동작
     fun finishedTalk(
+        currentUserId: String,
         recordFilePath: String,
-        navigateOtherScreen: (Boolean) -> Unit
+        navigateOtherScreen: (Boolean, List<UserTalkResult>, String) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
         if (timerCmInfo.timerActionState != TimerActionState.TimerWaiting) {
@@ -105,21 +183,38 @@ class ClientTimerViewModel @Inject constructor(savedStateHandle: SavedStateHandl
             }
             val isFinished = currentTime >= 300000
 
-            if (isFinished) {
-                navigateOtherScreen(true)
+            if (isFinished) { // 대화가 조건에 만족하여 끝났을 경우
+                val experiencePoint = getRandomExperiencePoint(currentTime)
+
+                timerCmInfo.participantInfoList
+                    .filterNotNull()
+                    .filter { it.userId != currentUserId }
+                    .forEach { participantInfo ->
+                        userTalkResults.forEachIndexed { i, userTalkResult ->
+                            if (userTalkResult.userId == participantInfo.userId) {
+                                userTalkResults[i] = userTalkResult.copy(
+                                    talkTime = currentTime,
+                                    experiencePoint = experiencePoint
+                                )
+                            }
+                        }
+                    }
+                navigateOtherScreen(true, userTalkResults, recordFilePath)
             } else {
                 removeTempRecordFile(recordFilePath)
-                navigateOtherScreen(false)
+                navigateOtherScreen(false, listOf(), "")
             }
         }
     }
 
     // 임시 레코드 파일을 지움
     private fun removeTempRecordFile(recordFilePath: String) {
-        val recordFile = File(recordFilePath)
+        if (_uiState.value.timerCommunicateInfo.isAllowMic) {
+            val recordFile = File(recordFilePath)
 
-        if (recordFile.exists()) {
-            recordFile.delete()
+            if (recordFile.exists()) {
+                recordFile.delete()
+            }
         }
     }
 }

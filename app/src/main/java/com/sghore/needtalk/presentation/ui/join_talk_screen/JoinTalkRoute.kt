@@ -13,7 +13,8 @@ import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO: fix. 여럿이서 참가하기 눌렀을 때 오류 발생
+// TODO: fix
+//  . 여럿이서 참가하기 눌렀을 때 오류 발생
 @Composable
 fun JoinTalkRoute(
     viewModel: JoinTalkViewModel = hiltViewModel(),
