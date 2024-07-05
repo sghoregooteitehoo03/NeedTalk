@@ -14,6 +14,7 @@ class SaveTalkHistoryUseCase @Inject constructor(
         talkTitle: String,
         talkTime: Long,
         filePath: String,
+        fileSize: Long,
         otherUsers: List<UserData?>
     ) {
         val currentTime = System.currentTimeMillis()
@@ -24,6 +25,7 @@ class SaveTalkHistoryUseCase @Inject constructor(
             id = talkHistoryId,
             talkTitle = talkTitle,
             talkTime = talkTime,
+            recordFileSize = fileSize,
             recordFilePath = filePath
         )
         talkRepository.insertTalkHistoryEntity(talkHistoryEntity)

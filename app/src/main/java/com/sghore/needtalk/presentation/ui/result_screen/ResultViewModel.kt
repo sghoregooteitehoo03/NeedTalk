@@ -67,9 +67,9 @@ class ResultViewModel @Inject constructor(
     private fun initUiState(path: String, userTalkResults: List<UserTalkResult>) =
         viewModelScope.launch {
             val fileSize = if (path.isEmpty()) {
-                ""
+                0L
             } else {
-                getFileSize(path)
+                File(path).length()
             }
             val otherUsers = userTalkResults.map {
                 getUserDataUseCase(it.userId)
@@ -84,20 +84,6 @@ class ResultViewModel @Inject constructor(
                 )
             }
         }
-
-    // 파일 사이즈를 가져옴
-    private fun getFileSize(filePath: String): String {
-        val size = File(filePath).length()
-        val df = DecimalFormat("0.00")
-
-        val sizeKb = 1024.0f
-        val sizeMb = sizeKb * sizeKb
-        val sizeGb = sizeMb * sizeKb
-
-        return if (size < sizeMb) df.format(size / sizeKb) + "KB"
-        else if (size < sizeGb) df.format(size / sizeMb) + " MB"
-        else ""
-    }
 
     // 타이틀 변경 이벤트 처리
     fun changeTalkTitle(title: String) {
@@ -130,6 +116,7 @@ class ResultViewModel @Inject constructor(
             talkTitle = stateValue.talkTitle,
             talkTime = talkTime,
             filePath = filePath ?: "",
+            fileSize = stateValue.fileSize,
             otherUsers = stateValue.otherUsers
         )
     }

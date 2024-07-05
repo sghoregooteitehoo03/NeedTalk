@@ -6,7 +6,7 @@ import com.sghore.needtalk.util.getDefaultTalkTitle
 
 data class ResultUiState(
     val talkTitle: String = getDefaultTalkTitle(),
-    val fileSize: String = "",
+    val fileSize: Long = 0L,
     val otherUsers: List<UserData?> = listOf(),
     val userTalkResult: List<UserTalkResult> = listOf(),
     val isLoading: Boolean = true

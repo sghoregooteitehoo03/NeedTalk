@@ -42,6 +42,7 @@ import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
 import com.sghore.needtalk.presentation.ui.ProfileImage
+import com.sghore.needtalk.util.getFileSizeToStr
 import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
@@ -114,7 +115,7 @@ fun ResultScreen(
 @Composable
 fun SetTalkTitleLayout(
     modifier: Modifier = Modifier,
-    fileSize: String,
+    fileSize: Long,
     title: String,
     onChangeTitle: (String) -> Unit
 ) {
@@ -122,7 +123,7 @@ fun SetTalkTitleLayout(
         modifier = modifier.fillMaxWidth(),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        if (fileSize.isNotEmpty()) {
+        if (fileSize != 0L) {
             Box(
                 modifier = Modifier
                     .size(100.dp)
@@ -143,7 +144,7 @@ fun SetTalkTitleLayout(
                     modifier = Modifier
                         .align(Alignment.BottomCenter)
                         .padding(4.dp),
-                    text = fileSize,
+                    text = getFileSizeToStr(fileSize),
                     style = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -160,7 +161,9 @@ fun SetTalkTitleLayout(
     }
 }
 
-// TODO: feat: 포인트 증가 기능 구현하기
+// TODO: feat:
+//  . 포인트 증가 기능 구현하기
+//  . 포인트 증가 애니메이션 구현하기
 @Composable
 fun FriendshipResult(
     modifier: Modifier = Modifier,

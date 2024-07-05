@@ -25,7 +25,6 @@ import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
 import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
 import com.sghore.needtalk.presentation.ui.result_screen.ResultRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
-import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
@@ -241,14 +240,6 @@ fun AppNavHost(
             )
         ) {
             ResultRoute(
-                navigateUp = navController::navigateUp
-            )
-        }
-        composable(
-            route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",
-            arguments = listOf(navArgument("userEntity") { type = NavType.StringType })
-        ) {
-            StaticsRoute(
                 navigateUp = navController::navigateUp
             )
         }

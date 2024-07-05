@@ -211,3 +211,16 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
             setOutputFile(outputFilePath)
         }
     }
+
+// 파일 사이즈를 형식에 맞게 String으로 변환
+fun getFileSizeToStr(fileSize: Long): String {
+    val df = DecimalFormat("0.00")
+
+    val sizeKb = 1024.0f
+    val sizeMb = sizeKb * sizeKb
+    val sizeGb = sizeMb * sizeKb
+
+    return if (fileSize < sizeMb) df.format(fileSize / sizeKb) + "KB"
+    else if (fileSize < sizeGb) df.format(fileSize / sizeMb) + " MB"
+    else ""
+}
