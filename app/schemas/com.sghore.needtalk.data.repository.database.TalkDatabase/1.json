@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "12e53677ebcfbcf3919de02de1274614",
+    "identityHash": "34a70eb8c9e1547c5bbc1923f061ac39",
     "entities": [
       {
         "tableName": "UserEntity2",
@@ -377,12 +377,94 @@
         },
         "indices": [],
         "foreignKeys": []
+      },
+      {
+        "tableName": "TalkHistoryEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `talkTitle` TEXT NOT NULL, `talkTime` INTEGER NOT NULL, `recordFilePath` TEXT NOT NULL, `createTimeStamp` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "talkTitle",
+            "columnName": "talkTitle",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "talkTime",
+            "columnName": "talkTime",
+            "affinity": "INTEGER",
+            "notNull": true
+          },
+          {
+            "fieldPath": "recordFilePath",
+            "columnName": "recordFilePath",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "createTimeStamp",
+            "columnName": "createTimeStamp",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
+      },
+      {
+        "tableName": "TalkHistoryParticipantEntity",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER, `talkHistoryId` TEXT NOT NULL, `userId` TEXT NOT NULL, `friendshipPoint` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "fields": [
+          {
+            "fieldPath": "id",
+            "columnName": "id",
+            "affinity": "INTEGER",
+            "notNull": false
+          },
+          {
+            "fieldPath": "talkHistoryId",
+            "columnName": "talkHistoryId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "userId",
+            "columnName": "userId",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "friendshipPoint",
+            "columnName": "friendshipPoint",
+            "affinity": "INTEGER",
+            "notNull": true
+          }
+        ],
+        "primaryKey": {
+          "autoGenerate": false,
+          "columnNames": [
+            "id"
+          ]
+        },
+        "indices": [],
+        "foreignKeys": []
       }
     ],
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '12e53677ebcfbcf3919de02de1274614')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '34a70eb8c9e1547c5bbc1923f061ac39')"
     ]
   }
 }

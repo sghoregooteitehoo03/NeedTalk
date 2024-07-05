@@ -172,7 +172,7 @@ class ClientTimerViewModel @Inject constructor(
     fun finishedTalk(
         currentUserId: String,
         recordFilePath: String,
-        navigateOtherScreen: (Boolean, List<UserTalkResult>, String) -> Unit
+        navigateOtherScreen: (Boolean, Long, List<UserTalkResult>, String) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
         val currentTime = if (timerCmInfo.isTimer) {
@@ -198,10 +198,10 @@ class ClientTimerViewModel @Inject constructor(
                         }
                     }
                 }
-            navigateOtherScreen(true, userTalkResults, recordFilePath)
+            navigateOtherScreen(true, currentTime, userTalkResults, recordFilePath)
         } else {
             removeTempRecordFile(recordFilePath)
-            navigateOtherScreen(false, listOf(), "")
+            navigateOtherScreen(false, -1L, listOf(), "")
         }
     }
 

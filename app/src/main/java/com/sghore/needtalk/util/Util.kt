@@ -5,12 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.graphics.drawable.BitmapDrawable
-import android.graphics.drawable.Drawable
 import android.media.MediaRecorder
 import android.os.Build
 import androidx.compose.ui.graphics.Color
-import androidx.palette.graphics.Palette
 import com.sghore.needtalk.domain.model.TalkTopicCategory
 import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.io.ByteArrayOutputStream
@@ -42,7 +39,7 @@ fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
 }
 
 fun getDefaultTalkTitle(): String = SimpleDateFormat(
-    "yy-MM-dd hh:mm 대화",
+    "yy-MM-dd HH:mm 대화",
     Locale.KOREA
 ).format(System.currentTimeMillis())
 

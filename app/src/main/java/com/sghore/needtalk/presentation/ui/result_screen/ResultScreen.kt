@@ -46,7 +46,8 @@ import com.sghore.needtalk.util.parseMinuteSecond
 
 @Composable
 fun ResultScreen(
-    uiState: ResultUiState
+    uiState: ResultUiState,
+    onEvent: (ResultUiEvent) -> Unit
 ) {
     Box(modifier = Modifier.fillMaxSize()) {
         if (uiState.isLoading) {
@@ -79,7 +80,7 @@ fun ResultScreen(
                     modifier = Modifier.padding(14.dp),
                     fileSize = uiState.fileSize,
                     title = uiState.talkTitle,
-                    onChangeTitle = {}
+                    onChangeTitle = { onEvent(ResultUiEvent.ChangeTalkTitle(it)) }
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 repeat(uiState.otherUsers.size) { index ->
@@ -89,7 +90,10 @@ fun ResultScreen(
                             modifier = Modifier.padding(14.dp),
                             friend = friend,
                             talkResult = uiState.userTalkResult[index],
-                            isNotFriend = friend.friendshipPoint == -1
+                            isNotFriend = friend.friendshipPoint == -1,
+                            onAddFriend = { userId ->
+                                onEvent(ResultUiEvent.AddFriend(userId, index))
+                            }
                         )
                     }
                 }
@@ -100,7 +104,7 @@ fun ResultScreen(
                     .padding(14.dp),
                 text = "확인",
                 onClick = {
-
+                    onEvent(ResultUiEvent.ClickConfirm)
                 }
             )
         }
@@ -156,12 +160,14 @@ fun SetTalkTitleLayout(
     }
 }
 
+// TODO: feat: 포인트 증가 기능 구현하기
 @Composable
 fun FriendshipResult(
     modifier: Modifier = Modifier,
     friend: UserData,
     talkResult: UserTalkResult,
-    isNotFriend: Boolean
+    isNotFriend: Boolean,
+    onAddFriend: (String) -> Unit
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -242,7 +248,8 @@ fun FriendshipResult(
                     text = "친구추가",
                     textStyle = MaterialTheme.typography.subtitle1.copy(
                         color = MaterialTheme.colors.secondary
-                    )
+                    ),
+                    onClick = { onAddFriend(friend.userId) }
                 )
             } else {
                 IconWithText(

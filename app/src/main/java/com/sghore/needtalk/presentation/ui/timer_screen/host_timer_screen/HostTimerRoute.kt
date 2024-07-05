@@ -189,8 +189,9 @@ fun HostTimerRoute(
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { _, userTalkResult, recordFilePath ->
+                                    navigateOtherScreen = { _, talkTime, userTalkResult, recordFilePath ->
                                         navigateToResultScreen(
+                                            talkTime = talkTime,
                                             userTalkResult = userTalkResult,
                                             filePath = recordFilePath,
                                             navigate = navigateResultScreen
@@ -271,9 +272,10 @@ fun HostTimerRoute(
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
+                                    navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(
+                                                talkTime = talkTime,
                                                 userTalkResult = userTalkResult,
                                                 filePath = recordFilePath,
                                                 navigate = navigateResultScreen
@@ -315,9 +317,10 @@ fun HostTimerRoute(
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
                                     recordFilePath = service?.outputFile ?: "",
-                                    navigateOtherScreen = { isFinished, userTalkResult, recordFilePath ->
+                                    navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(
+                                                talkTime = talkTime,
                                                 userTalkResult = userTalkResult,
                                                 filePath = recordFilePath,
                                                 navigate = navigateResultScreen
@@ -390,12 +393,13 @@ fun HostTimerRoute(
 @OptIn(ExperimentalSerializationApi::class)
 private fun navigateToResultScreen(
     userTalkResult: List<UserTalkResult>,
+    talkTime: Long,
     filePath: String,
     navigate: (String) -> Unit
 ) {
     val userTalkResultJson = Json.encodeToString(userTalkResult)
     val route = UiScreen.ResultScreen.route +
-            "?filePath=${filePath}&userTalkResults=${userTalkResultJson}"
+            "?talkTime=${talkTime}&filePath=${filePath}&userTalkResults=${userTalkResultJson}"
     navigate(route)
 }
 

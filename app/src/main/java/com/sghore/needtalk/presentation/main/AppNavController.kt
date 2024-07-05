@@ -233,13 +233,16 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.ResultScreen.route +
-                    "?filePath={filePath}&userTalkResults={userTalkResults}",
+                    "?talkTime={talkTime}&filePath={filePath}&userTalkResults={userTalkResults}",
             arguments = listOf(
+                navArgument("talkTime") { type = NavType.LongType },
                 navArgument("filePath") { type = NavType.StringType },
                 navArgument("userTalkResults") { type = NavType.StringType }
             )
         ) {
-            ResultRoute()
+            ResultRoute(
+                navigateUp = navController::navigateUp
+            )
         }
         composable(
             route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",

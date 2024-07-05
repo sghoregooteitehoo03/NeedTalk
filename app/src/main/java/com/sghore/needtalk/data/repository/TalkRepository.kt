@@ -3,6 +3,8 @@ package com.sghore.needtalk.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
@@ -103,6 +105,19 @@ class TalkRepository @Inject constructor(
     // 대화 기록 삽입
     suspend fun insertTalkEntity(talkEntity: TalkEntity) {
         dao.insertTalkEntity(talkEntity)
+    }
+
+
+    // 대화 기록 저장
+    suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity) {
+        dao.insertTalkHistoryEntity(talkHistoryEntity)
+    }
+
+    // 대화에 참여한 참여자들에 정보 저장
+    suspend fun insertTalkHistoryParticipantEntity(
+        talkHistoryParticipantEntity: TalkHistoryParticipantEntity
+    ) {
+        dao.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
     }
 
     // 저장된 대화방 설정 가져옴

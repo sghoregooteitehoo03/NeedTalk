@@ -6,6 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
@@ -13,6 +15,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TalkDao {
+
+    @Insert
+    suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity)
+
+    @Insert
+    suspend fun insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity: TalkHistoryParticipantEntity)
+
+
     @Query("SELECT * FROM UserEntity WHERE userId == :userId")
     fun getUserEntity(userId: String): Flow<UserEntity?>
 
