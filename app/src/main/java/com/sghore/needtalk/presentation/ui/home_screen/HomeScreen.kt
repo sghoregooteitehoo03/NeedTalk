@@ -200,7 +200,11 @@ fun HomeScreen(
             startDestination = UiScreen.TalkHistoryScreen.route
         ) {
             composable(UiScreen.TalkHistoryScreen.route) {
-                TalkHistoryRoute()
+                TalkHistoryRoute(
+                    navigateToTalkHistoryDetail = {
+                        navigateToOther(UiScreen.TalkHistoryDetailScreen.route)
+                    }
+                )
             }
 
             composable(route = UiScreen.TalkTopicsScreen.route) {

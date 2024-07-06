@@ -26,6 +26,7 @@ import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
 import com.sghore.needtalk.presentation.ui.result_screen.ResultRoute
 import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
+import com.sghore.needtalk.presentation.ui.talkhistory_detail_screen.TalkHistoryDetailRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
@@ -108,6 +109,10 @@ fun AppNavHost(
             )
         }
 
+        composable(route = UiScreen.TalkHistoryDetailScreen.route) {
+            TalkHistoryDetailRoute()
+        }
+
         composable(route = UiScreen.ProfileScreen.route) {
             ProfileRoute(
                 userData = gViewModel.getUserData(),
@@ -187,7 +192,6 @@ fun AppNavHost(
                 navArgument("timerCmInfo") { type = NavType.StringType }
             )
         ) {
-            // TODO: .fix 결과화면으로 이동 안되는 버그 수정
             HostTimerRoute(
                 userData = gViewModel.getUserData(),
                 navigateUp = {

@@ -173,7 +173,7 @@ fun generateTalkTopicId(userId: String, currentTime: Long): String {
     return bytes.joinToString("") { "%02x".format(it) }
 }
 
-// TODO: . 녹음 파일 경로 어디로 지정할지 고민, 녹음 을질 퀄리티 올리기
+// TODO: . 녹음 을질 퀄리티 올리기
 fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // 미디어 레코드 설정
         MediaRecorder(context).apply {

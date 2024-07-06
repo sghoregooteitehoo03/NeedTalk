@@ -2,6 +2,7 @@ package com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -45,7 +46,8 @@ import java.util.Locale
 
 @Composable
 fun TalkHistoryScreen(
-    uiState: TalkHistoryUiState
+    uiState: TalkHistoryUiState,
+    onClickTalkHistory: (TalkHistory) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -83,7 +85,8 @@ fun TalkHistoryScreen(
                                     end = 14.dp,
                                     bottom = 4.dp
                                 ),
-                                talkHistory = it[index]!!
+                                talkHistory = it[index]!!,
+                                onClick = { talkHistory -> onClickTalkHistory(talkHistory) }
                             )
                         }
                     }
@@ -97,6 +100,7 @@ fun TalkHistoryScreen(
 fun TalkHistoryItem(
     modifier: Modifier = Modifier,
     talkHistory: TalkHistory,
+    onClick: (TalkHistory) -> Unit
 ) {
     Column(
         modifier = modifier
@@ -108,6 +112,7 @@ fun TalkHistoryItem(
                 color = MaterialTheme.colors.background,
                 shape = MaterialTheme.shapes.large
             )
+            .clickable { onClick(talkHistory) }
             .padding(14.dp)
     ) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
