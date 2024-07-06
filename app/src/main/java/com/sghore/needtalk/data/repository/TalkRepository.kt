@@ -8,55 +8,56 @@ import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
-import com.sghore.needtalk.domain.model.ParticipantCount
-import com.sghore.needtalk.domain.model.TalkHistory
-import com.sghore.needtalk.domain.model.TalkStatics
-import kotlinx.coroutines.flow.first
-import java.util.Calendar
+import com.sghore.needtalk.data.repository.database.UserDao
+import com.sghore.needtalk.data.repository.datasource.GetTalkHistoryPagingSource
+import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
-import kotlin.math.roundToInt
 
 class TalkRepository @Inject constructor(
-    private val dao: TalkDao
+    private val talkDao: TalkDao,
+    private val userDao: UserDao
 ) {
 
     // 유저 아이디를 통해 유저 정보를 반환함
-    fun getUserEntity(userId: String) = dao.getUserEntity(userId)
+    fun getUserEntity(userId: String) = talkDao.getUserEntity(userId)
 
     // 유저 정보 삽입
     suspend fun insertUserEntity(userEntity: UserEntity) {
-        dao.insertUserEntity(userEntity)
+        talkDao.insertUserEntity(userEntity)
     }
 
-    // 시작 날짜와 끝 날짜까지의 모든 대화기록을 가져옴
-    suspend fun getTalkEntities(startTime: Long, endTime: Long) =
-        dao.getTalkEntity(startTime, endTime)
-
     // 대화 주제 리스트 반환
-    fun getTalkTopicEntity(groupCode: Int) = dao.getTalkTopicEntity(groupCode)
+    fun getTalkTopicEntity(groupCode: Int) = talkDao.getTalkTopicEntity(groupCode)
 
     // 대화 기록 삽입
     suspend fun insertTalkEntity(talkEntity: TalkEntity) {
-        dao.insertTalkEntity(talkEntity)
+        talkDao.insertTalkEntity(talkEntity)
     }
 
+    fun getTalkHistoryEntities(offset: Int, limit: Int = 20) =
+        talkDao.getTalkHistoryEntities(offset, limit)
+
+    // 대화기록 페이징 하여 반환
+    fun getPagingTalkHistory(pageSize: Int = 20) = Pager(PagingConfig(pageSize)) {
+        GetTalkHistoryPagingSource(talkDao, userDao, pageSize)
+    }.flow
 
     // 대화 기록 저장
     suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity) {
-        dao.insertTalkHistoryEntity(talkHistoryEntity)
+        talkDao.insertTalkHistoryEntity(talkHistoryEntity)
     }
 
     // 대화에 참여한 참여자들에 정보 저장
     suspend fun insertTalkHistoryParticipantEntity(
         talkHistoryParticipantEntity: TalkHistoryParticipantEntity
     ) {
-        dao.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
+        talkDao.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
     }
 
     // 저장된 대화방 설정 가져옴
-    fun getTalkSettingEntity() = dao.getTalkSettingEntity()
+    fun getTalkSettingEntity() = talkDao.getTalkSettingEntity()
 
     // 대화방 설정 저장
     suspend fun insertTalkSettingEntity(talkSettingEntity: TalkSettingEntity) =
-        dao.insertTalkSettingEntity(talkSettingEntity)
+        talkDao.insertTalkSettingEntity(talkSettingEntity)
 }

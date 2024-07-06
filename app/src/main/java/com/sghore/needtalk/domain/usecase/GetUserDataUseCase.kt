@@ -11,6 +11,7 @@ class GetUserDataUseCase @Inject constructor(
     private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(userId: String): UserData? {
+        // TODO: JOIN 한 데이터로 변경
         val userEntity = userRepository.getUserEntity(userId).first()
         val friendEntity = userRepository.getFriendEntity(userId).first()
 

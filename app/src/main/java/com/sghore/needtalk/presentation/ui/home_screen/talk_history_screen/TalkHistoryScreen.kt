@@ -20,9 +20,13 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -30,6 +34,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.paging.LoadState
+import androidx.paging.compose.collectAsLazyPagingItems
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.domain.model.UserData
@@ -38,27 +44,51 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun TalkHistoryScreen() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        LazyColumn {
-
-        }
-        Column(
-            modifier = Modifier.align(Alignment.Center),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.ic_empty_history),
-                contentDescription = "EmptyHistory",
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                text = "대화기록이 존재하지 않습니다.",
-                style = MaterialTheme.typography.h5.copy(
-                    color = colorResource(id = R.color.gray),
-                    fontSize = 18.sp
-                )
-            )
+fun TalkHistoryScreen(
+    uiState: TalkHistoryUiState
+) {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        val talkHistories = uiState.talkHistory?.collectAsLazyPagingItems()
+        talkHistories?.let {
+            val isLoading by remember { derivedStateOf { it.loadState.refresh is LoadState.Loading } }
+            if (!isLoading) {
+                if (it.itemCount == 0) {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.ic_empty_history),
+                            contentDescription = "EmptyHistory",
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "대화기록이 존재하지 않습니다.",
+                            style = MaterialTheme.typography.h5.copy(
+                                color = colorResource(id = R.color.gray),
+                                fontSize = 18.sp
+                            )
+                        )
+                    }
+                } else {
+                    LazyColumn(modifier = Modifier.padding(top = 10.dp)) {
+                        items(it.itemCount) { index ->
+                            TalkHistoryItem(
+                                modifier = Modifier.padding(
+                                    top = 4.dp,
+                                    start = 14.dp,
+                                    end = 14.dp,
+                                    bottom = 4.dp
+                                ),
+                                talkHistory = it[index]!!
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -72,35 +102,48 @@ fun TalkHistoryItem(
         modifier = modifier
             .fillMaxWidth()
             .height(120.dp)
+            .shadow(2.dp, MaterialTheme.shapes.large)
+            .clip(MaterialTheme.shapes.large)
+            .background(
+                color = MaterialTheme.colors.background,
+                shape = MaterialTheme.shapes.large
+            )
+            .padding(14.dp)
     ) {
-        ConstraintLayout {
+        ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (recordFile, info, timestamp, clips) = createRefs()
-            Box(
-                modifier = Modifier
-                    .constrainAs(recordFile) {
-                        top.linkTo(parent.top)
-                        start.linkTo(parent.start)
-                    }
-                    .size(48.dp)
-                    .background(
-                        color = colorResource(id = R.color.light_gray),
-                        shape = MaterialTheme.shapes.medium
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    modifier = Modifier.size(40.dp),
-                    painter = painterResource(id = R.drawable.ic_noize),
-                    contentDescription = "Record",
-                    tint = MaterialTheme.colors.secondary
-                )
+            if (talkHistory.recordFilePath.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .constrainAs(recordFile) {
+                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                        }
+                        .size(48.dp)
+                        .background(
+                            color = colorResource(id = R.color.light_gray),
+                            shape = MaterialTheme.shapes.medium
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(40.dp),
+                        painter = painterResource(id = R.drawable.ic_noize),
+                        contentDescription = "Record",
+                        tint = MaterialTheme.colors.secondary
+                    )
+                }
             }
             Column(
                 modifier = Modifier
                     .constrainAs(info) {
                         top.linkTo(recordFile.top)
                         bottom.linkTo(recordFile.bottom)
-                        start.linkTo(recordFile.end, 12.dp)
+                        if (talkHistory.recordFilePath.isNotEmpty()) {
+                            start.linkTo(recordFile.end, 12.dp)
+                        } else {
+                            start.linkTo(parent.start)
+                        }
                         end.linkTo(timestamp.start, 12.dp)
                         width = Dimension.fillToConstraints
                     }
@@ -108,7 +151,6 @@ fun TalkHistoryItem(
                 verticalArrangement = Arrangement.Center
             ) {
                 Text(
-                    modifier = Modifier.fillMaxWidth(),
                     text = talkHistory.talkTitle,
                     style = MaterialTheme.typography.h5.copy(
                         color = MaterialTheme.colors.onPrimary
@@ -119,7 +161,6 @@ fun TalkHistoryItem(
                 Spacer(modifier = Modifier.height(2.dp))
                 Row {
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
                         text = SimpleDateFormat(
                             "HH:mm:ss",
                             Locale.KOREA
@@ -130,7 +171,6 @@ fun TalkHistoryItem(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        modifier = Modifier.fillMaxWidth(),
                         text = getFileSizeToStr(talkHistory.recordFileSize),
                         style = MaterialTheme.typography.body1.copy(
                             color = colorResource(id = R.color.gray)

@@ -16,6 +16,12 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TalkDao {
 
+    @Query("SELECT * FROM TalkHistoryEntity ORDER BY createTimeStamp DESC LIMIT :limit OFFSET :offset")
+    fun getTalkHistoryEntities(offset: Int, limit: Int = 20): Flow<List<TalkHistoryEntity>>
+
+    @Query("SELECT * FROM TalkHistoryParticipantEntity WHERE talkHistoryId == :talkId")
+    fun getTalkHistoryParticipantEntities(talkId: String): Flow<List<TalkHistoryParticipantEntity>>
+
     @Insert
     suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity)
 
@@ -37,9 +43,6 @@ interface TalkDao {
                 "OFFSET :offset"
     )
     fun getTalkEntity(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
-
-    @Query("SELECT * FROM TalkEntity WHERE createTimeStamp BETWEEN :startTime AND :endTime")
-    suspend fun getTalkEntity(startTime: Long, endTime: Long): List<TalkEntity>
 
     @Insert
     suspend fun insertTalkEntity(talkEntity: TalkEntity)
