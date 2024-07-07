@@ -1,15 +1,15 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
-import androidx.compose.animation.core.LinearEasing
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationState
+import androidx.compose.animation.core.FloatSpringSpec
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDecay
+import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,9 +24,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -35,9 +38,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -47,9 +50,11 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Locale
-import kotlin.math.roundToInt
 
 @Composable
 fun TalkHistoryDetailScreen() {
@@ -180,6 +185,20 @@ fun AudioRecordPlayer(
     currentRecordTime: Long,
     onChangeRecordFile: (Long) -> Unit
 ) {
+    var isFirst = remember { true }
+    val waveFormWidth = 3.dp.times(maxRecordTime.toInt()).value
+    val waveColor = MaterialTheme.colors.secondary
+
+    var offsetX by remember { mutableFloatStateOf(0f) }
+    val decay = rememberSplineBasedDecay<Float>()
+    val decayAnimationSpec = FloatSpringSpec(
+        dampingRatio = Spring.DampingRatioLowBouncy,
+        stiffness = Spring.StiffnessVeryLow,
+    )
+    val animatable = remember { Animatable(0f) }
+    var velocity by remember { mutableFloatStateOf(0f) }
+    val coroutineScope = rememberCoroutineScope()
+
     Box(
         modifier = modifier
             .fillMaxWidth()
@@ -188,8 +207,61 @@ fun AudioRecordPlayer(
                 color = colorResource(id = R.color.light_gray),
                 shape = MaterialTheme.shapes.large
             )
+            .pointerInput(Unit) {
+                detectHorizontalDragGestures(
+                    onHorizontalDrag = { change, dragAmount ->
+                        velocity = change.positionChange().x / change.uptimeMillis
+                        offsetX = (offsetX + dragAmount)//.coerceIn(0f, waveFormWidth - size.width)
+
+                        change.consume()
+                    },
+                    onDragEnd = {
+                        coroutineScope.launch {
+                            animatable.animateTo(
+                                targetValue = offsetX,
+                                initialVelocity = velocity,
+                                animationSpec = decayAnimationSpec,
+                            )
+                        }
+                    }
+                )
+//                detectHorizontalDragGestures { change, dragAmount ->
+//                    offsetX = (offsetX + dragAmount)//.coerceIn(size.width / 2f, waveFormWidth)
+//                    change.consume()
+//                }
+            }
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
+//            if (isFirst) {
+//                isFirst = false
+//                offsetX = size.width / 2
+//            }
+
+            for (i in 0 until maxRecordTime) {
+                val barWidth = 2.dp.toPx()
+                val x = if (i.toInt() == 0) {
+                    i * barWidth + animatable.value
+                } else {
+                    i * barWidth + (i * 2.dp.toPx()) + animatable.value
+                }
+                if (x in 0f..waveFormWidth) {
+                    val y = 8.dp.toPx()
+                    drawLine(
+                        color = waveColor,
+                        start = Offset(
+                            x,
+                            (size.height / 2) - (y.div(4)).dp.toPx()
+                        ),
+                        end = Offset(
+                            x,
+                            (size.height / 2) + (y.div(4)).dp.toPx()
+                        ),
+                        strokeWidth = barWidth,
+                        cap = StrokeCap.Round
+                    )
+                }
+            }
+
             val path = Path().apply {
                 moveTo(size.width / 2 - 4.dp.toPx(), 0f)
                 lineTo(size.width / 2 + 4.dp.toPx(), 0f) // Bottom-left vertex
@@ -216,14 +288,29 @@ fun AudioRecordPlayer(
 @Composable
 private fun TestPreview() {
     NeedTalkTheme {
-        AudioRecordPlayer(maxRecordTime = 0L, currentRecordTime = 0L, onChangeRecordFile = {})
+        AudioRecordPlayer(maxRecordTime = 500L, currentRecordTime = 0L, onChangeRecordFile = {})
     }
 }
 
+//@Preview
+//@Composable
+//private fun AuioPlayerUIPreview() {
+//    NeedTalkTheme {
+//        AudioPlayerUI()
+//    }
+//}
+
 @Composable
 fun AudioPlayerUI() {
-    var currentTime by remember { mutableStateOf(5.28f) }
-    val totalTime = 120f // 2:00:00 in seconds
+    var currentTime by remember { mutableStateOf(0f) }
+    val totalTime = 200f // 총 녹음 시간 (예: 200초)
+
+    LaunchedEffect(Unit) {
+        while (currentTime < totalTime) {
+            delay(100)
+            currentTime += 0.1f
+        }
+    }
 
     Column(
         modifier = Modifier
@@ -233,24 +320,20 @@ fun AudioPlayerUI() {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            text = formatTime(totalTime.toInt()),
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold
+            text = formatTime(currentTime.toInt()),
+            fontSize = 36.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         Text(
-            text = formatTime(currentTime.roundToInt()),
-            fontSize = 36.sp,
-            fontWeight = FontWeight.Bold
+            text = formatTime(totalTime.toInt()),
+            fontSize = 16.sp
         )
         Spacer(modifier = Modifier.height(8.dp))
         WaveformSlider(
             modifier = Modifier
                 .fillMaxWidth()
                 .height(150.dp),
-            onProgressChanged = { progress ->
-                currentTime = progress * totalTime
-            }
+            progress = currentTime / totalTime
         )
     }
 }
@@ -258,36 +341,52 @@ fun AudioPlayerUI() {
 @Composable
 fun WaveformSlider(
     modifier: Modifier = Modifier,
-    onProgressChanged: (Float) -> Unit
+    progress: Float
 ) {
-    val infiniteTransition = rememberInfiniteTransition()
-    val offsetX by infiniteTransition.animateFloat(
-        initialValue = 0f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(10000, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ), label = ""
-    )
+    var offsetX by remember { mutableStateOf(0f) }
+    val waveformWidth = 2000f // 파형의 전체 너비를 설정합니다.
+    val maxOffsetX = waveformWidth / 2 - 500f // 스크롤 가능한 최대 오프셋 (왼쪽 제한)
+    val minOffsetX = -waveformWidth / 2 + 500f // 스크롤 가능한 최소 오프셋 (오른쪽 제한)
 
-    Box(modifier = modifier) {
+    // 자동으로 offsetX를 업데이트하는 애니메이션
+//    val animatedOffsetX by animateFloatAsState(
+//        targetValue = offsetX - 5f,
+//        animationSpec = infiniteRepeatable(
+//            animation = tween(
+//                durationMillis = 100, // 속도 조절
+//                easing = LinearEasing
+//            )
+//        ), label = ""
+//    )
+//
+//    LaunchedEffect(progress) {
+//        offsetX = animatedOffsetX.coerceIn(minOffsetX, maxOffsetX)
+//    }
+
+    Box(modifier = modifier.pointerInput(Unit) {
+        detectHorizontalDragGestures { change, dragAmount ->
+            offsetX = (offsetX + dragAmount).coerceIn(minOffsetX, maxOffsetX)
+            change.consume()
+        }
+    }) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-            // 파형을 시뮬레이션하는 예제
-            val barCount = 100
+            val barCount = 50
             val barWidth = size.width / barCount
             for (i in 0 until barCount) {
-                val x = ((i - offsetX * barCount) * barWidth) % size.width
-                val y = size.height * (0.1f + 0.8f * (i % 2))
-                drawLine(
-                    color = if (x >= size.width / 2 - barWidth / 2 && x <= size.width / 2 + barWidth / 2) Color.Red else Color.Yellow,
-                    start = Offset(x, size.height),
-                    end = Offset(x, y),
-                    strokeWidth = barWidth - 4.dp.toPx(),
-                    cap = StrokeCap.Round
-                )
+                val x = i * barWidth + offsetX
+                if (x in 0f..size.width) {
+                    val y = size.height * (0.1f + 0.8f * (i % 2))
+                    drawLine(
+                        color = if (i < progress * barCount) Color.Gray else Color.LightGray,
+                        start = Offset(x, size.height),
+                        end = Offset(x, y),
+                        strokeWidth = barWidth - 4.dp.toPx(),
+                        cap = StrokeCap.Round
+                    )
+                }
             }
 
-            // 가운데 빨간 줄 그리기
+            // 가운데 빨간 선 그리기
             val centerX = size.width / 2
             drawLine(
                 color = Color.Red,
