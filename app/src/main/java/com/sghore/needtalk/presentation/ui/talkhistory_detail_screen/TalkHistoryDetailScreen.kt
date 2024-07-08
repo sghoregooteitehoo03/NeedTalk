@@ -1,15 +1,14 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
+import android.annotation.SuppressLint
 import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.AnimationState
-import androidx.compose.animation.core.FloatSpringSpec
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDecay
 import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -20,27 +19,31 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -50,7 +53,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import kotlinx.coroutines.cancel
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -179,6 +182,38 @@ fun FriendshipLayout(
 }
 
 @Composable
+fun AudioRecordTime(
+    modifier: Modifier = Modifier,
+    maxRecordTime: Long,
+    currentRecordTime: Long,
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = SimpleDateFormat(
+                "HH:mm:ss",
+                Locale.KOREA
+            ).format(maxRecordTime.minus(32400000)),
+            style = MaterialTheme.typography.h5.copy(
+                color = colorResource(id = R.color.gray)
+            )
+        )
+        Text(
+            text = SimpleDateFormat(
+                "HH:mm:ss",
+                Locale.KOREA
+            ).format(currentRecordTime.minus(32400000)),
+            style = MaterialTheme.typography.h3.copy(
+                fontSize = 32.sp,
+                color = MaterialTheme.colors.onPrimary,
+                fontWeight = FontWeight.Bold
+            )
+        )
+    }
+}
+
+// TODO: . 나중에 구현
+@SuppressLint("ReturnFromAwaitPointerEventScope", "MultipleAwaitPointerEventScopes")
+@Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
     maxRecordTime: Long,
@@ -189,14 +224,8 @@ fun AudioRecordPlayer(
     val waveFormWidth = 3.dp.times(maxRecordTime.toInt()).value
     val waveColor = MaterialTheme.colors.secondary
 
-    var offsetX by remember { mutableFloatStateOf(0f) }
-    val decay = rememberSplineBasedDecay<Float>()
-    val decayAnimationSpec = FloatSpringSpec(
-        dampingRatio = Spring.DampingRatioLowBouncy,
-        stiffness = Spring.StiffnessVeryLow,
-    )
+    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
     val animatable = remember { Animatable(0f) }
-    var velocity by remember { mutableFloatStateOf(0f) }
     val coroutineScope = rememberCoroutineScope()
 
     Box(
@@ -208,34 +237,42 @@ fun AudioRecordPlayer(
                 shape = MaterialTheme.shapes.large
             )
             .pointerInput(Unit) {
-                detectHorizontalDragGestures(
-                    onHorizontalDrag = { change, dragAmount ->
-                        velocity = change.positionChange().x / change.uptimeMillis
-                        offsetX = (offsetX + dragAmount)//.coerceIn(0f, waveFormWidth - size.width)
+                coroutineScope {
+                    val velocityTracker = VelocityTracker()
 
-                        change.consume()
-                    },
-                    onDragEnd = {
-                        coroutineScope.launch {
-                            animatable.animateTo(
-                                targetValue = offsetX,
-                                initialVelocity = velocity,
-                                animationSpec = decayAnimationSpec,
-                            )
+                    while (true) {
+                        val pointerId = awaitPointerEventScope { awaitFirstDown().id }
+
+                        animatable.stop()
+                        awaitPointerEventScope {
+                            horizontalDrag(pointerId) { change ->
+                                velocityTracker.addPosition(change.uptimeMillis, change.position)
+                                val offsetX = animatable.value + change.positionChange().x
+
+                                launch {
+                                    animatable.snapTo(offsetX)
+                                }
+                                change.consume()
+                            }
+                        }
+
+                        launch {
+                            val velocity = velocityTracker.calculateVelocity().x
+                            launch {
+                                animatable.animateDecay(velocity, decayAnimationSpec)
+                            }
                         }
                     }
-                )
-//                detectHorizontalDragGestures { change, dragAmount ->
-//                    offsetX = (offsetX + dragAmount)//.coerceIn(size.width / 2f, waveFormWidth)
-//                    change.consume()
-//                }
+                }
             }
     ) {
         Canvas(modifier = Modifier.fillMaxSize()) {
-//            if (isFirst) {
-//                isFirst = false
-//                offsetX = size.width / 2
-//            }
+            if (isFirst) {
+                isFirst = false
+                val firstPos = size.width / 2
+
+                coroutineScope.launch { animatable.snapTo(firstPos) }
+            }
 
             for (i in 0 until maxRecordTime) {
                 val barWidth = 2.dp.toPx()
@@ -244,10 +281,14 @@ fun AudioRecordPlayer(
                 } else {
                     i * barWidth + (i * 2.dp.toPx()) + animatable.value
                 }
-                if (x in 0f..waveFormWidth) {
+                if (x in 0f..size.width) {
                     val y = 8.dp.toPx()
                     drawLine(
-                        color = waveColor,
+                        color = if (x < size.width / 2) {
+                            waveColor
+                        } else {
+                            waveColor.copy(alpha = 0.3f)
+                        },
                         start = Offset(
                             x,
                             (size.height / 2) - (y.div(4)).dp.toPx()
@@ -264,7 +305,7 @@ fun AudioRecordPlayer(
 
             val path = Path().apply {
                 moveTo(size.width / 2 - 4.dp.toPx(), 0f)
-                lineTo(size.width / 2 + 4.dp.toPx(), 0f) // Bottom-left vertex
+                lineTo(size.width / 2 + 4.dp.toPx(), 0f)
                 lineTo(size.width / 2, 12.dp.toPx())
                 close()
             }
@@ -288,7 +329,106 @@ fun AudioRecordPlayer(
 @Composable
 private fun TestPreview() {
     NeedTalkTheme {
-        AudioRecordPlayer(maxRecordTime = 500L, currentRecordTime = 0L, onChangeRecordFile = {})
+        AudioRecordPlayer(maxRecordTime = 1000, currentRecordTime = 0L, onChangeRecordFile = {})
+    }
+}
+
+@Composable
+fun AudioRecordButtons(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        color = colorResource(id = R.color.light_gray),
+                        shape = CircleShape
+                    )
+                    .size(48.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "-5s",
+                    style = MaterialTheme.typography.body1.copy(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        color = MaterialTheme.colors.secondary,
+                        shape = CircleShape
+                    )
+                    .size(64.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    modifier = Modifier.size(28.dp),
+                    painter = painterResource(id = R.drawable.ic_play),
+                    contentDescription = "Resume",
+                    tint = MaterialTheme.colors.onSecondary
+                )
+            }
+            Spacer(modifier = Modifier.width(20.dp))
+            Box(
+                modifier = Modifier
+                    .clip(CircleShape)
+                    .background(
+                        color = colorResource(id = R.color.light_gray),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "+5s",
+                    style = MaterialTheme.typography.body1.copy(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                )
+            }
+        }
+        Spacer(modifier = Modifier.height(32.dp))
+        Row {
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    modifier = Modifier.size(28.dp),
+                    painter = painterResource(id = R.drawable.ic_star),
+                    contentDescription = "Clips",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "클립 목록",
+                    style = MaterialTheme.typography.body1.copy(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                )
+            }
+            Spacer(modifier = Modifier.width(32.dp))
+            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Icon(
+                    modifier = Modifier.size(28.dp),
+                    painter = painterResource(id = R.drawable.ic_star),
+                    contentDescription = "Clips",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "클립 목록",
+                    style = MaterialTheme.typography.body1.copy(
+                        color = MaterialTheme.colors.onPrimary
+                    )
+                )
+            }
+        }
     }
 }
 
