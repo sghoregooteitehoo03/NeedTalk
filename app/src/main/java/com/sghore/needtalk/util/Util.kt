@@ -187,7 +187,7 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
                 File(tempDir, "record_${System.currentTimeMillis()}.m4a").absolutePath
 
             // 미디어 옵션 설정
-            setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setOutputFile(outputFilePath)
@@ -205,7 +205,7 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
                 File(tempDir, "record_${System.currentTimeMillis()}.m4a").absolutePath
 
             // 미디어 옵션 설정
-            setAudioSource(MediaRecorder.AudioSource.VOICE_RECOGNITION)
+            setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             setOutputFile(outputFilePath)

@@ -56,15 +56,18 @@ import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
+import com.sghore.needtalk.util.getFileSizeToStr
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -150,6 +153,9 @@ fun TalkHistoryDetailScreen(
                         onDismissRequest = { isExpended = false }
                     ) {
                         DropdownMenuItem(onClick = {
+                            if (uiState.recordFile != null) {
+                                onEvent(TalkHistoryDetailUiEvent.OptionInfo)
+                            }
                             isExpended = false
                         }) {
                             Text(
@@ -326,7 +332,7 @@ fun AudioRecordTime(
     }
 }
 
-// TODO: . 나중에 구현
+// TODO: . 파형 가져와서 표시하기
 @SuppressLint("ReturnFromAwaitPointerEventScope", "MultipleAwaitPointerEventScopes")
 @Composable
 fun AudioRecordPlayer(
@@ -664,7 +670,9 @@ fun WaveformSlider(
 @Composable
 fun FileInfoDialog(
     modifier: Modifier = Modifier,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    talkHistory: TalkHistory?,
+    recordFile: File
 ) {
     BottomSheetDialog(onDismissRequest = onDismiss) {
         Column(modifier = modifier.fillMaxWidth()) {
@@ -688,6 +696,36 @@ fun FileInfoDialog(
                 )
             }
             Spacer(modifier = Modifier.height(16.dp))
+            InfoText(
+                hint = "파일 제목",
+                text = recordFile.name
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            InfoText(
+                hint = "파일 크기",
+                text = getFileSizeToStr(talkHistory?.recordFileSize ?: 0L)
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            InfoText(
+                hint = "파일 경로",
+                text = recordFile.absolutePath
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            InfoText(
+                hint = "재생 시간",
+                text = SimpleDateFormat(
+                    "HH:mm:ss",
+                    Locale.KOREA
+                ).format((talkHistory?.talkTime ?: 0L).minus(32400000))
+            )
+            Spacer(modifier = Modifier.height(20.dp))
+            InfoText(
+                hint = "생성 날짜",
+                text = SimpleDateFormat(
+                    "yyyy년 MM월 dd일",
+                    Locale.KOREA
+                ).format((talkHistory?.createTimeStamp ?: 0L))
+            )
         }
     }
 }

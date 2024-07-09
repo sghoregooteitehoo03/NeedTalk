@@ -55,7 +55,17 @@ fun TalkHistoryDetailRoute(
 
         when (uiState.dialogScreen) {
             is DialogScreen.DialogFileInfo -> {
-
+                FileInfoDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .padding(14.dp),
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    talkHistory = uiState.talkHistory,
+                    recordFile = uiState.recordFile!!
+                )
             }
 
             is DialogScreen.DialogRenameTitle -> {
