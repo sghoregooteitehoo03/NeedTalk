@@ -558,6 +558,7 @@ fun SimpleInputDialog(
     title: String,
     hint: String,
     startInputData: String,
+    maxLength: Int = 15,
     buttonText: String,
     onButtonClick: (String) -> Unit
 ) {
@@ -591,7 +592,7 @@ fun SimpleInputDialog(
                 hint = hint,
                 inputData = inputData,
                 onDataChange = { inputData = it },
-                maxLength = 15
+                maxLength = maxLength
             )
             Spacer(modifier = Modifier.height(24.dp))
             DefaultButton(

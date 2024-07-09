@@ -79,4 +79,10 @@ sealed interface DialogScreen {
     ) : DialogScreen
 
     data object DialogTimerReady : DialogScreen
+
+    data object DialogFileInfo : DialogScreen
+
+    data object DialogRenameTitle : DialogScreen
+
+    data object DialogRemoveTalkHistory : DialogScreen
 }

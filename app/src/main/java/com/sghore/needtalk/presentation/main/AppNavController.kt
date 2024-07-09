@@ -118,7 +118,9 @@ fun AppNavHost(
                 }
             )
         ) {
-            TalkHistoryDetailRoute()
+            TalkHistoryDetailRoute(
+                navigateUp = navController::navigateUp
+            )
         }
 
         composable(route = UiScreen.ProfileScreen.route) {

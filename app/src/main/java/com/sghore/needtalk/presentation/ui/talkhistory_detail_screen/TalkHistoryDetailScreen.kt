@@ -6,6 +6,7 @@ import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.gestures.horizontalDrag
@@ -21,6 +22,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.DropdownMenu
+import androidx.compose.material.DropdownMenuItem
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -47,12 +50,17 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.ProfileImage
+import com.sghore.needtalk.presentation.ui.SimpleInputDialog
+import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
@@ -62,7 +70,8 @@ import java.util.Locale
 
 @Composable
 fun TalkHistoryDetailScreen(
-    uiState: TalkHistoryDetailUiState
+    uiState: TalkHistoryDetailUiState,
+    onEvent: (TalkHistoryDetailUiEvent) -> Unit
 ) {
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
         val (topLayout, subMidLayout, midLayout, bottomLayout) = createRefs()
@@ -78,14 +87,19 @@ fun TalkHistoryDetailScreen(
                     .height(56.dp)
                     .padding(start = 14.dp, end = 14.dp),
             ) {
-                val (navigateUp, title, more) = createRefs()
+                var isExpended by remember { mutableStateOf(false) }
+                val (navigateUp, title, more, dropdown) = createRefs()
                 Icon(
                     modifier = Modifier
                         .size(24.dp)
+                        .clip(CircleShape)
                         .constrainAs(navigateUp) {
                             top.linkTo(parent.top)
                             bottom.linkTo(parent.bottom)
                             start.linkTo(parent.start)
+                        }
+                        .clickable {
+                            onEvent(TalkHistoryDetailUiEvent.ClickNavigateUp)
                         },
                     painter = painterResource(id = R.drawable.ic_back_arrow),
                     contentDescription = "NavigateUp",
@@ -115,17 +129,62 @@ fun TalkHistoryDetailScreen(
                 Icon(
                     modifier = Modifier
                         .size(24.dp)
+                        .clip(CircleShape)
                         .constrainAs(more) {
                             top.linkTo(parent.top)
                             bottom.linkTo(parent.bottom)
                             end.linkTo(parent.end)
-                        },
+                        }
+                        .clickable { isExpended = true },
                     painter = painterResource(id = R.drawable.ic_more),
                     contentDescription = "More",
                     tint = MaterialTheme.colors.onPrimary
                 )
+
+                Box(modifier = Modifier.constrainAs(dropdown) {
+                    top.linkTo(more.top)
+                    end.linkTo(more.end)
+                }) {
+                    DropdownMenu(
+                        expanded = isExpended,
+                        onDismissRequest = { isExpended = false }
+                    ) {
+                        DropdownMenuItem(onClick = {
+                            isExpended = false
+                        }) {
+                            Text(
+                                text = "파일 정보",
+                                style = MaterialTheme.typography.body1.copy(
+                                    color = MaterialTheme.colors.onPrimary
+                                )
+                            )
+                        }
+                        DropdownMenuItem(onClick = {
+                            onEvent(TalkHistoryDetailUiEvent.OptionRenameTitle)
+                            isExpended = false
+                        }) {
+                            Text(
+                                text = "제목 수정",
+                                style = MaterialTheme.typography.body1.copy(
+                                    color = MaterialTheme.colors.onPrimary
+                                )
+                            )
+                        }
+                        DropdownMenuItem(onClick = {
+                            onEvent(TalkHistoryDetailUiEvent.OptionRemoveTalkHistory)
+                            isExpended = false
+                        }) {
+                            Text(
+                                text = "대화기록 삭제",
+                                style = MaterialTheme.typography.body1.copy(
+                                    color = MaterialTheme.colors.onPrimary
+                                )
+                            )
+                        }
+                    }
+                }
             }
-            Spacer(modifier = Modifier.height(24.dp))
+            Spacer(modifier = Modifier.height(14.dp))
             repeat(talkHistory?.users?.size ?: 0) { index ->
                 val userData = talkHistory?.users?.get(index)
                 if (userData != null) {
@@ -598,6 +657,97 @@ fun WaveformSlider(
                 cap = StrokeCap.Round
             )
         }
+    }
+}
+
+// TODO: 나중에 구현
+@Composable
+fun FileInfoDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(modifier = modifier.fillMaxWidth()) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "파일 정보",
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+                Icon(
+                    modifier = Modifier
+                        .size(20.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd),
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close",
+                    tint = MaterialTheme.colors.onPrimary
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+        }
+    }
+}
+
+@Composable
+fun RenameTitleDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    title: String,
+    onTitleChange: (String) -> Unit
+) {
+    SimpleInputDialog(
+        modifier = modifier,
+        onDismiss = onDismiss,
+        title = "제목 수정",
+        hint = "대화 제목",
+        startInputData = title,
+        maxLength = 30,
+        buttonText = "수정하기",
+        onButtonClick = onTitleChange
+    )
+}
+
+@Composable
+fun RemoveTalkHistoryDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onClickRemove: () -> Unit
+) {
+    ConfirmWithCancelDialog(
+        modifier = modifier,
+        onDismiss = onDismiss,
+        title = "대화기록 삭제",
+        message = "기록된 녹음 파일도 모두 삭제됩니다.\n대화기록을 삭제하시겠습니까?",
+        confirmText = "삭제하기",
+        cancelText = "취소",
+        onConfirm = { onClickRemove() }
+    )
+}
+
+@Composable
+fun InfoText(
+    modifier: Modifier = Modifier,
+    hint: String,
+    text: String
+) {
+    Column(modifier = modifier) {
+        Text(
+            text = hint,
+            style = MaterialTheme.typography.body1
+                .copy(
+                    color = colorResource(id = R.color.gray)
+                )
+        )
+        Spacer(modifier = Modifier.height(2.dp))
+        Text(
+            text = text,
+            style = MaterialTheme.typography.h5
+                .copy(color = MaterialTheme.colors.onPrimary)
+        )
     }
 }
 
