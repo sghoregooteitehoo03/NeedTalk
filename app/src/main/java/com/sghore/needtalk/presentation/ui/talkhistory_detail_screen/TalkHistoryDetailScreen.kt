@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.positionChange
 import androidx.compose.ui.input.pointer.util.VelocityTracker
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -60,9 +61,17 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun TalkHistoryDetailScreen() {
-    Box(modifier = Modifier.fillMaxSize()) {
-        Column {
+fun TalkHistoryDetailScreen(
+    uiState: TalkHistoryDetailUiState
+) {
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+        val (topLayout, subMidLayout, midLayout, bottomLayout) = createRefs()
+
+        val talkHistory = uiState.talkHistory
+        val maxWidth = LocalConfiguration.current.screenWidthDp.dp
+        Column(modifier = Modifier.constrainAs(topLayout) {
+            top.linkTo(parent.top)
+        }) {
             ConstraintLayout(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -87,9 +96,9 @@ fun TalkHistoryDetailScreen() {
                     bottom.linkTo(parent.bottom)
                     start.linkTo(navigateUp.end)
                     end.linkTo(more.start)
-                }) {
+                }, horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
-                        text = "대화에 제목입니다.",
+                        text = talkHistory?.talkTitle ?: "",
                         style = MaterialTheme.typography.h5.copy(color = MaterialTheme.colors.onPrimary),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
@@ -99,7 +108,7 @@ fun TalkHistoryDetailScreen() {
                         text = SimpleDateFormat(
                             "yy.MM.dd (E)",
                             Locale.KOREA
-                        ).format(System.currentTimeMillis()),
+                        ).format(talkHistory?.createTimeStamp),
                         style = MaterialTheme.typography.subtitle1.copy(color = colorResource(id = R.color.gray))
                     )
                 }
@@ -116,7 +125,51 @@ fun TalkHistoryDetailScreen() {
                     tint = MaterialTheme.colors.onPrimary
                 )
             }
+            Spacer(modifier = Modifier.height(24.dp))
+            repeat(talkHistory?.users?.size ?: 0) { index ->
+                val userData = talkHistory?.users?.get(index)
+                if (userData != null) {
+                    ParticipantUser(
+                        modifier = Modifier.width(maxWidth.div(talkHistory.users.size)),
+                        userData = userData
+                    )
+                }
+            }
         }
+
+        AudioRecordTime(
+            modifier = Modifier.constrainAs(subMidLayout) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(midLayout.top, 12.dp)
+            },
+            maxRecordTime = talkHistory?.talkTime ?: 0L,
+            currentRecordTime = uiState.playerTime
+        )
+
+        AudioRecordPlayer(
+            modifier = Modifier
+                .constrainAs(midLayout) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(parent.bottom)
+                }
+                .padding(start = 14.dp, end = 14.dp),
+            maxRecordTime = 5000L,
+            currentRecordTime = 0L,
+            onChangeRecordFile = {}
+        )
+
+        AudioRecordButtons(
+            modifier = Modifier.constrainAs(bottomLayout) {
+                top.linkTo(midLayout.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+            },
+            isPlaying = uiState.isPlaying
+        )
     }
 }
 
@@ -187,7 +240,10 @@ fun AudioRecordTime(
     maxRecordTime: Long,
     currentRecordTime: Long,
 ) {
-    Column(modifier = modifier) {
+    Column(
+        modifier = modifier,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         Text(
             text = SimpleDateFormat(
                 "HH:mm:ss",
@@ -335,7 +391,8 @@ private fun TestPreview() {
 
 @Composable
 fun AudioRecordButtons(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isPlaying: Boolean
 ) {
     Column(
         modifier = modifier,
@@ -372,7 +429,11 @@ fun AudioRecordButtons(
             ) {
                 Icon(
                     modifier = Modifier.size(28.dp),
-                    painter = painterResource(id = R.drawable.ic_play),
+                    painter = if (isPlaying) {
+                        painterResource(id = R.drawable.ic_pause)
+                    } else {
+                        painterResource(id = R.drawable.ic_play)
+                    },
                     contentDescription = "Resume",
                     tint = MaterialTheme.colors.onSecondary
                 )
@@ -384,7 +445,8 @@ fun AudioRecordButtons(
                     .background(
                         color = colorResource(id = R.color.light_gray),
                         shape = CircleShape
-                    ),
+                    )
+                    .size(48.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -416,13 +478,13 @@ fun AudioRecordButtons(
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
                 Icon(
                     modifier = Modifier.size(28.dp),
-                    painter = painterResource(id = R.drawable.ic_star),
+                    painter = painterResource(id = R.drawable.ic_cut),
                     contentDescription = "Clips",
                     tint = MaterialTheme.colors.onPrimary
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "클립 목록",
+                    text = "클립 생성",
                     style = MaterialTheme.typography.body1.copy(
                         color = MaterialTheme.colors.onPrimary
                     )

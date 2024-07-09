@@ -109,7 +109,15 @@ fun AppNavHost(
             )
         }
 
-        composable(route = UiScreen.TalkHistoryDetailScreen.route) {
+        composable(
+            route = UiScreen.TalkHistoryDetailScreen.route +
+                    "?talkHistory={talkHistory}",
+            arguments = listOf(
+                navArgument("talkHistory") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
             TalkHistoryDetailRoute()
         }
 

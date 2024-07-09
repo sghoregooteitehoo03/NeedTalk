@@ -45,6 +45,7 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.presentation.main.GlobalViewModel
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
@@ -53,6 +54,7 @@ import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
 import com.sghore.needtalk.presentation.ui.theme.Orange50
+import kotlinx.serialization.json.Json
 
 @Composable
 fun HomeScreen(
@@ -201,8 +203,14 @@ fun HomeScreen(
         ) {
             composable(UiScreen.TalkHistoryScreen.route) {
                 TalkHistoryRoute(
-                    navigateToTalkHistoryDetail = {
-                        navigateToOther(UiScreen.TalkHistoryDetailScreen.route)
+                    navigateToTalkHistoryDetail = { talkHistory ->
+                        val talkHistoryJson =
+                            Json.encodeToString(TalkHistory.serializer(), talkHistory)
+
+                        navigateToOther(
+                            UiScreen.TalkHistoryDetailScreen.route +
+                                    "?talkHistory=${talkHistoryJson}"
+                        )
                     }
                 )
             }
