@@ -34,7 +34,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TimerActionState
-import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.presentation.ui.DialogScreen
@@ -188,7 +187,7 @@ fun HostTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.getOutputFilePath() ?: "",
                                     navigateOtherScreen = { _, talkTime, userTalkResult, recordFilePath ->
                                         navigateToResultScreen(
                                             talkTime = talkTime,
@@ -237,7 +236,9 @@ fun HostTimerRoute(
             }
 
             launch {
-                service?.amplitudeFlow?.collectLatest { viewModel.updateAmplitudeValue(it) }
+                service?.amplitudeFlow?.collectLatest {
+                    viewModel.updateAmplitudeValue(it)
+                }
             }
         })
 
@@ -271,7 +272,7 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.getOutputFilePath() ?: "",
                                     navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(
@@ -316,7 +317,7 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.getOutputFilePath() ?: "",
                                     navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(

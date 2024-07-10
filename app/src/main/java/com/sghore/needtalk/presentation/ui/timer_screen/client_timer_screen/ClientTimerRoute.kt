@@ -184,7 +184,7 @@ fun ClientTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.getOutputFilePath() ?: "",
                                     navigateOtherScreen = { _, talkTime, userTalkResult, recordFilePath ->
                                         navigateToResultScreen(
                                             talkTime = talkTime,
@@ -305,7 +305,7 @@ fun ClientTimerRoute(
                                 if (timerActionState != TimerActionState.TimerWaiting) {
                                     viewModel.finishedTalk(
                                         currentUserId = userData?.userId ?: "",
-                                        recordFilePath = service?.outputFile ?: "",
+                                        recordFilePath = service?.getOutputFilePath() ?: "",
                                         navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                             if (isFinished) {
                                                 navigateToResultScreen(
@@ -351,7 +351,7 @@ fun ClientTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.getOutputFilePath() ?: "",
                                     navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
                                         if (isFinished) {
                                             navigateToResultScreen(

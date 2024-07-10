@@ -7,7 +7,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
 import android.hardware.SensorManager
-import android.media.MediaRecorder
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
@@ -29,7 +28,6 @@ import com.sghore.needtalk.domain.usecase.StopAllConnectionUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.main.MainActivity
 import com.sghore.needtalk.util.Constants
-import com.sghore.needtalk.util.getMediaRecord
 import com.sghore.needtalk.util.parseMinuteSecond
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
@@ -41,12 +39,14 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
 
 // TODO:
 //  . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
 //  . fix: 백그라운드에서 녹음이 되지 않는 버그 존재
+//  . test: 나중에 녹음 잘 되는지 확인(재생, 멈춤, 백그라운드)
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -66,18 +66,18 @@ class HostTimerService : LifecycleService() {
 
     val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
     val amplitudeFlow = MutableStateFlow(0)
-    var outputFile = ""
+    var outputFile: File? = null
 
     private val binder = LocalBinder()
 
     private var timerJob: Job? = null
-    private var amplitudeJob: Job? = null
 
     private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = 0
     private var wakeLock: PowerManager.WakeLock? = null
-    private var mediaRecorder: MediaRecorder? = null
-    private var isFirst: Boolean = true // 녹음 start/resume 구분 용
+    private var audioRecorder: AudioRecorder? = null
+
+    private var isFirst: Boolean = true
 
     override fun onBind(intent: Intent): IBinder {
         super.onBind(intent)
@@ -99,10 +99,7 @@ class HostTimerService : LifecycleService() {
         lifecycleScope.launch {
             timerCmInfo.update { initTimerCmInfo } // 타이머 정보 업데이트
             if (initTimerCmInfo.isAllowMic) { // 녹음을 허용하는 경우
-                mediaRecorder = getMediaRecord(
-                    context = applicationContext,
-                    setOutputFileName = { outputFile = it }
-                )
+                audioRecorder = AudioRecorder()
             }
 
             val packageName = applicationContext.packageName
@@ -336,9 +333,6 @@ class HostTimerService : LifecycleService() {
         }
 
         acquireWakeLock() // WakeLock 설정
-        if (mediaRecorder != null) {
-            cancelAmplitudeJob() // 마이크 높낮이 수집 X
-        }
         ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
@@ -357,9 +351,6 @@ class HostTimerService : LifecycleService() {
             baseNotification = null
 
             releaseWakeLock()
-            if (mediaRecorder != null) {
-                startAmplitudeJob()
-            }
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }
@@ -452,49 +443,38 @@ class HostTimerService : LifecycleService() {
 
     // 녹음 시작
     private fun startOrResumeRecording() {
-        if (isFirst) {
-            mediaRecorder?.prepare()
-            mediaRecorder?.start()
-            isFirst = false
-        } else {
-            mediaRecorder?.resume()
-        }
+        if (audioRecorder != null) {
+            if (isFirst) { // 녹음 시작
+                isFirst = false
 
-        if (mediaRecorder != null) {
-            startAmplitudeJob()
+                // 녹음 파일 경로 지정
+                val tempDir = applicationContext.getExternalFilesDir("recordings")
+                if (tempDir?.exists() == false) {
+                    tempDir.mkdirs()
+                }
+                outputFile = File(tempDir, "record_${System.currentTimeMillis()}.m4a")
+
+                audioRecorder!!.startRecording(
+                    outputFile = outputFile!!,
+                    amplitudeFlow = amplitudeFlow,
+                    scope = lifecycleScope
+                )
+            } else { // 녹음 재시작
+                audioRecorder!!.resumeRecording()
+            }
         }
     }
 
-    // 녹음 종료
+    // 녹음 멈춤
     private fun pauseRecording() {
-        mediaRecorder?.pause()
-        cancelAmplitudeJob()
+        audioRecorder?.pauseRecording()
     }
 
     // 녹음 끝내기
     private fun stopRecording() {
         if (!isFirst) {
-            cancelAmplitudeJob()
-
-            mediaRecorder?.stop()
-            mediaRecorder?.release()
-            mediaRecorder = null
+            audioRecorder?.stopRecording()
         }
-    }
-
-    private fun startAmplitudeJob() {
-        amplitudeJob?.cancel()
-        amplitudeJob = lifecycleScope.launch(context = Dispatchers.Default) {
-            while (true) {
-                amplitudeFlow.update { mediaRecorder?.maxAmplitude ?: 0 }
-                delay(100)
-            }
-        }
-    }
-
-    private fun cancelAmplitudeJob() {
-        amplitudeJob?.cancel()
-        amplitudeJob = null
     }
 
     // 업데이트 된 타이머 정보를 특정 기기에게 전달
@@ -635,6 +615,8 @@ class HostTimerService : LifecycleService() {
         timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
         sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
     }
+
+    fun getOutputFilePath() = outputFile?.absolutePath ?: ""
 
     // 알림 내용 업데이트
     private fun onNotifyUpdate(
