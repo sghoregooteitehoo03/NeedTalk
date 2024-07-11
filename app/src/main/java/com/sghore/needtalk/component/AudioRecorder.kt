@@ -5,6 +5,7 @@ import android.media.AudioFormat
 import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.util.Log
+import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -20,7 +21,7 @@ import kotlin.math.log10
 import kotlin.math.sqrt
 
 class AudioRecorder {
-    private val sampleRate = 44100 // 44.1kHz
+    private val sampleRate = Constants.AUDIO_SAMPLE_RATE // 44.1kHz
     private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val audioFormat = AudioFormat.ENCODING_PCM_16BIT
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, audioFormat)
@@ -84,21 +85,6 @@ class AudioRecorder {
         audioRecord = null
     }
 
-    // 파형 계산
-    private fun calculateAmplitude(audioBuffer: ByteArray): Double {
-        var sum = 0.0
-
-        for (i in audioBuffer.indices step 2) {
-            val sample =
-                ((audioBuffer[i + 1].toInt() shl 8) or (audioBuffer[i].toInt() and 0xff)).toShort()
-            sum += sample.toDouble() * sample.toDouble()
-        }
-
-        val amplitude = sqrt(sum / (audioBuffer.size / 2))
-        val amplitudeDb = 20 * log10(amplitude)
-        return amplitudeDb
-    }
-
     // 녹음 데이터를 지정된 경로에 입력
     private suspend fun writeAudioDataToFile(
         outputFile: File,
@@ -117,7 +103,8 @@ class AudioRecorder {
                     if (bytesRead != AudioRecord.ERROR_INVALID_OPERATION && bytesRead != AudioRecord.ERROR_BAD_VALUE) {
                         bufferedOutputStream.write(buffer, 0, bytesRead) // 녹음 데이터 쓰기
 
-                        val amplitude = calculateAmplitude(buffer)
+                        Log.i("Check", "BytesRead: $bytesRead")
+                        val amplitude = amplitudeToDecibel(buffer)
                         amplitudeFlow.update { amplitude.toInt() } // 데시벨 전달
                     }
                 } else {
@@ -133,5 +120,20 @@ class AudioRecorder {
                 e.printStackTrace()
             }
         }
+    }
+
+    // 파형 계산
+    private fun amplitudeToDecibel(audioBuffer: ByteArray): Double {
+        var sum = 0.0
+
+        for (i in audioBuffer.indices step 2) {
+            val sample =
+                ((audioBuffer[i + 1].toInt() shl 8) or (audioBuffer[i].toInt() and 0xff)).toShort()
+            sum += sample.toDouble() * sample.toDouble()
+        }
+
+        val amplitude = sqrt(sum / (audioBuffer.size / 2))
+        val amplitudeDb = 20 * log10(amplitude)
+        return amplitudeDb
     }
 }

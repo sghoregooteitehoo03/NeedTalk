@@ -452,7 +452,7 @@ class HostTimerService : LifecycleService() {
                 if (tempDir?.exists() == false) {
                     tempDir.mkdirs()
                 }
-                outputFile = File(tempDir, "record_${System.currentTimeMillis()}.m4a")
+                outputFile = File(tempDir, "record_${System.currentTimeMillis()}.pcm")
 
                 audioRecorder!!.startRecording(
                     outputFile = outputFile!!,

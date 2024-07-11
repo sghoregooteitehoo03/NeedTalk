@@ -18,4 +18,6 @@ object Constants {
 
     const val MAX_EXPERIENCE_POINT = 100f
     const val MAX_FRIENDSHIP_POINT = 10
+
+    const val AUDIO_SAMPLE_RATE = 44100
 }
