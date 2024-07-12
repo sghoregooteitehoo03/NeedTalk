@@ -5,11 +5,17 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.media.MediaRecorder
+import android.os.Build
+import androidx.compose.ui.graphics.Color
 import com.sghore.needtalk.domain.model.TalkTopicCategory
+import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.io.ByteArrayOutputStream
+import java.io.File
 import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
+import java.util.Calendar
 import java.util.Locale
 
 fun getDefaultTalkTitle(): String = SimpleDateFormat(
@@ -116,6 +122,48 @@ fun generateTalkTopicId(userId: String, currentTime: Long): String {
 
     return bytes.joinToString("") { "%02x".format(it) }
 }
+
+// TODO: . 녹음 을질 퀄리티 올리기
+fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // 미디어 레코드 설정
+        MediaRecorder(context).apply {
+            // 경로 설정
+            val tempDir = context.getExternalFilesDir("recordings")
+
+            if (tempDir?.exists() == false) {
+                tempDir.mkdirs()
+            }
+            val outputFilePath =
+                File(tempDir, "record_${System.currentTimeMillis()}.m4a").absolutePath
+
+            // 미디어 옵션 설정
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioSamplingRate(44100)
+            setOutputFile(outputFilePath)
+            setOutputFileName(outputFilePath)
+        }
+    } else {
+        MediaRecorder().apply {
+            // 경로 설정
+            val tempDir = context.getExternalFilesDir("recordings")
+
+            if (tempDir?.exists() == false) {
+                tempDir.mkdirs()
+            }
+            val outputFilePath =
+                File(tempDir, "record_${System.currentTimeMillis()}.m4a").absolutePath
+
+            // 미디어 옵션 설정
+            setAudioSource(MediaRecorder.AudioSource.MIC)
+            setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
+            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioSamplingRate(44100)
+            setOutputFile(outputFilePath)
+            setOutputFileName(outputFilePath)
+        }
+    }
 
 // 파일 사이즈를 형식에 맞게 String으로 변환
 fun getFileSizeToStr(fileSize: Long): String {

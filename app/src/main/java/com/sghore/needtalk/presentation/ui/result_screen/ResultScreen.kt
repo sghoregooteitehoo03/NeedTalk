@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.CircularProgressIndicator
@@ -85,12 +84,12 @@ fun ResultScreen(
                 )
                 Spacer(modifier = Modifier.height(32.dp))
                 repeat(uiState.otherUsers.size) { index ->
-                    if (uiState.otherUsers[index] != null) {
+                    if (uiState.otherUsers[index] != null && uiState.talkResult != null) {
                         val friend = uiState.otherUsers[index]!!
                         FriendshipResult(
                             modifier = Modifier.padding(14.dp),
                             friend = friend,
-                            talkResult = uiState.userTalkResult[index],
+                            userTalkResult = uiState.talkResult.userTalkResult[index],
                             isNotFriend = friend.friendshipPoint == -1,
                             onAddFriend = { userId ->
                                 onEvent(ResultUiEvent.AddFriend(userId, index))
@@ -168,7 +167,7 @@ fun SetTalkTitleLayout(
 fun FriendshipResult(
     modifier: Modifier = Modifier,
     friend: UserData,
-    talkResult: UserTalkResult,
+    userTalkResult: UserTalkResult,
     isNotFriend: Boolean,
     onAddFriend: (String) -> Unit
 ) {
@@ -258,7 +257,7 @@ fun FriendshipResult(
                 IconWithText(
                     icon = painterResource(id = R.drawable.ic_exp),
                     iconTint = colorResource(id = R.color.gray),
-                    text = "+${talkResult.experiencePoint}",
+                    text = "+${userTalkResult.experiencePoint}",
                     textStyle = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )
@@ -267,7 +266,7 @@ fun FriendshipResult(
                 IconWithText(
                     icon = painterResource(id = R.drawable.ic_clock),
                     iconTint = colorResource(id = R.color.gray),
-                    text = parseMinuteSecond(talkResult.talkTime),
+                    text = parseMinuteSecond(userTalkResult.talkTime),
                     textStyle = MaterialTheme.typography.subtitle1.copy(
                         color = colorResource(id = R.color.gray)
                     )

@@ -10,6 +10,6 @@ data class TalkHistoryEntity(
     val talkTitle: String,
     val talkTime: Long,
     val recordFilePath: String,
-    val recordFileSize: Long,
+    val recordAmplitude: ByteArray,
     val createTimeStamp: Long = System.currentTimeMillis()
 )

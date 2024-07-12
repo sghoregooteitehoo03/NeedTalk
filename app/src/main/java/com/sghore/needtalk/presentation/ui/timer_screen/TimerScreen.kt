@@ -78,7 +78,7 @@ fun TimerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            when (val timerActionState = timerCmInfo.timerActionState) {
+            when (timerCmInfo.timerActionState) {
                 is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                     TimerWithMic(
                         timerTime = timerCmInfo.currentTime,
@@ -166,7 +166,7 @@ fun TimerWithMic(
     modifier: Modifier = Modifier,
     timerTime: Long,
     amplitudeValue: Int,
-    maxAmplitudeValue: Int = 100,
+    maxAmplitudeValue: Int = 32767,
     isAllowMic: Boolean
 ) {
     Column(
@@ -209,6 +209,7 @@ fun TimerWithMic(
                         .width(10.dp)
                         .height(24.dp)
                         .background(
+                            // TODO: fix. 조건 값 조절하기
                             color = if (amplitudeValue > maxAmplitudeValue * index / 12) {
                                 colorResource(id = R.color.orange_80)
                             } else {

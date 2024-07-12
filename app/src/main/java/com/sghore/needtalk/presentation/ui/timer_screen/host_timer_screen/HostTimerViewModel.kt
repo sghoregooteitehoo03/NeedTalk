@@ -1,10 +1,12 @@
 package com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen
 
+import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.model.ParticipantInfo
+import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.model.UserTalkResult
@@ -34,6 +36,7 @@ class HostTimerViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(TimerUiState())
     private val _uiEvent = MutableSharedFlow<TimerUiEvent>()
     private var userTalkResults = mutableListOf<UserTalkResult>()// 각 유저 별 대화시간 저장
+    private val amplitudeList = mutableListOf<Int>() // 파형 기록
 
     val uiState = _uiState.stateIn(
         viewModelScope,
@@ -106,6 +109,7 @@ class HostTimerViewModel @Inject constructor(
     }
 
     fun updateAmplitudeValue(amplitude: Int) {
+        amplitudeList.add(amplitude)
         _uiState.update {
             it.copy(amplitudeValue = amplitude)
         }
@@ -162,18 +166,18 @@ class HostTimerViewModel @Inject constructor(
     fun finishedTalk(
         currentUserId: String,
         recordFilePath: String,
-        navigateOtherScreen: (Boolean, Long, List<UserTalkResult>, String) -> Unit
+        navigateOtherScreen: (TalkResult?) -> Unit
     ) {
         val timerCmInfo = _uiState.value.timerCommunicateInfo
-        val currentTime = if (timerCmInfo.isTimer) {
+        val talkTime = if (timerCmInfo.isTimer) {
             timerCmInfo.maxTime - timerCmInfo.currentTime
         } else {
             timerCmInfo.currentTime
         }
-        val isFinished = currentTime >= 300000
+        val isFinished = talkTime >= 300000 // 대화가 기록되기 위한 최소 시간
 
         if (isFinished) { // 대화가 조건에 만족하여 끝났을 경우
-            val experiencePoint = getRandomExperiencePoint(currentTime)
+            val experiencePoint = getRandomExperiencePoint(talkTime)
 
             timerCmInfo.participantInfoList
                 .filterNotNull()
@@ -182,17 +186,24 @@ class HostTimerViewModel @Inject constructor(
                     userTalkResults.forEachIndexed { i, userTalkResult ->
                         if (userTalkResult.userId == participantInfo.userId) {
                             userTalkResults[i] = userTalkResult.copy(
-                                talkTime = currentTime,
+                                talkTime = talkTime,
                                 experiencePoint = experiencePoint
                             )
                         }
                     }
                 }
-            navigateOtherScreen(true, currentTime, userTalkResults, recordFilePath)
+            navigateOtherScreen(
+                TalkResult(
+                    talkTime = talkTime,
+                    recordFilePath = recordFilePath,
+                    recordAmplitude = amplitudeList,
+                    userTalkResult = userTalkResults
+                )
+            )
         } else {
             // 저장된 녹음파일 제거
             removeTempRecordFile(recordFilePath)
-            navigateOtherScreen(false, -1L, listOf(), "")
+            navigateOtherScreen(null)
         }
     }
 

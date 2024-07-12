@@ -10,7 +10,7 @@ import com.sghore.needtalk.domain.model.TalkHistory
 @Composable
 fun TalkHistoryRoute(
     viewModel: TalkHistoryViewModel = hiltViewModel(),
-    navigateToTalkHistoryDetail: (TalkHistory) -> Unit
+    navigateToTalkHistoryDetail: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current

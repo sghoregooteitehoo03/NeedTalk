@@ -117,7 +117,7 @@ fun TalkHistoryDetailScreen(
                         text = SimpleDateFormat(
                             "yy.MM.dd (E)",
                             Locale.KOREA
-                        ).format(talkHistory?.createTimeStamp),
+                        ).format(talkHistory?.createTimeStamp ?: 0L),
                         style = MaterialTheme.typography.subtitle1.copy(color = colorResource(id = R.color.gray))
                     )
                 }
@@ -215,7 +215,7 @@ fun TalkHistoryDetailScreen(
                 .padding(start = 14.dp, end = 14.dp),
             maxRecordTime = 5000L,
             currentRecordTime = 0L,
-            recordWaveForm = uiState.recordWaveForm,
+            recordWaveForm = uiState.talkHistory?.recordAmplitude ?: emptyList(),
             onChangeRecordFile = {}
         )
 
@@ -335,7 +335,6 @@ fun AudioRecordPlayer(
     recordWaveForm: List<Int>,
     onChangeRecordFile: (Long) -> Unit
 ) {
-    var isFirst = remember { true }
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
     val lazyListState = rememberLazyListState()
 
@@ -671,7 +670,7 @@ fun FileInfoDialog(
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(
                 hint = "파일 크기",
-                text = getFileSizeToStr(talkHistory?.recordFileSize ?: 0L)
+                text = getFileSizeToStr(talkHistory?.recordFile?.length() ?: 0L)
             )
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(

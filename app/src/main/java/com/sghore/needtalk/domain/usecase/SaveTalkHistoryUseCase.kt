@@ -5,6 +5,7 @@ import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.repository.TalkRepository
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.generateTalkTopicId
+import java.nio.ByteBuffer
 import javax.inject.Inject
 
 class SaveTalkHistoryUseCase @Inject constructor(
@@ -14,7 +15,7 @@ class SaveTalkHistoryUseCase @Inject constructor(
         talkTitle: String,
         talkTime: Long,
         filePath: String,
-        fileSize: Long,
+        recordAmplitude: List<Int>,
         otherUsers: List<UserData?>
     ) {
         val currentTime = System.currentTimeMillis()
@@ -25,7 +26,7 @@ class SaveTalkHistoryUseCase @Inject constructor(
             id = talkHistoryId,
             talkTitle = talkTitle,
             talkTime = talkTime,
-            recordFileSize = fileSize,
+            recordAmplitude = intListToByteArray(recordAmplitude),
             recordFilePath = filePath
         )
         talkRepository.insertTalkHistoryEntity(talkHistoryEntity)
@@ -41,5 +42,11 @@ class SaveTalkHistoryUseCase @Inject constructor(
                 talkRepository.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
             }
         }
+    }
+
+    private fun intListToByteArray(intList: List<Int>): ByteArray {
+        val byteBuffer = ByteBuffer.allocate(intList.size * 4) // 각 Int는 4바이트
+        intList.forEach { byteBuffer.putInt(it) }
+        return byteBuffer.array()
     }
 }

@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.component.HostTimerService
 import com.sghore.needtalk.domain.model.PinnedTalkTopic
+import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.model.UserTalkResult
@@ -187,14 +188,14 @@ fun HostTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.getOutputFilePath() ?: "",
-                                    navigateOtherScreen = { _, talkTime, userTalkResult, recordFilePath ->
-                                        navigateToResultScreen(
-                                            talkTime = talkTime,
-                                            userTalkResult = userTalkResult,
-                                            filePath = recordFilePath,
-                                            navigate = navigateResultScreen
-                                        )
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { talkResult ->
+                                        if (talkResult != null) {
+                                            navigateToResultScreen(
+                                                talkResult = talkResult,
+                                                navigate = navigateResultScreen
+                                            )
+                                        }
                                     }
                                 )
 
@@ -236,9 +237,7 @@ fun HostTimerRoute(
             }
 
             launch {
-                service?.amplitudeFlow?.collectLatest {
-                    viewModel.updateAmplitudeValue(it)
-                }
+                service?.amplitudeFlow?.collectLatest { viewModel.updateAmplitudeValue(it) }
             }
         })
 
@@ -272,13 +271,11 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.getOutputFilePath() ?: "",
-                                    navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
-                                        if (isFinished) {
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { talkResult ->
+                                        if (talkResult != null) {
                                             navigateToResultScreen(
-                                                talkTime = talkTime,
-                                                userTalkResult = userTalkResult,
-                                                filePath = recordFilePath,
+                                                talkResult = talkResult,
                                                 navigate = navigateResultScreen
                                             )
                                         } else {
@@ -317,13 +314,11 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.getOutputFilePath() ?: "",
-                                    navigateOtherScreen = { isFinished, talkTime, userTalkResult, recordFilePath ->
-                                        if (isFinished) {
+                                    recordFilePath = service?.outputFile ?: "",
+                                    navigateOtherScreen = { talkResult ->
+                                        if (talkResult != null) {
                                             navigateToResultScreen(
-                                                talkTime = talkTime,
-                                                userTalkResult = userTalkResult,
-                                                filePath = recordFilePath,
+                                                talkResult = talkResult,
                                                 navigate = navigateResultScreen
                                             )
                                         } else {
@@ -391,16 +386,13 @@ fun HostTimerRoute(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 private fun navigateToResultScreen(
-    userTalkResult: List<UserTalkResult>,
-    talkTime: Long,
-    filePath: String,
+    talkResult: TalkResult,
     navigate: (String) -> Unit
 ) {
-    val userTalkResultJson = Json.encodeToString(userTalkResult)
-    val route = UiScreen.ResultScreen.route +
-            "?talkTime=${talkTime}&filePath=${filePath}&userTalkResults=${userTalkResultJson}"
+    val talkResultJson = Json.encodeToString(TalkResult.serializer(), talkResult)
+    val route = UiScreen.ResultScreen.route + "?talkResult=${talkResultJson}"
+
     navigate(route)
 }
 

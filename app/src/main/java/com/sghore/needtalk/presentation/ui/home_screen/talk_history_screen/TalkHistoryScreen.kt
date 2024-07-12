@@ -47,7 +47,7 @@ import java.util.Locale
 @Composable
 fun TalkHistoryScreen(
     uiState: TalkHistoryUiState,
-    onClickTalkHistory: (TalkHistory) -> Unit
+    onClickTalkHistory: (String) -> Unit
 ) {
     Box(
         modifier = Modifier
@@ -86,7 +86,7 @@ fun TalkHistoryScreen(
                                     bottom = 4.dp
                                 ),
                                 talkHistory = it[index]!!,
-                                onClick = { talkHistory -> onClickTalkHistory(talkHistory) }
+                                onClick = { talkHistory -> onClickTalkHistory(talkHistory.id) }
                             )
                         }
                     }
@@ -117,7 +117,7 @@ fun TalkHistoryItem(
     ) {
         ConstraintLayout(modifier = Modifier.fillMaxWidth()) {
             val (recordFile, info, timestamp, clips) = createRefs()
-            if (talkHistory.recordFilePath.isNotEmpty()) {
+            if (talkHistory.recordFile != null) {
                 Box(
                     modifier = Modifier
                         .constrainAs(recordFile) {
@@ -144,7 +144,7 @@ fun TalkHistoryItem(
                     .constrainAs(info) {
                         top.linkTo(recordFile.top)
                         bottom.linkTo(recordFile.bottom)
-                        if (talkHistory.recordFilePath.isNotEmpty()) {
+                        if (talkHistory.recordFile != null) {
                             start.linkTo(recordFile.end, 12.dp)
                         } else {
                             start.linkTo(parent.start)
@@ -176,7 +176,7 @@ fun TalkHistoryItem(
                     )
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
-                        text = getFileSizeToStr(talkHistory.recordFileSize),
+                        text = getFileSizeToStr(talkHistory.recordFile?.length() ?: 0),
                         style = MaterialTheme.typography.body1.copy(
                             color = colorResource(id = R.color.gray)
                         )

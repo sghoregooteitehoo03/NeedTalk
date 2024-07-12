@@ -16,6 +16,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface TalkDao {
 
+    @Query("SELECT * FROM TalkHistoryEntity WHERE id == :id")
+    fun getTalkHistory(id: String): Flow<TalkHistoryEntity?>
+
     @Query("SELECT * FROM TalkHistoryEntity ORDER BY createTimeStamp DESC LIMIT :limit OFFSET :offset")
     fun getTalkHistoryEntities(offset: Int, limit: Int = 20): Flow<List<TalkHistoryEntity>>
 

@@ -10,6 +10,8 @@ import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.byteArrayToBitmap
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import java.io.File
+import java.nio.ByteBuffer
 
 class GetTalkHistoryPagingSource(
     private val talkDao: TalkDao,
@@ -45,12 +47,17 @@ class GetTalkHistoryPagingSource(
                         )
                     }
 
+                val recordPath = talkHistoryEntity.recordFilePath
                 TalkHistory(
                     id = talkHistoryEntity.id,
                     talkTitle = talkHistoryEntity.talkTitle,
                     talkTime = talkHistoryEntity.talkTime,
-                    recordFilePath = talkHistoryEntity.recordFilePath,
-                    recordFileSize = talkHistoryEntity.recordFileSize,
+                    recordFile = if (recordPath.isEmpty()) {
+                        null
+                    } else {
+                        File(recordPath)
+                    },
+                    recordAmplitude = byteArrayToIntList(talkHistoryEntity.recordAmplitude),
                     users = users,
                     clipCount = 0,
                     createTimeStamp = talkHistoryEntity.createTimeStamp
@@ -66,5 +73,14 @@ class GetTalkHistoryPagingSource(
             e.printStackTrace()
             LoadResult.Error(e)
         }
+    }
+
+    private fun byteArrayToIntList(byteArray: ByteArray): List<Int> {
+        val intList = mutableListOf<Int>()
+        val byteBuffer = ByteBuffer.wrap(byteArray)
+        while (byteBuffer.remaining() >= 4) {
+            intList.add(byteBuffer.int)
+        }
+        return intList
     }
 }

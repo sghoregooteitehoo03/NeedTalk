@@ -105,15 +105,17 @@ fun AppNavHost(
         composable(route = UiScreen.HomeScreen.route) {
             HomeScreen(
                 gViewModel = gViewModel,
-                navigateToOther = { navController.navigate(route = it) }
+                navigateToOther = {
+                    navController.navigate(route = it)
+                }
             )
         }
 
         composable(
             route = UiScreen.TalkHistoryDetailScreen.route +
-                    "?talkHistory={talkHistory}",
+                    "?talkHistoryId={talkHistoryId}",
             arguments = listOf(
-                navArgument("talkHistory") {
+                navArgument("talkHistoryId") {
                     type = NavType.StringType
                 }
             )
@@ -246,16 +248,10 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.ResultScreen.route +
-                    "?talkTime={talkTime}&filePath={filePath}&userTalkResults={userTalkResults}",
-            arguments = listOf(
-                navArgument("talkTime") { type = NavType.LongType },
-                navArgument("filePath") { type = NavType.StringType },
-                navArgument("userTalkResults") { type = NavType.StringType }
-            )
+                    "?talkResult={talkResult}",
+            arguments = listOf(navArgument("talkResult") { type = NavType.StringType })
         ) {
-            ResultRoute(
-                navigateUp = navController::navigateUp
-            )
+            ResultRoute(navigateUp = navController::navigateUp)
         }
     }
 }

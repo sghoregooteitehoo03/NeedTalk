@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.model.entity.FriendEntity
 import com.sghore.needtalk.data.repository.UserRepository
+import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.domain.usecase.GetUserDataUseCase
@@ -24,7 +25,6 @@ import java.io.File
 import java.text.DecimalFormat
 import javax.inject.Inject
 
-@OptIn(ExperimentalSerializationApi::class)
 @HiltViewModel
 class ResultViewModel @Inject constructor(
     private val userRepository: UserRepository,
@@ -47,31 +47,26 @@ class ResultViewModel @Inject constructor(
         started = SharingStarted.Eagerly
     )
 
-    private var talkTime: Long = 0L
-    private var filePath: String? = null
-
     init {
-        filePath = savedStateHandle.get<String>("filePath")
-        talkTime = savedStateHandle.get<Long>("talkTime") ?: 0L
-        val userTalkResultJsonArr =
-            savedStateHandle.get<String>("userTalkResults") ?: ""
+        val talkResultJson =
+            savedStateHandle.get<String>("talkResult") ?: ""
 
-        if (talkTime != 0L && filePath != null && userTalkResultJsonArr.isNotEmpty()) {
+        if (talkResultJson.isNotEmpty()) {
             // 원본으로 변환
-            val userTalkResults: List<UserTalkResult> = Json.decodeFromString(userTalkResultJsonArr)
-            initUiState(filePath!!, userTalkResults)
+            val talkResult = Json.decodeFromString(TalkResult.serializer(), talkResultJson)
+            initUiState(talkResult)
         }
     }
 
     // UI State 초기화
-    private fun initUiState(path: String, userTalkResults: List<UserTalkResult>) =
+    private fun initUiState(talkResult: TalkResult) =
         viewModelScope.launch {
-            val fileSize = if (path.isEmpty()) {
+            val fileSize = if (talkResult.recordFilePath.isEmpty()) {
                 0L
             } else {
-                File(path).length()
+                File(talkResult.recordFilePath).length()
             }
-            val otherUsers = userTalkResults.map {
+            val otherUsers = talkResult.userTalkResult.map {
                 getUserDataUseCase(it.userId)
             }
 
@@ -79,7 +74,7 @@ class ResultViewModel @Inject constructor(
                 it.copy(
                     fileSize = fileSize,
                     otherUsers = otherUsers,
-                    userTalkResult = userTalkResults,
+                    talkResult = talkResult,
                     isLoading = false
                 )
             }
@@ -104,19 +99,19 @@ class ResultViewModel @Inject constructor(
         val updateOtherUsers = _uiState.value.otherUsers.toMutableList()
         updateOtherUsers[index] = friend
 
-        _uiState.update {
-            it.copy(otherUsers = updateOtherUsers)
-        }
+        _uiState.update { it.copy(otherUsers = updateOtherUsers) }
     }
 
     // 대화기록 저장
     fun saveTalkHistory() = viewModelScope.launch {
         val stateValue = _uiState.value
+        val talkResult = stateValue.talkResult
+
         saveTalkHistoryUseCase(
             talkTitle = stateValue.talkTitle,
-            talkTime = talkTime,
-            filePath = filePath ?: "",
-            fileSize = stateValue.fileSize,
+            talkTime = talkResult?.talkTime ?: 0L,
+            filePath = talkResult?.recordFilePath ?: "",
+            recordAmplitude = talkResult?.recordAmplitude ?: emptyList(),
             otherUsers = stateValue.otherUsers
         )
     }

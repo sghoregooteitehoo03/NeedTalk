@@ -34,6 +34,9 @@ class TalkRepository @Inject constructor(
         talkDao.insertTalkEntity(talkEntity)
     }
 
+    fun getTalkHistoryEntity(id: String) =
+        talkDao.getTalkHistory(id)
+
     fun getTalkHistoryEntities(offset: Int, limit: Int = 20) =
         talkDao.getTalkHistoryEntities(offset, limit)
 
@@ -41,6 +44,9 @@ class TalkRepository @Inject constructor(
     fun getPagingTalkHistory(pageSize: Int = 20) = Pager(PagingConfig(pageSize)) {
         GetTalkHistoryPagingSource(talkDao, userDao, pageSize)
     }.flow
+
+    fun getTalkHistoryParticipantEntities(id: String) =
+        talkDao.getTalkHistoryParticipantEntities(id)
 
     // 대화 기록 저장
     suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity) {
