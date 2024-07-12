@@ -1,14 +1,13 @@
 package com.sghore.needtalk.domain.model
 
-import kotlinx.serialization.Serializable
+import java.io.File
 
-@Serializable
 data class TalkHistory(
     val id: String,
     val talkTitle: String,
     val talkTime: Long,
-    val recordFilePath: String,
-    val recordFileSize: Long,
+    val recordFile: File?,
+    val recordAmplitude: List<Int>,
     val users: List<UserData>,
     val clipCount: Int,
     val createTimeStamp: Long

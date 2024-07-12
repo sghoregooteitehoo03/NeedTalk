@@ -4,6 +4,7 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.domain.model.TalkHistory
+import com.sghore.needtalk.domain.usecase.GetTalkHistoryUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -18,6 +19,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TalkHistoryDetailViewModel @Inject constructor(
+    private val getTalkHistoryUseCase: GetTalkHistoryUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -37,12 +39,11 @@ class TalkHistoryDetailViewModel @Inject constructor(
     )
 
     init {
-        val talkHistoryJson = savedStateHandle.get<String>("talkHistory") ?: ""
-        if (talkHistoryJson.isNotEmpty()) {
-            val talkHistory = Json.decodeFromString(TalkHistory.serializer(), talkHistoryJson)
-
-            _uiState.update {
-                it.copy(talkHistory = talkHistory)
+        val talkHistoryId = savedStateHandle.get<String>("talkHistoryId") ?: ""
+        if (talkHistoryId.isNotEmpty()) {
+            viewModelScope.launch {
+                val talkHistory = getTalkHistoryUseCase(talkHistoryId)
+                _uiState.update { it.copy(talkHistory = talkHistory) }
             }
         }
     }

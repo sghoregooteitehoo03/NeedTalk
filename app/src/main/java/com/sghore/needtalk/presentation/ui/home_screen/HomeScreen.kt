@@ -203,13 +203,10 @@ fun HomeScreen(
         ) {
             composable(UiScreen.TalkHistoryScreen.route) {
                 TalkHistoryRoute(
-                    navigateToTalkHistoryDetail = { talkHistory ->
-                        val talkHistoryJson =
-                            Json.encodeToString(TalkHistory.serializer(), talkHistory)
-
+                    navigateToTalkHistoryDetail = { talkHistoryId ->
                         navigateToOther(
                             UiScreen.TalkHistoryDetailScreen.route +
-                                    "?talkHistory=${talkHistoryJson}"
+                                    "?talkHistoryId=${talkHistoryId}"
                         )
                     }
                 )

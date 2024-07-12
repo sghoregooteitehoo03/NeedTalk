@@ -1,15 +1,11 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import android.annotation.SuppressLint
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.rememberSplineBasedDecay
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +17,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.DropdownMenu
 import androidx.compose.material.DropdownMenuItem
@@ -32,7 +30,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,15 +39,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.input.pointer.positionChange
-import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
-import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -61,12 +56,9 @@ import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
-import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.getFileSizeToStr
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -125,7 +117,7 @@ fun TalkHistoryDetailScreen(
                         text = SimpleDateFormat(
                             "yy.MM.dd (E)",
                             Locale.KOREA
-                        ).format(talkHistory?.createTimeStamp),
+                        ).format(talkHistory?.createTimeStamp ?: 0L),
                         style = MaterialTheme.typography.subtitle1.copy(color = colorResource(id = R.color.gray))
                     )
                 }
@@ -223,6 +215,7 @@ fun TalkHistoryDetailScreen(
                 .padding(start = 14.dp, end = 14.dp),
             maxRecordTime = 5000L,
             currentRecordTime = 0L,
+            recordWaveForm = uiState.talkHistory?.recordAmplitude ?: emptyList(),
             onChangeRecordFile = {}
         )
 
@@ -339,15 +332,11 @@ fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
     maxRecordTime: Long,
     currentRecordTime: Long,
+    recordWaveForm: List<Int>,
     onChangeRecordFile: (Long) -> Unit
 ) {
-    var isFirst = remember { true }
-    val waveFormWidth = 3.dp.times(maxRecordTime.toInt()).value
-    val waveColor = MaterialTheme.colors.secondary
-
-    val decayAnimationSpec = rememberSplineBasedDecay<Float>()
-    val animatable = remember { Animatable(0f) }
-    val coroutineScope = rememberCoroutineScope()
+    val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
+    val lazyListState = rememberLazyListState()
 
     Box(
         modifier = modifier
@@ -357,73 +346,46 @@ fun AudioRecordPlayer(
                 color = colorResource(id = R.color.light_gray),
                 shape = MaterialTheme.shapes.large
             )
-            .pointerInput(Unit) {
-                coroutineScope {
-                    val velocityTracker = VelocityTracker()
-
-                    while (true) {
-                        val pointerId = awaitPointerEventScope { awaitFirstDown().id }
-
-                        animatable.stop()
-                        awaitPointerEventScope {
-                            horizontalDrag(pointerId) { change ->
-                                velocityTracker.addPosition(change.uptimeMillis, change.position)
-                                val offsetX = animatable.value + change.positionChange().x
-
-                                launch {
-                                    animatable.snapTo(offsetX)
-                                }
-                                change.consume()
-                            }
-                        }
-
-                        launch {
-                            val velocity = velocityTracker.calculateVelocity().x
-                            launch {
-                                animatable.animateDecay(velocity, decayAnimationSpec)
-                            }
-                        }
-                    }
-                }
-            }
     ) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            if (isFirst) {
-                isFirst = false
-                val firstPos = size.width / 2
-
-                coroutineScope.launch { animatable.snapTo(firstPos) }
+        LazyRow(
+            modifier = Modifier.fillMaxSize(),
+            state = lazyListState,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            item {
+                Box(modifier = Modifier.width(maxWidth.div(2)))
             }
+            items(recordWaveForm.size) { index ->
+                val itemOffset =
+                    lazyListState.layoutInfo.visibleItemsInfo.find { it.index == index }?.offset
+                        ?: 0
+                val screenWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
+                val centerX = screenWidthPx / 2
 
-            for (i in 0 until maxRecordTime) {
-                val barWidth = 2.dp.toPx()
-                val x = if (i.toInt() == 0) {
-                    i * barWidth + animatable.value
+                val color = if ((itemOffset + 4.dp.value) < centerX) {
+                    MaterialTheme.colors.secondary
                 } else {
-                    i * barWidth + (i * 2.dp.toPx()) + animatable.value
+                    MaterialTheme.colors.secondary.copy(0.2f)
                 }
-                if (x in 0f..size.width) {
-                    val y = 8.dp.toPx()
-                    drawLine(
-                        color = if (x < size.width / 2) {
-                            waveColor
-                        } else {
-                            waveColor.copy(alpha = 0.3f)
-                        },
-                        start = Offset(
-                            x,
-                            (size.height / 2) - (y.div(4)).dp.toPx()
-                        ),
-                        end = Offset(
-                            x,
-                            (size.height / 2) + (y.div(4)).dp.toPx()
-                        ),
-                        strokeWidth = barWidth,
-                        cap = StrokeCap.Round
-                    )
+
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(8.dp)
+                        .background(
+                            color = color,
+                            shape = CircleShape
+                        )
+                )
+                if (index < recordWaveForm.size - 1) {
+                    Spacer(modifier = Modifier.width(2.dp))
                 }
             }
-
+            item {
+                Box(modifier = Modifier.width(maxWidth.div(2)))
+            }
+        }
+        Canvas(modifier = Modifier.fillMaxSize()) {
             val path = Path().apply {
                 moveTo(size.width / 2 - 4.dp.toPx(), 0f)
                 lineTo(size.width / 2 + 4.dp.toPx(), 0f)
@@ -450,7 +412,12 @@ fun AudioRecordPlayer(
 @Composable
 private fun TestPreview() {
     NeedTalkTheme {
-        AudioRecordPlayer(maxRecordTime = 1000, currentRecordTime = 0L, onChangeRecordFile = {})
+        AudioRecordPlayer(
+            maxRecordTime = 1000,
+            currentRecordTime = 0L,
+            recordWaveForm = (0..500).toList(),
+            onChangeRecordFile = {}
+        )
     }
 }
 
@@ -703,7 +670,7 @@ fun FileInfoDialog(
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(
                 hint = "파일 크기",
-                text = getFileSizeToStr(talkHistory?.recordFileSize ?: 0L)
+                text = getFileSizeToStr(talkHistory?.recordFile?.length() ?: 0L)
             )
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(

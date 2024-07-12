@@ -78,7 +78,7 @@ fun TimerScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            when (val timerActionState = timerCmInfo.timerActionState) {
+            when (timerCmInfo.timerActionState) {
                 is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
                     TimerWithMic(
                         timerTime = timerCmInfo.currentTime,
@@ -166,7 +166,7 @@ fun TimerWithMic(
     modifier: Modifier = Modifier,
     timerTime: Long,
     amplitudeValue: Int,
-    maxAmplitudeValue: Int = 32760,
+    maxAmplitudeValue: Int = 32767,
     isAllowMic: Boolean
 ) {
     Column(

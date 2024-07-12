@@ -18,26 +18,6 @@ import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Locale
 
-// time이 step값에 따라 값이 증가할 수 있도록 값을 보강 및 감소해주는 역할을 수행하는 함수
-fun getTimerTimeByStep(time: Long, stepTime: Long): Long {
-    if (stepTime == 0L) {
-        return time
-    }
-
-    val decimal = time % stepTime
-    val necessaryValue = stepTime - decimal
-
-    return if (decimal == 0L) {
-        time
-    } else {
-        if (decimal > stepTime / 2000) {
-            time + necessaryValue
-        } else {
-            time - decimal
-        }
-    }
-}
-
 fun getDefaultTalkTitle(): String = SimpleDateFormat(
     "yy-MM-dd HH:mm 대화",
     Locale.KOREA
@@ -80,36 +60,6 @@ fun getRandomExperiencePoint(talkTime: Long): Double {
         val value = urgentPoint * divideValue
         kotlin.math.round(value * 10) / 10.0
     }
-}
-
-fun getRandomColor(index: Int): Color {
-    // Function to generate distinct colors based on index
-    val colors = listOf(Orange50, Color(0xFF936F26), Color(0xFF5C3D00))
-    return colors[index % colors.size]
-}
-
-fun getFirstTime(time: Long): Long {
-    val calendar = Calendar.getInstance().apply { this.timeInMillis = time }
-
-    return calendar.apply {
-        set(Calendar.DAY_OF_WEEK, 1)
-        set(Calendar.HOUR_OF_DAY, 0)
-        set(Calendar.MINUTE, 0)
-        set(Calendar.SECOND, 0)
-        set(Calendar.MILLISECOND, 0)
-    }.timeInMillis
-}
-
-fun getLastTime(time: Long): Long {
-    val calendar = Calendar.getInstance().apply { this.timeInMillis = time }
-
-    return calendar.apply {
-        set(Calendar.DAY_OF_WEEK, 7)
-        set(Calendar.HOUR_OF_DAY, 23)
-        set(Calendar.MINUTE, 59)
-        set(Calendar.SECOND, 59)
-        set(Calendar.MILLISECOND, 0)
-    }.timeInMillis
 }
 
 // 카테고리코드 -> 카테고리 변환
@@ -190,6 +140,7 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioSamplingRate(44100)
             setOutputFile(outputFilePath)
             setOutputFileName(outputFilePath)
         }
@@ -208,7 +159,9 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioSamplingRate(44100)
             setOutputFile(outputFilePath)
+            setOutputFileName(outputFilePath)
         }
     }
 

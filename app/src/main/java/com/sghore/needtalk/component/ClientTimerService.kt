@@ -64,12 +64,12 @@ class ClientTimerService : LifecycleService() {
 
     val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
     val amplitudeFlow = MutableStateFlow(0)
+    var outputFile = ""
 
     private val binder = LocalBinder()
 
     private var timerJob: Job? = null
     private var amplitudeJob: Job? = null
-    var outputFile = ""
 
     private var baseNotification: NotificationCompat.Builder? = null
     private var participantInfoIndex = -1 // 나의 인덱스
