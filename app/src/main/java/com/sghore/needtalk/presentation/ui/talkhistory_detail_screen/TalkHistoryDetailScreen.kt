@@ -213,10 +213,11 @@ fun TalkHistoryDetailScreen(
                     bottom.linkTo(parent.bottom)
                 }
                 .padding(start = 14.dp, end = 14.dp),
-            maxRecordTime = 5000L,
-            currentRecordTime = 0L,
+            currentRecordTime = uiState.playerTime,
             recordWaveForm = uiState.talkHistory?.recordAmplitude ?: emptyList(),
-            onChangeRecordFile = {}
+            onChangeTime = {
+                onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
+            }
         )
 
         AudioRecordButtons(
@@ -325,15 +326,13 @@ fun AudioRecordTime(
     }
 }
 
-// TODO: . 파형 가져와서 표시하기
 @SuppressLint("ReturnFromAwaitPointerEventScope", "MultipleAwaitPointerEventScopes")
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
-    maxRecordTime: Long,
     currentRecordTime: Long,
     recordWaveForm: List<Int>,
-    onChangeRecordFile: (Long) -> Unit
+    onChangeTime: (Long) -> Unit
 ) {
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
     val lazyListState = rememberLazyListState()
@@ -361,17 +360,26 @@ fun AudioRecordPlayer(
                         ?: 0
                 val screenWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
                 val centerX = screenWidthPx / 2
+                val changeTime = (index) * 100
 
-                val color = if ((itemOffset + 4.dp.value) < centerX) {
+                if ((itemOffset + 4.dp.value) > centerX - 10
+                    && (itemOffset + 4.dp.value) < centerX + 10
+                ) {
+                    onChangeTime(changeTime.toLong())
+                }
+
+                val color = if (changeTime < currentRecordTime) {
                     MaterialTheme.colors.secondary
                 } else {
                     MaterialTheme.colors.secondary.copy(0.2f)
                 }
+                val amplitude = recordWaveForm[index].toFloat() / 32767
+                val amplitudeHeight = 8.dp + (120.dp - 8.dp) * amplitude
 
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(8.dp)
+                        .height(amplitudeHeight)
                         .background(
                             color = color,
                             shape = CircleShape
@@ -413,10 +421,9 @@ fun AudioRecordPlayer(
 private fun TestPreview() {
     NeedTalkTheme {
         AudioRecordPlayer(
-            maxRecordTime = 1000,
             currentRecordTime = 0L,
             recordWaveForm = (0..500).toList(),
-            onChangeRecordFile = {}
+            onChangeTime = {}
         )
     }
 }

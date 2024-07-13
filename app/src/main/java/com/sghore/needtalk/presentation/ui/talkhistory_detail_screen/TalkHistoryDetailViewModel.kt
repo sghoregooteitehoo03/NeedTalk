@@ -52,6 +52,10 @@ class TalkHistoryDetailViewModel @Inject constructor(
         _uiState.update { it.copy(dialogScreen = dialogScreen) }
     }
 
+    fun changeTime(changeTime: Long) {
+        _uiState.update { it.copy(playerTime = changeTime) }
+    }
+
     fun handelEvent(event: TalkHistoryDetailUiEvent) = viewModelScope.launch {
         _uiEvent.emit(event)
     }

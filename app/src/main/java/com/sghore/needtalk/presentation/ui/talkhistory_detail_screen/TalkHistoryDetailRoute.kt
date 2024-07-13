@@ -37,7 +37,7 @@ fun TalkHistoryDetailRoute(
                 is TalkHistoryDetailUiEvent.OptionRemoveTalkHistory ->
                     viewModel.setDialogScreen(DialogScreen.DialogRemoveTalkHistory)
 
-                is TalkHistoryDetailUiEvent.ChangeTime -> TODO()
+                is TalkHistoryDetailUiEvent.ChangeTime -> viewModel.changeTime(event.time)
                 is TalkHistoryDetailUiEvent.ClickBeforeSecond -> TODO()
                 is TalkHistoryDetailUiEvent.ClickAfterSecond -> TODO()
                 is TalkHistoryDetailUiEvent.ClickPlayOrPause -> TODO()
