@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -41,7 +40,6 @@ import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
-import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
@@ -55,7 +53,6 @@ import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -96,7 +93,6 @@ fun ClientTimerRoute(
             override fun onSensorChanged(event: SensorEvent?) {
                 val eventZ = event?.values?.get(2) ?: 0f
                 val timerActionState = uiState.timerCommunicateInfo.timerActionState
-                Log.i("Check", "e: $eventZ")
 
                 // 타이머가 동작되지 않았으며, 기기가 놓여져있는 경우
                 if (eventZ > SensorManager.GRAVITY_EARTH * Constants.DEVICE_FLIP && !uiState.isFlip) {
@@ -185,7 +181,7 @@ fun ClientTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.outputFilePath ?: "",
                                     navigateOtherScreen = { talkResult ->
                                         if (talkResult != null) {
                                             navigateToResultScreen(
@@ -306,7 +302,7 @@ fun ClientTimerRoute(
                                 if (timerActionState != TimerActionState.TimerWaiting) {
                                     viewModel.finishedTalk(
                                         currentUserId = userData?.userId ?: "",
-                                        recordFilePath = service?.outputFile ?: "",
+                                        recordFilePath = service?.outputFilePath ?: "",
                                         navigateOtherScreen = { talkResult ->
                                             if (talkResult != null) {
                                                 navigateToResultScreen(
@@ -350,7 +346,7 @@ fun ClientTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.outputFilePath ?: "",
                                     navigateOtherScreen = { talkResult ->
                                         if (talkResult != null) {
                                             navigateToResultScreen(

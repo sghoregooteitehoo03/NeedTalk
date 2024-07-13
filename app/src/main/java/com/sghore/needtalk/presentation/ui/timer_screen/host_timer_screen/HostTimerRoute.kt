@@ -12,6 +12,7 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -188,7 +189,7 @@ fun HostTimerRoute(
                             } else {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.outputFilePath ?: "",
                                     navigateOtherScreen = { talkResult ->
                                         if (talkResult != null) {
                                             navigateToResultScreen(
@@ -237,7 +238,9 @@ fun HostTimerRoute(
             }
 
             launch {
-                service?.amplitudeFlow?.collectLatest { viewModel.updateAmplitudeValue(it) }
+                service?.amplitudeFlow?.collectLatest {
+                    viewModel.updateAmplitudeValue(it)
+                }
             }
         })
 
@@ -271,7 +274,7 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.outputFilePath ?: "",
                                     navigateOtherScreen = { talkResult ->
                                         if (talkResult != null) {
                                             navigateToResultScreen(
@@ -314,7 +317,7 @@ fun HostTimerRoute(
                             if (timerActionState != TimerActionState.TimerWaiting) {
                                 viewModel.finishedTalk(
                                     currentUserId = userData?.userId ?: "",
-                                    recordFilePath = service?.outputFile ?: "",
+                                    recordFilePath = service?.outputFilePath ?: "",
                                     navigateOtherScreen = { talkResult ->
                                         if (talkResult != null) {
                                             navigateToResultScreen(

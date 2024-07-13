@@ -64,7 +64,7 @@ class ClientTimerService : LifecycleService() {
 
     val timerCmInfo = MutableStateFlow(TimerCommunicateInfo())
     val amplitudeFlow = MutableStateFlow(0)
-    var outputFile = ""
+    var outputFilePath = ""
 
     private val binder = LocalBinder()
 
@@ -131,7 +131,7 @@ class ClientTimerService : LifecycleService() {
                                     if (currentInfo.isAllowMic && mediaRecorder == null) {
                                         mediaRecorder = getMediaRecord(
                                             context = applicationContext,
-                                            setOutputFileName = { outputFile = it }
+                                            setOutputFileName = { outputFilePath = it }
                                         )
                                     }
 
