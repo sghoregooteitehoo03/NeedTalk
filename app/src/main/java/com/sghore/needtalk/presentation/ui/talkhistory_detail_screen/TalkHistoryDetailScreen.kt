@@ -1,6 +1,6 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
-import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -31,6 +31,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +48,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
@@ -194,41 +196,44 @@ fun TalkHistoryDetailScreen(
             }
         }
 
-        AudioRecordTime(
-            modifier = Modifier.constrainAs(subMidLayout) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(midLayout.top, 12.dp)
-            },
-            maxRecordTime = talkHistory?.talkTime ?: 0L,
-            currentRecordTime = uiState.playerTime
-        )
+        if (uiState.talkHistory?.recordAmplitude?.isNotEmpty() == true) {
+            AudioRecordTime(
+                modifier = Modifier.constrainAs(subMidLayout) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(midLayout.top, 12.dp)
+                },
+                maxRecordTime = talkHistory?.talkTime ?: 0L,
+                currentRecordTime = uiState.playerTime
+            )
 
-        AudioRecordPlayer(
-            modifier = Modifier
-                .constrainAs(midLayout) {
-                    top.linkTo(parent.top)
+            AudioRecordPlayer(
+                modifier = Modifier
+                    .constrainAs(midLayout) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .padding(start = 14.dp, end = 14.dp),
+                currentRecordTime = uiState.playerTime,
+                maxRecordTime = uiState.talkHistory.talkTime,
+                recordWaveForm = uiState.talkHistory.recordAmplitude,
+                onChangeTime = {
+                    onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
+                }
+            )
+
+            AudioRecordButtons(
+                modifier = Modifier.constrainAs(bottomLayout) {
+                    top.linkTo(midLayout.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
-                }
-                .padding(start = 14.dp, end = 14.dp),
-            currentRecordTime = uiState.playerTime,
-            recordWaveForm = uiState.talkHistory?.recordAmplitude ?: emptyList(),
-            onChangeTime = {
-                onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
-            }
-        )
-
-        AudioRecordButtons(
-            modifier = Modifier.constrainAs(bottomLayout) {
-                top.linkTo(midLayout.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            },
-            isPlaying = uiState.isPlaying
-        )
+                },
+                isPlaying = uiState.isPlaying
+            )
+        }
     }
 }
 
@@ -326,16 +331,35 @@ fun AudioRecordTime(
     }
 }
 
-@SuppressLint("ReturnFromAwaitPointerEventScope", "MultipleAwaitPointerEventScopes")
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
     currentRecordTime: Long,
+    maxRecordTime: Long,
     recordWaveForm: List<Int>,
     onChangeTime: (Long) -> Unit
 ) {
+    val localDensity = LocalDensity.current
+
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
+    val listMaxWidth = recordWaveForm.size.dp.times(4).minus(2.dp)
+    val halfWidthPx = with(localDensity) { maxWidth.div(2).toPx() }.toInt()
+    val listMaxWidthPx = with(localDensity) { listMaxWidth.toPx() }.toInt()
+
     val lazyListState = rememberLazyListState()
+
+    LaunchedEffect(lazyListState) {
+        snapshotFlow { lazyListState.firstVisibleItemScrollOffset to lazyListState.firstVisibleItemIndex }
+            .collect { (offset, index) ->
+                val totalOffset = if (index == 0) {
+                    offset
+                } else {
+                    (12 * (index - 1)) + offset + halfWidthPx
+                }
+                val currentTime = (maxRecordTime.toFloat() / listMaxWidthPx * totalOffset).toLong()
+                onChangeTime(currentTime)
+            }
+    }
 
     Box(
         modifier = modifier
@@ -355,18 +379,7 @@ fun AudioRecordPlayer(
                 Box(modifier = Modifier.width(maxWidth.div(2)))
             }
             items(recordWaveForm.size) { index ->
-                val itemOffset =
-                    lazyListState.layoutInfo.visibleItemsInfo.find { it.index == index }?.offset
-                        ?: 0
-                val screenWidthPx = with(LocalDensity.current) { maxWidth.toPx() }
-                val centerX = screenWidthPx / 2
-                val changeTime = (index) * 100
-
-                if ((itemOffset + 4.dp.value) > centerX - 10
-                    && (itemOffset + 4.dp.value) < centerX + 10
-                ) {
-                    onChangeTime(changeTime.toLong())
-                }
+                val changeTime = (index) * 110L
 
                 val color = if (changeTime < currentRecordTime) {
                     MaterialTheme.colors.secondary
@@ -422,6 +435,7 @@ private fun TestPreview() {
     NeedTalkTheme {
         AudioRecordPlayer(
             currentRecordTime = 0L,
+            maxRecordTime = 500L,
             recordWaveForm = (0..500).toList(),
             onChangeTime = {}
         )
