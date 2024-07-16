@@ -216,6 +216,7 @@ fun TalkHistoryDetailScreen(
                 maxRecordTime = uiState.talkHistory.talkTime,
                 recordWaveForm = uiState.talkHistory.recordAmplitude,
                 isPlaying = uiState.isPlaying,
+                isJumping = uiState.isJumping,
                 onChangeTime = {
                     onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
                 },
@@ -232,6 +233,8 @@ fun TalkHistoryDetailScreen(
                     bottom.linkTo(parent.bottom)
                 },
                 isPlaying = uiState.isPlaying,
+                onClickBeforeSecond = { onEvent(TalkHistoryDetailUiEvent.ClickBeforeSecond) },
+                onClickAfterSecond = { onEvent(TalkHistoryDetailUiEvent.ClickAfterSecond) },
                 onPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) }
             )
         }
@@ -340,6 +343,7 @@ fun AudioRecordPlayer(
     maxRecordTime: Long,
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
+    isJumping: Boolean,
     onChangeTime: (Long) -> Unit,
     onSeeking: (Boolean) -> Unit
 ) {
@@ -368,7 +372,7 @@ fun AudioRecordPlayer(
             }
     }
 
-    if (isPlaying) {
+    if (isPlaying || isJumping) {
         LaunchedEffect(currentRecordTime) {
             val offset = (currentRecordTime.toFloat() / maxRecordTime * listMaxWidthPx)
             lazyListState.scrollBy(offset - currentOffset)
@@ -399,9 +403,9 @@ fun AudioRecordPlayer(
                 Box(modifier = Modifier.width(maxWidth.div(2)))
             }
             items(recordWaveForm.size) { index ->
-                val changeTime = (index) * 105L // TODO: 해당 값도 수정
+                val itemOffset = remember(index) { 0 + 12 * index }
 
-                val color = if (changeTime < currentRecordTime) {
+                val color = if (itemOffset < currentOffset) {
                     MaterialTheme.colors.secondary
                 } else {
                     MaterialTheme.colors.secondary.copy(0.2f)
@@ -453,6 +457,8 @@ fun AudioRecordPlayer(
 fun AudioRecordButtons(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
+    onClickBeforeSecond: () -> Unit,
+    onClickAfterSecond: () -> Unit,
     onPlay: (Boolean) -> Unit
 ) {
     Column(
@@ -467,7 +473,8 @@ fun AudioRecordButtons(
                         color = colorResource(id = R.color.light_gray),
                         shape = CircleShape
                     )
-                    .size(48.dp),
+                    .size(48.dp)
+                    .clickable { onClickBeforeSecond() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
@@ -508,7 +515,8 @@ fun AudioRecordButtons(
                         color = colorResource(id = R.color.light_gray),
                         shape = CircleShape
                     )
-                    .size(48.dp),
+                    .size(48.dp)
+                    .clickable { onClickAfterSecond() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(

@@ -11,6 +11,7 @@ data class TalkHistoryDetailUiState(
     val playerTime: Long = 0L,
     val isPlaying: Boolean = false,
     val isSeeking: Boolean = false,
+    val isJumping: Boolean = false,
     val isComplete: Boolean = false,
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss
 )

@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.math.max
 
 @HiltViewModel
 class TalkHistoryDetailViewModel @Inject constructor(
@@ -102,7 +103,12 @@ class TalkHistoryDetailViewModel @Inject constructor(
             pauseRecord()
         }
 
-        _uiState.update { it.copy(isSeeking = isSeeking) }
+        _uiState.update {
+            it.copy(
+                isSeeking = isSeeking,
+                isJumping = false
+            )
+        }
     }
 
     // Player seek
@@ -117,7 +123,14 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
     fun playRecord() {
         mediaPlayer.start()
-        _uiState.update { it.copy(isPlaying = true, isComplete = false, isSeeking = false) }
+        _uiState.update {
+            it.copy(
+                isPlaying = true,
+                isComplete = false,
+                isSeeking = false,
+                isJumping = false
+            )
+        }
 
         playerJob?.cancel()
         playerJob = viewModelScope.launch(context = Dispatchers.Default) {
@@ -142,6 +155,27 @@ class TalkHistoryDetailViewModel @Inject constructor(
     fun finishPlayer() {
         mediaPlayer.stop()
         mediaPlayer.release()
+    }
+
+    // 건너뛰기
+    fun jumpToSecond(second: Int) {
+        val currentTime = _uiState.value.playerTime
+        val maxTime = _uiState.value.talkHistory?.talkTime ?: 0L
+        var jumpTime = currentTime + second
+
+        if (jumpTime < 0) {
+            jumpTime = 0
+        } else if (maxTime < jumpTime) {
+            jumpTime = maxTime
+        }
+
+        mediaPlayer.seekTo(jumpTime.toInt())
+        _uiState.update {
+            it.copy(
+                playerTime = jumpTime,
+                isJumping = true
+            )
+        }
     }
 
     fun handelEvent(event: TalkHistoryDetailUiEvent) = viewModelScope.launch {

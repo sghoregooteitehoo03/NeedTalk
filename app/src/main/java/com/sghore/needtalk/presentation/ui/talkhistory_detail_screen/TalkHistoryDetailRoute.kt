@@ -47,8 +47,8 @@ fun TalkHistoryDetailRoute(
 
                 is TalkHistoryDetailUiEvent.ChangeTime -> viewModel.changeTime(event.time)
                 is TalkHistoryDetailUiEvent.SeekPlayer -> viewModel.seekPlayer(event.isSeeking)
-                is TalkHistoryDetailUiEvent.ClickBeforeSecond -> TODO()
-                is TalkHistoryDetailUiEvent.ClickAfterSecond -> TODO()
+                is TalkHistoryDetailUiEvent.ClickBeforeSecond -> viewModel.jumpToSecond(-5000)
+                is TalkHistoryDetailUiEvent.ClickAfterSecond -> viewModel.jumpToSecond(5000)
                 is TalkHistoryDetailUiEvent.ClickPlayOrPause -> {
                     if (event.isPlay) {
                         viewModel.playRecord()
