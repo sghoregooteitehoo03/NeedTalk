@@ -13,6 +13,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
@@ -22,6 +23,13 @@ fun TalkHistoryDetailRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    )
+
+    DisposableEffectWithLifeCycle(
+        onStop = {
+            viewModel.pauseRecord()
+        },
+        onDispose = { viewModel.finishPlayer() }
     )
 
     LaunchedEffect(viewModel.uiEvent) {
@@ -40,7 +48,14 @@ fun TalkHistoryDetailRoute(
                 is TalkHistoryDetailUiEvent.ChangeTime -> viewModel.changeTime(event.time)
                 is TalkHistoryDetailUiEvent.ClickBeforeSecond -> TODO()
                 is TalkHistoryDetailUiEvent.ClickAfterSecond -> TODO()
-                is TalkHistoryDetailUiEvent.ClickPlayOrPause -> TODO()
+                is TalkHistoryDetailUiEvent.ClickPlayOrPause -> {
+                    if (event.isPlay) {
+                        viewModel.playRecord()
+                    } else {
+                        viewModel.pauseRecord()
+                    }
+                }
+
                 is TalkHistoryDetailUiEvent.ClickClips -> TODO()
                 is TalkHistoryDetailUiEvent.ClickMakeClip -> TODO()
             }

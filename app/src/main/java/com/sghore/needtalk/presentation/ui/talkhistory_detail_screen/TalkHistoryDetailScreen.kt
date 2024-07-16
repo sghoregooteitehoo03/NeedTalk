@@ -5,8 +5,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectHorizontalDragGestures
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -28,6 +27,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -38,8 +38,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
@@ -48,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
@@ -60,7 +57,6 @@ import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.getFileSizeToStr
-import kotlinx.coroutines.delay
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -219,6 +215,7 @@ fun TalkHistoryDetailScreen(
                 currentRecordTime = uiState.playerTime,
                 maxRecordTime = uiState.talkHistory.talkTime,
                 recordWaveForm = uiState.talkHistory.recordAmplitude,
+                isPlaying = uiState.isPlaying,
                 onChangeTime = {
                     onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
                 }
@@ -231,7 +228,8 @@ fun TalkHistoryDetailScreen(
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
                 },
-                isPlaying = uiState.isPlaying
+                isPlaying = uiState.isPlaying,
+                onPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) }
             )
         }
     }
@@ -337,6 +335,7 @@ fun AudioRecordPlayer(
     currentRecordTime: Long,
     maxRecordTime: Long,
     recordWaveForm: List<Int>,
+    isPlaying: Boolean,
     onChangeTime: (Long) -> Unit
 ) {
     val localDensity = LocalDensity.current
@@ -345,20 +344,31 @@ fun AudioRecordPlayer(
     val listMaxWidth = recordWaveForm.size.dp.times(4).minus(2.dp)
     val halfWidthPx = with(localDensity) { maxWidth.div(2).toPx() }.toInt()
     val listMaxWidthPx = with(localDensity) { listMaxWidth.toPx() }.toInt()
+    var currentOffset by remember { mutableIntStateOf(0) }
 
     val lazyListState = rememberLazyListState()
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemScrollOffset to lazyListState.firstVisibleItemIndex }
             .collect { (offset, index) ->
-                val totalOffset = if (index == 0) {
+                currentOffset = if (index == 0) {
                     offset
                 } else {
                     (12 * (index - 1)) + offset + halfWidthPx
                 }
-                val currentTime = (maxRecordTime.toFloat() / listMaxWidthPx * totalOffset).toLong()
+
+                Log.i("Check", "currentOffset: $currentOffset")
+                val currentTime =
+                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
                 onChangeTime(currentTime)
             }
+    }
+
+    if (isPlaying) {
+        LaunchedEffect(currentRecordTime) {
+            val offset = (currentRecordTime.toFloat() / maxRecordTime * listMaxWidthPx)
+            lazyListState.scrollBy(offset - currentOffset)
+        }
     }
 
     Box(
@@ -379,7 +389,7 @@ fun AudioRecordPlayer(
                 Box(modifier = Modifier.width(maxWidth.div(2)))
             }
             items(recordWaveForm.size) { index ->
-                val changeTime = (index) * 110L
+                val changeTime = (index) * 105L
 
                 val color = if (changeTime < currentRecordTime) {
                     MaterialTheme.colors.secondary
@@ -437,6 +447,7 @@ private fun TestPreview() {
             currentRecordTime = 0L,
             maxRecordTime = 500L,
             recordWaveForm = (0..500).toList(),
+            isPlaying = false,
             onChangeTime = {}
         )
     }
@@ -445,7 +456,8 @@ private fun TestPreview() {
 @Composable
 fun AudioRecordButtons(
     modifier: Modifier = Modifier,
-    isPlaying: Boolean
+    isPlaying: Boolean,
+    onPlay: (Boolean) -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -477,7 +489,8 @@ fun AudioRecordButtons(
                         color = MaterialTheme.colors.secondary,
                         shape = CircleShape
                     )
-                    .size(64.dp),
+                    .size(64.dp)
+                    .clickable { onPlay(!isPlaying) },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -543,113 +556,6 @@ fun AudioRecordButtons(
                     )
                 )
             }
-        }
-    }
-}
-
-//@Preview
-//@Composable
-//private fun AuioPlayerUIPreview() {
-//    NeedTalkTheme {
-//        AudioPlayerUI()
-//    }
-//}
-
-@Composable
-fun AudioPlayerUI() {
-    var currentTime by remember { mutableStateOf(0f) }
-    val totalTime = 200f // 총 녹음 시간 (예: 200초)
-
-    LaunchedEffect(Unit) {
-        while (currentTime < totalTime) {
-            delay(100)
-            currentTime += 0.1f
-        }
-    }
-
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(
-            text = formatTime(currentTime.toInt()),
-            fontSize = 36.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = formatTime(totalTime.toInt()),
-            fontSize = 16.sp
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        WaveformSlider(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(150.dp),
-            progress = currentTime / totalTime
-        )
-    }
-}
-
-@Composable
-fun WaveformSlider(
-    modifier: Modifier = Modifier,
-    progress: Float
-) {
-    var offsetX by remember { mutableStateOf(0f) }
-    val waveformWidth = 2000f // 파형의 전체 너비를 설정합니다.
-    val maxOffsetX = waveformWidth / 2 - 500f // 스크롤 가능한 최대 오프셋 (왼쪽 제한)
-    val minOffsetX = -waveformWidth / 2 + 500f // 스크롤 가능한 최소 오프셋 (오른쪽 제한)
-
-    // 자동으로 offsetX를 업데이트하는 애니메이션
-//    val animatedOffsetX by animateFloatAsState(
-//        targetValue = offsetX - 5f,
-//        animationSpec = infiniteRepeatable(
-//            animation = tween(
-//                durationMillis = 100, // 속도 조절
-//                easing = LinearEasing
-//            )
-//        ), label = ""
-//    )
-//
-//    LaunchedEffect(progress) {
-//        offsetX = animatedOffsetX.coerceIn(minOffsetX, maxOffsetX)
-//    }
-
-    Box(modifier = modifier.pointerInput(Unit) {
-        detectHorizontalDragGestures { change, dragAmount ->
-            offsetX = (offsetX + dragAmount).coerceIn(minOffsetX, maxOffsetX)
-            change.consume()
-        }
-    }) {
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val barCount = 50
-            val barWidth = size.width / barCount
-            for (i in 0 until barCount) {
-                val x = i * barWidth + offsetX
-                if (x in 0f..size.width) {
-                    val y = size.height * (0.1f + 0.8f * (i % 2))
-                    drawLine(
-                        color = if (i < progress * barCount) Color.Gray else Color.LightGray,
-                        start = Offset(x, size.height),
-                        end = Offset(x, y),
-                        strokeWidth = barWidth - 4.dp.toPx(),
-                        cap = StrokeCap.Round
-                    )
-                }
-            }
-
-            // 가운데 빨간 선 그리기
-            val centerX = size.width / 2
-            drawLine(
-                color = Color.Red,
-                start = Offset(centerX, 0f),
-                end = Offset(centerX, size.height),
-                strokeWidth = 4.dp.toPx(),
-                cap = StrokeCap.Round
-            )
         }
     }
 }
@@ -775,10 +681,4 @@ fun InfoText(
                 .copy(color = MaterialTheme.colors.onPrimary)
         )
     }
-}
-
-fun formatTime(seconds: Int): String {
-    val minutes = seconds / 60
-    val secs = seconds % 60
-    return String.format("%02d:%02d", minutes, secs)
 }
