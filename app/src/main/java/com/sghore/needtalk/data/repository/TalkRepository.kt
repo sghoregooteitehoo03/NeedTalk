@@ -60,6 +60,9 @@ class TalkRepository @Inject constructor(
         talkDao.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
     }
 
+    // 대화기록 삭제
+    suspend fun deleteTalkHistoryEntity(id: String) = talkDao.deleteTalkHistoryEntity(id)
+
     // 저장된 대화방 설정 가져옴
     fun getTalkSettingEntity() = talkDao.getTalkSettingEntity()
 

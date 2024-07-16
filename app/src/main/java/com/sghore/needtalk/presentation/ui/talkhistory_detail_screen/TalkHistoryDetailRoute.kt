@@ -80,7 +80,6 @@ fun TalkHistoryDetailRoute(
                         .padding(14.dp),
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
                     talkHistory = uiState.talkHistory,
-                    recordFile = uiState.recordFile!!
                 )
             }
 
@@ -94,7 +93,7 @@ fun TalkHistoryDetailRoute(
                         .padding(14.dp),
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
                     title = uiState.talkHistory?.talkTitle ?: "",
-                    onTitleChange = {} // TODO: 로직 구현하기
+                    onTitleChange = { viewModel.updateTitle(it) }
                 )
             }
 
@@ -107,7 +106,10 @@ fun TalkHistoryDetailRoute(
                         )
                         .padding(14.dp),
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
-                    onClickRemove = {} // TODO: 로직 구현하기
+                    onClickRemove = {
+                        viewModel.removeTalkHistory()
+                        navigateUp()
+                    }
                 )
             }
 

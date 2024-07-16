@@ -25,12 +25,14 @@ interface TalkDao {
     @Query("SELECT * FROM TalkHistoryParticipantEntity WHERE talkHistoryId == :talkId")
     fun getTalkHistoryParticipantEntities(talkId: String): Flow<List<TalkHistoryParticipantEntity>>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity)
 
     @Insert
     suspend fun insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity: TalkHistoryParticipantEntity)
 
+    @Query("DELETE FROM TalkHistoryEntity WHERE id == :id")
+    suspend fun deleteTalkHistoryEntity(id: String)
 
     @Query("SELECT * FROM UserEntity WHERE userId == :userId")
     fun getUserEntity(userId: String): Flow<UserEntity?>

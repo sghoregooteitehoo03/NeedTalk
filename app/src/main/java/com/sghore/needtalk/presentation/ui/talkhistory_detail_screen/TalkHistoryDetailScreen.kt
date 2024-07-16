@@ -33,7 +33,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
@@ -143,7 +142,7 @@ fun TalkHistoryDetailScreen(
                         onDismissRequest = { isExpended = false }
                     ) {
                         DropdownMenuItem(onClick = {
-                            if (uiState.recordFile != null) {
+                            if (uiState.talkHistory?.recordFile != null) {
                                 onEvent(TalkHistoryDetailUiEvent.OptionInfo)
                             }
                             isExpended = false
@@ -335,7 +334,6 @@ fun AudioRecordTime(
     }
 }
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
@@ -564,15 +562,14 @@ fun AudioRecordButtons(
     }
 }
 
-// TODO: 나중에 구현
 @Composable
 fun FileInfoDialog(
     modifier: Modifier = Modifier,
     onDismiss: () -> Unit,
-    talkHistory: TalkHistory?,
-    recordFile: File
+    talkHistory: TalkHistory?
 ) {
     BottomSheetDialog(onDismissRequest = onDismiss) {
+        val recordFile = remember { talkHistory?.recordFile }
         Column(modifier = modifier.fillMaxWidth()) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
@@ -596,7 +593,7 @@ fun FileInfoDialog(
             Spacer(modifier = Modifier.height(16.dp))
             InfoText(
                 hint = "파일 제목",
-                text = recordFile.name
+                text = recordFile?.name ?: ""
             )
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(
@@ -606,7 +603,7 @@ fun FileInfoDialog(
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(
                 hint = "파일 경로",
-                text = recordFile.absolutePath
+                text = recordFile?.absolutePath ?: ""
             )
             Spacer(modifier = Modifier.height(20.dp))
             InfoText(

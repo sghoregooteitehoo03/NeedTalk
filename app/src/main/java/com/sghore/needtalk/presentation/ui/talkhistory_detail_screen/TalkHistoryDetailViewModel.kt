@@ -1,17 +1,16 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.domain.model.TalkHistory
+import com.sghore.needtalk.domain.usecase.DeleteTalkHistoryUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkHistoryUseCase
+import com.sghore.needtalk.domain.usecase.InsertTalkHistoryUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,14 +19,14 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import java.io.IOException
 import javax.inject.Inject
-import kotlin.math.max
 
 @HiltViewModel
 class TalkHistoryDetailViewModel @Inject constructor(
     private val getTalkHistoryUseCase: GetTalkHistoryUseCase,
+    private val insertTalkHistoryUseCase: InsertTalkHistoryUseCase,
+    private val deleteTalkHistoryUseCase: DeleteTalkHistoryUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -94,6 +93,27 @@ class TalkHistoryDetailViewModel @Inject constructor(
     // 다이얼로그 화면 설정
     fun setDialogScreen(dialogScreen: DialogScreen) {
         _uiState.update { it.copy(dialogScreen = dialogScreen) }
+    }
+
+    // 대화기록 제목 수정
+    fun updateTitle(title: String) = viewModelScope.launch {
+        val updateTalkHistory = _uiState.value.talkHistory?.copy(talkTitle = title)
+
+        insertTalkHistoryUseCase(updateTalkHistory)
+        _uiState.update { it.copy(talkHistory = updateTalkHistory) }
+    }
+
+    // 대화기록 삭제
+    fun removeTalkHistory() = viewModelScope.launch {
+        val talkHistory = _uiState.value.talkHistory
+
+        if (talkHistory != null) {
+            try {
+                deleteTalkHistoryUseCase(talkHistory)
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // Player Seek Start/Pause

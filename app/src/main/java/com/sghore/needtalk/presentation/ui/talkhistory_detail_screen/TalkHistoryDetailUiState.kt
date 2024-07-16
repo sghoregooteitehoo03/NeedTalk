@@ -6,8 +6,6 @@ import java.io.File
 
 data class TalkHistoryDetailUiState(
     val talkHistory: TalkHistory? = null,
-    val recordFile: File? = null,
-    val recordWaveForm: List<Int> = emptyList(),
     val playerTime: Long = 0L,
     val isPlaying: Boolean = false,
     val isSeeking: Boolean = false,
