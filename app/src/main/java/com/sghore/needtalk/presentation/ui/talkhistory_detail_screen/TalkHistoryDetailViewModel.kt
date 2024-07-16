@@ -95,14 +95,29 @@ class TalkHistoryDetailViewModel @Inject constructor(
         _uiState.update { it.copy(dialogScreen = dialogScreen) }
     }
 
+    // Player Seek Start/Pause
+    fun seekPlayer(isSeeking: Boolean) {
+        val isPlaying = _uiState.value.isPlaying
+        if (isPlaying && isSeeking) {
+            pauseRecord()
+        }
+
+        _uiState.update { it.copy(isSeeking = isSeeking) }
+    }
+
     // Player seek
     fun changeTime(changeTime: Long) {
-        _uiState.update { it.copy(playerTime = changeTime) }
+        val isSeeking = _uiState.value.isSeeking
+
+        if (isSeeking) {
+            mediaPlayer.seekTo(changeTime.toInt())
+            _uiState.update { it.copy(playerTime = changeTime) }
+        }
     }
 
     fun playRecord() {
         mediaPlayer.start()
-        _uiState.update { it.copy(isPlaying = true, isComplete = false) }
+        _uiState.update { it.copy(isPlaying = true, isComplete = false, isSeeking = false) }
 
         playerJob?.cancel()
         playerJob = viewModelScope.launch(context = Dispatchers.Default) {

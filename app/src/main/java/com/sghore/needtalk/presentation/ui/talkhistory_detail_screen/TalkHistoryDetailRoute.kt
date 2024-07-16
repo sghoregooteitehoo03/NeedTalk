@@ -46,6 +46,7 @@ fun TalkHistoryDetailRoute(
                     viewModel.setDialogScreen(DialogScreen.DialogRemoveTalkHistory)
 
                 is TalkHistoryDetailUiEvent.ChangeTime -> viewModel.changeTime(event.time)
+                is TalkHistoryDetailUiEvent.SeekPlayer -> viewModel.seekPlayer(event.isSeeking)
                 is TalkHistoryDetailUiEvent.ClickBeforeSecond -> TODO()
                 is TalkHistoryDetailUiEvent.ClickAfterSecond -> TODO()
                 is TalkHistoryDetailUiEvent.ClickPlayOrPause -> {

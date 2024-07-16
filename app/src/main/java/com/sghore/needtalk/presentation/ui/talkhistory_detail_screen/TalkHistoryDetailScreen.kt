@@ -1,10 +1,10 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,18 +33,19 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -55,7 +56,6 @@ import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
-import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.getFileSizeToStr
 import java.io.File
 import java.text.SimpleDateFormat
@@ -218,6 +218,9 @@ fun TalkHistoryDetailScreen(
                 isPlaying = uiState.isPlaying,
                 onChangeTime = {
                     onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
+                },
+                onSeeking = {
+                    onEvent(TalkHistoryDetailUiEvent.SeekPlayer(it))
                 }
             )
 
@@ -329,6 +332,7 @@ fun AudioRecordTime(
     }
 }
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
@@ -336,7 +340,8 @@ fun AudioRecordPlayer(
     maxRecordTime: Long,
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
-    onChangeTime: (Long) -> Unit
+    onChangeTime: (Long) -> Unit,
+    onSeeking: (Boolean) -> Unit
 ) {
     val localDensity = LocalDensity.current
 
@@ -357,7 +362,6 @@ fun AudioRecordPlayer(
                     (12 * (index - 1)) + offset + halfWidthPx
                 }
 
-                Log.i("Check", "currentOffset: $currentOffset")
                 val currentTime =
                     (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
                 onChangeTime(currentTime)
@@ -381,7 +385,13 @@ fun AudioRecordPlayer(
             )
     ) {
         LazyRow(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(Unit) {
+                    detectTapGestures(
+                        onPress = { onSeeking(true) }
+                    )
+                },
             state = lazyListState,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -389,7 +399,7 @@ fun AudioRecordPlayer(
                 Box(modifier = Modifier.width(maxWidth.div(2)))
             }
             items(recordWaveForm.size) { index ->
-                val changeTime = (index) * 105L
+                val changeTime = (index) * 105L // TODO: 해당 값도 수정
 
                 val color = if (changeTime < currentRecordTime) {
                     MaterialTheme.colors.secondary
@@ -436,20 +446,6 @@ fun AudioRecordPlayer(
                 strokeWidth = 2.dp.toPx()
             )
         }
-    }
-}
-
-@Preview
-@Composable
-private fun TestPreview() {
-    NeedTalkTheme {
-        AudioRecordPlayer(
-            currentRecordTime = 0L,
-            maxRecordTime = 500L,
-            recordWaveForm = (0..500).toList(),
-            isPlaying = false,
-            onChangeTime = {}
-        )
     }
 }
 

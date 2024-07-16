@@ -11,6 +11,8 @@ sealed interface TalkHistoryDetailUiEvent {
 
     data class ChangeTime(val time: Long) : TalkHistoryDetailUiEvent
 
+    data class SeekPlayer(val isSeeking: Boolean) : TalkHistoryDetailUiEvent
+
     data class ClickPlayOrPause(val isPlay: Boolean) : TalkHistoryDetailUiEvent
 
     data object ClickBeforeSecond : TalkHistoryDetailUiEvent
