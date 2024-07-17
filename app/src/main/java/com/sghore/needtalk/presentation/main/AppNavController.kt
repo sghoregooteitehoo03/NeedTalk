@@ -31,6 +31,7 @@ import com.sghore.needtalk.presentation.ui.talkhistory_detail_screen.TalkHistory
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 @Composable
 fun AppNavHost(
@@ -124,11 +125,11 @@ fun AppNavHost(
             TalkHistoryDetailRoute(
                 navigateUp = navController::navigateUp,
                 navigateToAddHighlightScreen = { recordFilePath, recordAmplitude ->
-                    val recordAmplitudeArray = recordAmplitude.toIntArray()
+                    val recordAmplitudeJson = Json.encodeToJsonElement(recordAmplitude)
 
                     navController.navigate(
                         UiScreen.AddHighlightScreen.route +
-                                "?recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeArray}"
+                                "?recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeJson}"
                     )
                 }
             )
@@ -142,8 +143,7 @@ fun AppNavHost(
                     type = NavType.StringType
                 },
                 navArgument("recordAmplitude") {
-                    defaultValue = intArrayOf(0)
-                    type = NavType.IntArrayType
+                    type = NavType.StringType
                 },
             )
         ) {

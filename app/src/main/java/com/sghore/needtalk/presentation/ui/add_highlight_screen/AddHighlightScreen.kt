@@ -48,10 +48,18 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 @Composable
-fun AddHighlightScreen() {
-    Column {
+fun AddHighlightScreen(
+    uiState: AddHighlightUiState
+) {
+    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
+        val (toolbar, topLayout, subMidLayout, midLayout, bottomLayout) = createRefs()
         Box(
             modifier = Modifier
+                .constrainAs(toolbar) {
+                    top.linkTo(parent.top)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                }
                 .padding(start = 14.dp, end = 14.dp)
                 .fillMaxWidth()
                 .height(56.dp),
@@ -67,60 +75,60 @@ fun AddHighlightScreen() {
                 tint = MaterialTheme.colors.onPrimary
             )
         }
-        ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-            val (topLayout, subMidLayout, midLayout, bottomLayout) = createRefs()
 
-            Box(
-                modifier = Modifier
-                    .constrainAs(topLayout) {
-                        top.linkTo(parent.top)
-                        bottom.linkTo(subMidLayout.top)
-                    }
-                    .fillMaxWidth(),
-                contentAlignment = Alignment.Center
-            ) {
-                BaselineTextField(
-                    hint = "제목을 지정해주세요.",
-                    text = "",
-                    onValueChange = { }
-                )
-            }
-
-            AudioRecordTime(
-                modifier = Modifier.constrainAs(subMidLayout) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(midLayout.top, 12.dp)
-                },
-                maxRecordTime = 0L,
-                currentRecordTime = 0L
+        Box(
+            modifier = Modifier
+                .constrainAs(topLayout) {
+                    top.linkTo(toolbar.bottom)
+                    bottom.linkTo(subMidLayout.top)
+                }
+                .fillMaxWidth(),
+            contentAlignment = Alignment.Center
+        ) {
+            BaselineTextField(
+                hint = "제목을 지정해주세요.",
+                text = uiState.title,
+                maxTextLength = 20,
+                onValueChange = { }
             )
-            AudioRecordPlayer(
-                modifier = Modifier.constrainAs(midLayout) {
+        }
+
+        AudioRecordTime(
+            modifier = Modifier.constrainAs(subMidLayout) {
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(midLayout.top, 12.dp)
+            },
+            maxRecordTime = uiState.playerMaxTime,
+            currentRecordTime = uiState.playerTime
+        )
+        AudioRecordPlayer(
+            modifier = Modifier
+                .constrainAs(midLayout) {
                     top.linkTo(parent.top)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
-                },
-                currentRecordTime = 0L,
-                maxRecordTime = 0L,
-                recordWaveForm = emptyList(),
-                isPlaying = false,
-                isJumping = false,
-                onChangeTime = {},
-                onSeeking = {}
-            )
-            AudioRecordButtons(
-                modifier = Modifier.constrainAs(bottomLayout) {
-                    top.linkTo(midLayout.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-                isPlaying = false,
-                onClickPlay = {},
-                onClickComplete = {})
-        }
+                }
+                .padding(start = 14.dp, end = 14.dp),
+            currentRecordTime = uiState.playerTime,
+            maxRecordTime = uiState.playerMaxTime,
+            recordWaveForm = uiState.recordAmplitude,
+            isPlaying = uiState.isPlaying,
+            onChangeTime = {},
+            onSeeking = {}
+        )
+        AudioRecordButtons(
+            modifier = Modifier.constrainAs(bottomLayout) {
+                top.linkTo(midLayout.bottom)
+                start.linkTo(parent.start)
+                end.linkTo(parent.end)
+                bottom.linkTo(parent.bottom)
+            },
+            isPlaying = uiState.isPlaying,
+            onClickPlay = {},
+            onClickComplete = {}
+        )
     }
 }
 
@@ -157,6 +165,8 @@ fun AudioRecordTime(
     }
 }
 
+// TODO:
+//  .feat 자르기 뷰 구현하기
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
@@ -164,7 +174,6 @@ fun AudioRecordPlayer(
     maxRecordTime: Long,
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
-    isJumping: Boolean,
     onChangeTime: (Long) -> Unit,
     onSeeking: (Boolean) -> Unit
 ) {
@@ -193,7 +202,7 @@ fun AudioRecordPlayer(
             }
     }
 
-    if (isPlaying || isJumping) {
+    if (isPlaying) {
         LaunchedEffect(currentRecordTime) {
             val offset = (currentRecordTime.toFloat() / maxRecordTime * listMaxWidthPx)
             lazyListState.scrollBy(offset - currentOffset)
