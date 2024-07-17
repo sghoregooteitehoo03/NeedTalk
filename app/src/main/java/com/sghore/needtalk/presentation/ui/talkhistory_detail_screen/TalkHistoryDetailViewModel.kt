@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -46,9 +47,8 @@ class TalkHistoryDetailViewModel @Inject constructor(
         started = SharingStarted.Eagerly
     )
 
-    // TODO: MediaPlayer 어떻게 공유할 것인지 방법 생각하기
     // MediaPlayer
-    private val mediaPlayer = MediaPlayer()
+    private lateinit var mediaPlayer: MediaPlayer
 
     // Player Job
     private var playerJob: Job? = null
@@ -61,7 +61,6 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
                 try {
                     preparePlayer(talkHistory?.recordFile?.path ?: "")
-
                     mediaPlayer.setOnPreparedListener {
                         _uiState.update {
                             it.copy(talkHistory = talkHistory?.copy(talkTime = mediaPlayer.duration.toLong()))
@@ -173,9 +172,18 @@ class TalkHistoryDetailViewModel @Inject constructor(
     }
 
     fun preparePlayer(recordFilePath: String) {
-        // 미디어 플레이어 정의
-        mediaPlayer.setDataSource(recordFilePath)
-        mediaPlayer.prepare()
+        try {// 미디어 플레이어 정의
+            mediaPlayer = MediaPlayer()
+            mediaPlayer.setDataSource(recordFilePath)
+            mediaPlayer.prepare()
+
+            val playerTime = _uiState.value.playerTime
+            if (playerTime != 0L) { // PlayerTime이 0이 아닐 때
+                mediaPlayer.seekTo(playerTime.toInt())
+            }
+        } catch (e: IllegalStateException) {
+            e.printStackTrace()
+        }
     }
 
     fun finishPlayer() {

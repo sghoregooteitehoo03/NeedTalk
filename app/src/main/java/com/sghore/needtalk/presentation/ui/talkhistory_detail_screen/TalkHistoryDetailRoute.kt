@@ -28,7 +28,7 @@ fun TalkHistoryDetailRoute(
 
     DisposableEffectWithLifeCycle(
         onResume = {
-            if (uiState.talkHistory != null) {
+            if (uiState.talkHistory != null) { // mediaPlayer 재정의
                 viewModel.preparePlayer(uiState.talkHistory?.recordFile?.path ?: "")
             }
         },
