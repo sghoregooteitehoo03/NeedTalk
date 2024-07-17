@@ -14,6 +14,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
+import com.sghore.needtalk.presentation.ui.add_highlight_screen.AddHighlightRoute
 import com.sghore.needtalk.presentation.ui.add_talktopic_screen.AddTalkTopicRoute
 import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
 import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateTalkRoute
@@ -121,8 +122,32 @@ fun AppNavHost(
             )
         ) {
             TalkHistoryDetailRoute(
-                navigateUp = navController::navigateUp
+                navigateUp = navController::navigateUp,
+                navigateToAddHighlightScreen = { recordFilePath, recordAmplitude ->
+                    val recordAmplitudeArray = recordAmplitude.toIntArray()
+
+                    navController.navigate(
+                        UiScreen.AddHighlightScreen.route +
+                                "?recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeArray}"
+                    )
+                }
             )
+        }
+
+        composable(
+            route = UiScreen.AddHighlightScreen.route +
+                    "?recordFilePath={recordFilePath}&recordAmplitude={recordAmplitude}",
+            arguments = listOf(
+                navArgument("recordFilePath") {
+                    type = NavType.StringType
+                },
+                navArgument("recordAmplitude") {
+                    defaultValue = intArrayOf(0)
+                    type = NavType.IntArrayType
+                },
+            )
+        ) {
+            AddHighlightRoute()
         }
 
         composable(route = UiScreen.ProfileScreen.route) {

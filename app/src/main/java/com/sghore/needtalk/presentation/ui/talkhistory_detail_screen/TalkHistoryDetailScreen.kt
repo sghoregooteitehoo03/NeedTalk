@@ -56,7 +56,6 @@ import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
 import com.sghore.needtalk.util.getFileSizeToStr
-import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -234,7 +233,9 @@ fun TalkHistoryDetailScreen(
                 isPlaying = uiState.isPlaying,
                 onClickBeforeSecond = { onEvent(TalkHistoryDetailUiEvent.ClickBeforeSecond) },
                 onClickAfterSecond = { onEvent(TalkHistoryDetailUiEvent.ClickAfterSecond) },
-                onPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) }
+                onClickPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) },
+                onClickClipList = { },
+                onClickMakeClip = { onEvent(TalkHistoryDetailUiEvent.ClickMakeClip) }
             )
         }
     }
@@ -457,7 +458,9 @@ fun AudioRecordButtons(
     isPlaying: Boolean,
     onClickBeforeSecond: () -> Unit,
     onClickAfterSecond: () -> Unit,
-    onPlay: (Boolean) -> Unit
+    onClickPlay: (Boolean) -> Unit,
+    onClickClipList: () -> Unit,
+    onClickMakeClip: () -> Unit
 ) {
     Column(
         modifier = modifier,
@@ -491,7 +494,7 @@ fun AudioRecordButtons(
                         shape = CircleShape
                     )
                     .size(64.dp)
-                    .clickable { onPlay(!isPlaying) },
+                    .clickable { onClickPlay(!isPlaying) },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -527,7 +530,10 @@ fun AudioRecordButtons(
         }
         Spacer(modifier = Modifier.height(32.dp))
         Row {
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.clickable { onClickClipList() },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Icon(
                     modifier = Modifier.size(28.dp),
                     painter = painterResource(id = R.drawable.ic_star),
@@ -543,7 +549,10 @@ fun AudioRecordButtons(
                 )
             }
             Spacer(modifier = Modifier.width(32.dp))
-            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.clickable { onClickMakeClip() },
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Icon(
                     modifier = Modifier.size(28.dp),
                     painter = painterResource(id = R.drawable.ic_cut),

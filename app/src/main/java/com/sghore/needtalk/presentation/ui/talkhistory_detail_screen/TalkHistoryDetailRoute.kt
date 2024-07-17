@@ -19,13 +19,19 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun TalkHistoryDetailRoute(
     viewModel: TalkHistoryDetailViewModel = hiltViewModel(),
-    navigateUp: () -> Unit
+    navigateUp: () -> Unit,
+    navigateToAddHighlightScreen: (String, List<Int>) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     )
 
     DisposableEffectWithLifeCycle(
+        onResume = {
+            if (uiState.talkHistory != null) {
+                viewModel.preparePlayer(uiState.talkHistory?.recordFile?.path ?: "")
+            }
+        },
         onStop = {
             viewModel.pauseRecord()
         },
@@ -58,7 +64,11 @@ fun TalkHistoryDetailRoute(
                 }
 
                 is TalkHistoryDetailUiEvent.ClickClips -> TODO()
-                is TalkHistoryDetailUiEvent.ClickMakeClip -> TODO()
+                is TalkHistoryDetailUiEvent.ClickMakeClip ->
+                    navigateToAddHighlightScreen(
+                        uiState.talkHistory?.recordFile?.path ?: "",
+                        uiState.talkHistory?.recordAmplitude ?: emptyList()
+                    )
             }
         }
     }

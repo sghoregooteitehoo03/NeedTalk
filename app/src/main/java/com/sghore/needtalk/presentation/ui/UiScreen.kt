@@ -36,6 +36,8 @@ sealed class UiScreen(
 
     data object TalkHistoryDetailScreen : UiScreen(route = "TalkHistoryDetailScreen")
 
+    data object AddHighlightScreen : UiScreen(route = "AddHighlightScreen")
+
     data object ProfileScreen : UiScreen(route = "ProfileScreen")
 
     data object AddTalkTopicScreen : UiScreen(route = "AddTalkTopicScreen")
