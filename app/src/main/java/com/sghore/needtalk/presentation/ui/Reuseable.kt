@@ -333,7 +333,8 @@ fun BaselineTextField(
     hint: String,
     text: String,
     onValueChange: (String) -> Unit,
-    maxTextLength: Int = 100
+    maxTextLength: Int = 100,
+    maxLine: Int = 8
 ) {
     val underlineColor = if (text.isNotEmpty()) {
         MaterialTheme.colors.onPrimary
@@ -390,7 +391,7 @@ fun BaselineTextField(
                     fontSize = 24.sp,
                     textAlign = TextAlign.Center
                 ),
-                maxLines = 8,
+                maxLines = maxLine,
             )
         }
         Spacer(modifier = Modifier.height(6.dp))

@@ -1,14 +1,17 @@
 package com.sghore.needtalk.presentation.ui.add_highlight_screen
 
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
@@ -31,6 +34,13 @@ class AddHighlightViewModel @Inject constructor(
         viewModelScope,
         started = SharingStarted.Eagerly,
         initialValue = AddHighlightUiState()
+    )
+
+    // UI Event
+    private val _uiEvent = MutableSharedFlow<AddHighlightUiEvent>()
+    val uiEvent = _uiEvent.shareIn(
+        viewModelScope,
+        started = SharingStarted.Eagerly
     )
 
     // MediaPlayer
@@ -90,15 +100,24 @@ class AddHighlightViewModel @Inject constructor(
         }
     }
 
+    fun handelEvent(event: AddHighlightUiEvent) = viewModelScope.launch {
+        _uiEvent.emit(event)
+    }
+
+    // 타이틀 변경
+    fun changeTitle(title: String) {
+        _uiState.update { it.copy(title = title) }
+    }
+
     // Player Seek Start/Pause
-    fun seekPlayer(isSeeking: Boolean) {
+    fun seekPlayer() {
         val isPlaying = _uiState.value.isPlaying
-        if (isPlaying && isSeeking) {
+        if (isPlaying) {
             pauseRecord()
         }
 
         _uiState.update {
-            it.copy(isSeeking = isSeeking)
+            it.copy(isSeeking = true)
         }
     }
 
@@ -108,7 +127,13 @@ class AddHighlightViewModel @Inject constructor(
 
         if (isSeeking) {
             mediaPlayer.seekTo(changeTime.toInt())
-            _uiState.update { it.copy(playerTime = changeTime) }
+            _uiState.update {
+                it.copy(
+                    playerTime = changeTime,
+                    cutStartTime = changeTime,
+                    cutEndTime = changeTime.plus(it.cutEndTime.minus(it.cutStartTime))
+                )
+            }
         }
     }
 

@@ -54,10 +54,11 @@ import java.util.Locale
 
 @Composable
 fun AddHighlightScreen(
-    uiState: AddHighlightUiState
+    uiState: AddHighlightUiState,
+    onEvent: (AddHighlightUiEvent) -> Unit
 ) {
     ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (toolbar, topLayout, subMidLayout, midLayout, bottomLayout) = createRefs()
+        val (toolbar, topLayout, subMidLayout, midLayout, midText, bottomLayout) = createRefs()
         Box(
             modifier = Modifier
                 .constrainAs(toolbar) {
@@ -74,7 +75,7 @@ fun AddHighlightScreen(
                     .size(24.dp)
                     .align(Alignment.CenterStart)
                     .clip(CircleShape)
-                    .clickable { },
+                    .clickable { onEvent(AddHighlightUiEvent.ClickNavigateUp) },
                 painter = painterResource(id = R.drawable.ic_back_arrow),
                 contentDescription = "navigateBack",
                 tint = MaterialTheme.colors.onPrimary
@@ -94,48 +95,64 @@ fun AddHighlightScreen(
                 hint = "제목을 지정해주세요.",
                 text = uiState.title,
                 maxTextLength = 20,
-                onValueChange = { }
+                maxLine = 2,
+                onValueChange = { onEvent(AddHighlightUiEvent.ChangeTitle(it)) }
             )
         }
 
-        AudioRecordTime(
-            modifier = Modifier.constrainAs(subMidLayout) {
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(midLayout.top, 12.dp)
-            },
-            maxRecordTime = uiState.playerMaxTime,
-            currentRecordTime = uiState.playerTime
-        )
-        AudioRecordPlayer(
-            modifier = Modifier
-                .constrainAs(midLayout) {
-                    top.linkTo(parent.top)
+        if (uiState.recordFile != null) {
+            AudioRecordTime(
+                modifier = Modifier.constrainAs(subMidLayout) {
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                    bottom.linkTo(midLayout.top, 12.dp)
+                },
+                maxRecordTime = uiState.playerMaxTime,
+                currentRecordTime = uiState.playerTime
+            )
+            AudioRecordPlayer(
+                modifier = Modifier
+                    .constrainAs(midLayout) {
+                        top.linkTo(parent.top)
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(parent.bottom)
+                    }
+                    .padding(start = 14.dp, end = 14.dp),
+                currentRecordTime = uiState.playerTime,
+                maxRecordTime = uiState.playerMaxTime,
+                startRecordTime = uiState.cutStartTime,
+                endRecordTime = uiState.cutEndTime,
+                recordWaveForm = uiState.recordAmplitude,
+                isPlaying = uiState.isPlaying,
+                onChangeTime = { onEvent(AddHighlightUiEvent.ChangePlayerTime(it)) },
+                onSeekingCut = {},
+                onSeekingPlayer = { onEvent(AddHighlightUiEvent.SeekPlayer) }
+            )
+            Text(
+                modifier = Modifier.constrainAs(midText) {
+                    top.linkTo(midLayout.bottom, 8.dp)
+                    start.linkTo(parent.start)
+                    end.linkTo(parent.end)
+                },
+                text = SimpleDateFormat("mm:ss", Locale.KOREA)
+                    .format((uiState.cutEndTime - uiState.cutStartTime).minus(32400000L)),
+                style = MaterialTheme.typography.body1.copy(
+                    color = colorResource(id = R.color.gray)
+                )
+            )
+            AudioRecordButtons(
+                modifier = Modifier.constrainAs(bottomLayout) {
+                    top.linkTo(midLayout.bottom)
                     start.linkTo(parent.start)
                     end.linkTo(parent.end)
                     bottom.linkTo(parent.bottom)
-                }
-                .padding(start = 14.dp, end = 14.dp),
-            currentRecordTime = uiState.playerTime,
-            maxRecordTime = uiState.playerMaxTime,
-            startRecordTime = uiState.cutStartTime,
-            endRecordTime = uiState.cutEndTime,
-            recordWaveForm = uiState.recordAmplitude,
-            isPlaying = uiState.isPlaying,
-            onChangeTime = {},
-            onSeeking = {}
-        )
-        AudioRecordButtons(
-            modifier = Modifier.constrainAs(bottomLayout) {
-                top.linkTo(midLayout.bottom)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            },
-            isPlaying = uiState.isPlaying,
-            onClickPlay = {},
-            onClickComplete = {}
-        )
+                },
+                isPlaying = uiState.isPlaying,
+                onClickPlay = {},
+                onClickComplete = {}
+            )
+        }
     }
 }
 
@@ -182,13 +199,13 @@ fun AudioRecordPlayer(
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
     onChangeTime: (Long) -> Unit,
-    onSeeking: (Boolean) -> Unit
+    onSeekingCut: () -> Unit,
+    onSeekingPlayer: () -> Unit
 ) {
     val localDensity = LocalDensity.current
 
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
     val listMaxWidth = recordWaveForm.size.dp.times(4).minus(2.dp)
-    val halfWidthPx = with(localDensity) { maxWidth.div(2).toPx() }.toInt()
     val listMaxWidthPx = with(localDensity) { listMaxWidth.toPx() }.toInt()
     var currentOffset by remember { mutableIntStateOf(0) }
 
@@ -199,9 +216,9 @@ fun AudioRecordPlayer(
             .collect { (offset, index) ->
                 currentOffset = (12 * (index)) + offset
 
-//                val currentTime =
-//                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
-//                onChangeTime(currentTime)
+                val currentTime =
+                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
+                onChangeTime(currentTime)
             }
     }
 
@@ -307,7 +324,7 @@ fun AudioRecordPlayer(
                 .padding(14.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
-                        onPress = { onSeeking(true) }
+                        onPress = { onSeekingPlayer() }
                     )
                 },
             state = lazyListState,

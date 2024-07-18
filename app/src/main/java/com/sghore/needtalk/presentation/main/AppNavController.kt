@@ -147,7 +147,9 @@ fun AppNavHost(
                 },
             )
         ) {
-            AddHighlightRoute()
+            AddHighlightRoute(
+                navigateUp = navController::navigateUp
+            )
         }
 
         composable(route = UiScreen.ProfileScreen.route) {
