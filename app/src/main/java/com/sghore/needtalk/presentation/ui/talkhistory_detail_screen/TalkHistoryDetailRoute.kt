@@ -67,7 +67,11 @@ fun TalkHistoryDetailRoute(
                 is TalkHistoryDetailUiEvent.ClickMakeClip ->
                     navigateToAddHighlightScreen(
                         uiState.talkHistory?.recordFile?.path ?: "",
-                        uiState.talkHistory?.recordAmplitude ?: emptyList()
+                        uiState.talkHistory
+                            ?.recordAmplitude
+                            ?.chunked(10)
+                            ?.map { it.max() }
+                            ?: emptyList()
                     )
             }
         }

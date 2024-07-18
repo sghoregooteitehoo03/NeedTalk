@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.add_highlight_screen
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -7,7 +8,9 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.scrollBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -17,6 +20,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
@@ -31,6 +35,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.input.pointer.pointerInput
@@ -113,6 +118,8 @@ fun AddHighlightScreen(
                 .padding(start = 14.dp, end = 14.dp),
             currentRecordTime = uiState.playerTime,
             maxRecordTime = uiState.playerMaxTime,
+            startRecordTime = uiState.cutStartTime,
+            endRecordTime = uiState.cutEndTime,
             recordWaveForm = uiState.recordAmplitude,
             isPlaying = uiState.isPlaying,
             onChangeTime = {},
@@ -165,13 +172,13 @@ fun AudioRecordTime(
     }
 }
 
-// TODO:
-//  .feat 자르기 뷰 구현하기
 @Composable
 fun AudioRecordPlayer(
     modifier: Modifier = Modifier,
     currentRecordTime: Long,
     maxRecordTime: Long,
+    startRecordTime: Long,
+    endRecordTime: Long,
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
     onChangeTime: (Long) -> Unit,
@@ -190,15 +197,11 @@ fun AudioRecordPlayer(
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemScrollOffset to lazyListState.firstVisibleItemIndex }
             .collect { (offset, index) ->
-                currentOffset = if (index == 0) {
-                    offset
-                } else {
-                    (12 * (index - 1)) + offset + halfWidthPx
-                }
+                currentOffset = (12 * (index)) + offset
 
-                val currentTime =
-                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
-                onChangeTime(currentTime)
+//                val currentTime =
+//                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
+//                onChangeTime(currentTime)
             }
     }
 
@@ -218,9 +221,90 @@ fun AudioRecordPlayer(
                 shape = MaterialTheme.shapes.large
             )
     ) {
+        Row(
+            modifier = Modifier.padding(start = 6.dp, end = 6.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            val cutWidthPx =
+                ((endRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx)
+            val cutWidth = with(localDensity) { cutWidthPx.toDp() }
+            val rectColor = MaterialTheme.colors.secondary.copy(alpha = 0.2f)
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(36.dp)
+                    .background(
+                        color = MaterialTheme.colors.secondary,
+                        shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(20.dp)
+                        .background(
+                            color = MaterialTheme.colors.onSecondary,
+                            shape = CircleShape
+                        )
+                )
+            }
+            Canvas(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(cutWidth)
+            ) {
+                val path = Path().apply {
+                    moveTo(-4.dp.toPx(), 0f)
+                    lineTo(4.dp.toPx(), 0f)
+                    lineTo(0f, 12.dp.toPx())
+                    close()
+                }
+
+                drawPath(
+                    path = path,
+                    color = Color.Red
+                )
+                val centerX = size.width / 2
+                drawLine(
+                    color = Color.Red,
+                    start = Offset(0f, 14.dp.toPx()),
+                    end = Offset(0f, size.height),
+                    strokeWidth = 2.dp.toPx()
+                )
+                drawRect(
+                    color = rectColor,
+                    size = Size(
+                        width = size.width,
+                        height = size.height
+                    )
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .width(8.dp)
+                    .height(36.dp)
+                    .background(
+                        color = MaterialTheme.colors.secondary,
+                        shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(20.dp)
+                        .background(
+                            color = MaterialTheme.colors.onSecondary,
+                            shape = CircleShape
+                        )
+                )
+            }
+        }
         LazyRow(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(14.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = { onSeeking(true) }
@@ -229,17 +313,7 @@ fun AudioRecordPlayer(
             state = lazyListState,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            item {
-                Box(modifier = Modifier.width(maxWidth.div(2)))
-            }
             items(recordWaveForm.size) { index ->
-                val itemOffset = remember(index) { 0 + 12 * index }
-
-                val color = if (itemOffset < currentOffset) {
-                    MaterialTheme.colors.secondary
-                } else {
-                    MaterialTheme.colors.secondary.copy(0.2f)
-                }
                 val amplitude = recordWaveForm[index].toFloat() / 32767
                 val amplitudeHeight = 8.dp + (120.dp - 8.dp) * amplitude
 
@@ -248,7 +322,7 @@ fun AudioRecordPlayer(
                         .width(2.dp)
                         .height(amplitudeHeight)
                         .background(
-                            color = color,
+                            color = MaterialTheme.colors.secondary,
                             shape = CircleShape
                         )
                 )
@@ -256,29 +330,6 @@ fun AudioRecordPlayer(
                     Spacer(modifier = Modifier.width(2.dp))
                 }
             }
-            item {
-                Box(modifier = Modifier.width(maxWidth.div(2)))
-            }
-        }
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            val path = Path().apply {
-                moveTo(size.width / 2 - 4.dp.toPx(), 0f)
-                lineTo(size.width / 2 + 4.dp.toPx(), 0f)
-                lineTo(size.width / 2, 12.dp.toPx())
-                close()
-            }
-
-            drawPath(
-                path = path,
-                color = Color.Red
-            )
-            val centerX = size.width / 2
-            drawLine(
-                color = Color.Red,
-                start = Offset(centerX, 14.dp.toPx()),
-                end = Offset(centerX, size.height),
-                strokeWidth = 2.dp.toPx()
-            )
         }
     }
 }

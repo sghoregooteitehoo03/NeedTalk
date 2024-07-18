@@ -208,8 +208,7 @@ fun TalkHistoryDetailScreen(
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
-                    }
-                    .padding(start = 14.dp, end = 14.dp),
+                    },
                 currentRecordTime = uiState.playerTime,
                 maxRecordTime = uiState.talkHistory.talkTime,
                 recordWaveForm = uiState.talkHistory.recordAmplitude,
@@ -390,6 +389,7 @@ fun AudioRecordPlayer(
         LazyRow(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(14.dp)
                 .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = { onSeeking(true) }
