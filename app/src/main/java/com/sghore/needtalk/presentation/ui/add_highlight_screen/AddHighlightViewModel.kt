@@ -121,17 +121,16 @@ class AddHighlightViewModel @Inject constructor(
         }
     }
 
-    // Player seek
-    fun changeTime(changeTime: Long) {
+    // Cut Change
+    fun changeTime(startTime: Long, endTime: Long) {
         val isSeeking = _uiState.value.isSeeking
 
         if (isSeeking) {
-            mediaPlayer.seekTo(changeTime.toInt())
             _uiState.update {
                 it.copy(
-                    playerTime = changeTime,
-                    cutStartTime = changeTime,
-                    cutEndTime = changeTime.plus(it.cutEndTime.minus(it.cutStartTime))
+                    playerTime = startTime,
+                    cutStartTime = startTime,
+                    cutEndTime = endTime
                 )
             }
         }

@@ -23,13 +23,15 @@ fun AddHighlightRoute(
             when (event) {
                 is AddHighlightUiEvent.ClickNavigateUp -> navigateUp()
                 is AddHighlightUiEvent.ChangeTitle -> viewModel.changeTitle(event.title)
-                is AddHighlightUiEvent.ChangePlayerTime -> viewModel.changeTime(event.time)
+                is AddHighlightUiEvent.ChangePlayerTime -> {
+                    viewModel.seekPlayer()
+                    viewModel.changeTime(event.startTime, event.endTime)
+                }
+
                 is AddHighlightUiEvent.ChangeCutStartTime -> TODO()
                 is AddHighlightUiEvent.ChangeCutEndTime -> TODO()
-                is AddHighlightUiEvent.ChangeCutTime -> TODO()
                 is AddHighlightUiEvent.ClickPlayOrPause -> TODO()
                 is AddHighlightUiEvent.ClickComplete -> TODO()
-                is AddHighlightUiEvent.SeekPlayer -> viewModel.seekPlayer()
                 is AddHighlightUiEvent.SeekCut -> TODO()
             }
         }

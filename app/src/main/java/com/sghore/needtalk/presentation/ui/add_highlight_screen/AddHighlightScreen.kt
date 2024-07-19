@@ -1,11 +1,9 @@
 package com.sghore.needtalk.presentation.ui.add_highlight_screen
 
-import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.gestures.scrollBy
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -14,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -27,6 +26,7 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -117,17 +117,16 @@ fun AddHighlightScreen(
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
-                    }
-                    .padding(start = 14.dp, end = 14.dp),
+                    },
                 currentRecordTime = uiState.playerTime,
                 maxRecordTime = uiState.playerMaxTime,
                 startRecordTime = uiState.cutStartTime,
                 endRecordTime = uiState.cutEndTime,
                 recordWaveForm = uiState.recordAmplitude,
                 isPlaying = uiState.isPlaying,
-                onChangeTime = { onEvent(AddHighlightUiEvent.ChangePlayerTime(it)) },
-                onSeekingCut = {},
-                onSeekingPlayer = { onEvent(AddHighlightUiEvent.SeekPlayer) }
+                onChangeTime = { startTime, endTime ->
+                    onEvent(AddHighlightUiEvent.ChangePlayerTime(startTime, endTime))
+                }
             )
             Text(
                 modifier = Modifier.constrainAs(midText) {
@@ -198,35 +197,41 @@ fun AudioRecordPlayer(
     endRecordTime: Long,
     recordWaveForm: List<Int>,
     isPlaying: Boolean,
-    onChangeTime: (Long) -> Unit,
-    onSeekingCut: () -> Unit,
-    onSeekingPlayer: () -> Unit
+    onChangeTime: (Long, Long) -> Unit
 ) {
     val localDensity = LocalDensity.current
 
     val maxWidth = LocalConfiguration.current.screenWidthDp.dp.minus(28.dp)
+    val maxWidthPx = with(localDensity) { maxWidth.toPx() }.toInt()
     val listMaxWidth = recordWaveForm.size.dp.times(4).minus(2.dp)
     val listMaxWidthPx = with(localDensity) { listMaxWidth.toPx() }.toInt()
-    var currentOffset by remember { mutableIntStateOf(0) }
 
     val lazyListState = rememberLazyListState()
+    var playerOffset by remember { mutableIntStateOf(0) }
+    var cutStartOffset by remember { mutableFloatStateOf(0f) }
+    var cutEndOffset by remember {
+        mutableFloatStateOf(((endRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx))
+    }
+    val cutStartOffsetDp = with(localDensity) { cutStartOffset.toDp() }
 
     LaunchedEffect(lazyListState) {
         snapshotFlow { lazyListState.firstVisibleItemScrollOffset to lazyListState.firstVisibleItemIndex }
             .collect { (offset, index) ->
-                currentOffset = (12 * (index)) + offset
+                playerOffset = (12 * (index)) + offset
 
                 val currentTime =
-                    (maxRecordTime.toFloat() / listMaxWidthPx * currentOffset).toLong()
-                onChangeTime(currentTime)
+                    (maxRecordTime.toFloat() / listMaxWidthPx * (playerOffset + cutStartOffset)).toLong()
+                val endTime =
+                    (maxRecordTime.toFloat() / listMaxWidthPx * (playerOffset + cutEndOffset)).toLong()
+                onChangeTime(currentTime, endTime)
             }
     }
 
     if (isPlaying) {
-        LaunchedEffect(currentRecordTime) {
-            val offset = (currentRecordTime.toFloat() / maxRecordTime * listMaxWidthPx)
-            lazyListState.scrollBy(offset - currentOffset)
-        }
+//        LaunchedEffect(currentRecordTime) {
+//            val offset = (currentRecordTime.toFloat() / maxRecordTime * listMaxWidthPx)
+//            lazyListState.scrollBy(offset - currentPlayerOffset)
+//        }
     }
 
     Box(
@@ -238,8 +243,35 @@ fun AudioRecordPlayer(
                 shape = MaterialTheme.shapes.large
             )
     ) {
+        LazyRow(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(14.dp),
+            state = lazyListState,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            items(recordWaveForm.size) { index ->
+                val amplitude = recordWaveForm[index].toFloat() / 32767
+                val amplitudeHeight = 8.dp + (120.dp - 8.dp) * amplitude
+
+                Box(
+                    modifier = Modifier
+                        .width(2.dp)
+                        .height(amplitudeHeight)
+                        .background(
+                            color = MaterialTheme.colors.secondary,
+                            shape = CircleShape
+                        )
+                )
+                if (index < recordWaveForm.size - 1) {
+                    Spacer(modifier = Modifier.width(2.dp))
+                }
+            }
+        }
         Row(
-            modifier = Modifier.padding(start = 6.dp, end = 6.dp),
+            modifier = Modifier
+                .padding(start = 6.dp, end = 6.dp)
+                .offset(x = cutStartOffsetDp),
             verticalAlignment = Alignment.Bottom
         ) {
             val cutWidthPx =
@@ -270,10 +302,25 @@ fun AudioRecordPlayer(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(cutWidth)
+                    .pointerInput(Unit) {
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            cutStartOffset += dragAmount
+                            cutEndOffset += dragAmount
+
+                            cutStartOffset = cutStartOffset.coerceIn(0f, maxWidthPx - cutWidthPx)
+                            cutEndOffset = cutEndOffset.coerceIn(cutWidthPx, maxWidthPx.toFloat())
+
+                            val startTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutStartOffset + playerOffset)).toLong()
+                            val endTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutEndOffset + playerOffset)).toLong()
+                            onChangeTime(startTime, endTime)
+                        }
+                    }
             ) {
                 val path = Path().apply {
-                    moveTo(-4.dp.toPx(), 0f)
-                    lineTo(4.dp.toPx(), 0f)
+                    moveTo(0 + -4.dp.toPx(), 0f)
+                    lineTo(0 + 4.dp.toPx(), 0f)
                     lineTo(0f, 12.dp.toPx())
                     close()
                 }
@@ -282,7 +329,6 @@ fun AudioRecordPlayer(
                     path = path,
                     color = Color.Red
                 )
-                val centerX = size.width / 2
                 drawLine(
                     color = Color.Red,
                     start = Offset(0f, 14.dp.toPx()),
@@ -294,7 +340,8 @@ fun AudioRecordPlayer(
                     size = Size(
                         width = size.width,
                         height = size.height
-                    )
+                    ),
+                    topLeft = Offset(0f, 0f)
                 )
             }
             Box(
@@ -316,36 +363,6 @@ fun AudioRecordPlayer(
                             shape = CircleShape
                         )
                 )
-            }
-        }
-        LazyRow(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(14.dp)
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = { onSeekingPlayer() }
-                    )
-                },
-            state = lazyListState,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            items(recordWaveForm.size) { index ->
-                val amplitude = recordWaveForm[index].toFloat() / 32767
-                val amplitudeHeight = 8.dp + (120.dp - 8.dp) * amplitude
-
-                Box(
-                    modifier = Modifier
-                        .width(2.dp)
-                        .height(amplitudeHeight)
-                        .background(
-                            color = MaterialTheme.colors.secondary,
-                            shape = CircleShape
-                        )
-                )
-                if (index < recordWaveForm.size - 1) {
-                    Spacer(modifier = Modifier.width(2.dp))
-                }
             }
         }
     }
