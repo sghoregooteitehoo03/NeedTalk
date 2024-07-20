@@ -148,6 +148,7 @@ fun AppNavHost(
             )
         ) {
             AddHighlightRoute(
+                showSnackBar = showSnackBar,
                 navigateUp = navController::navigateUp
             )
         }

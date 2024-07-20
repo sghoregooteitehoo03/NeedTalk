@@ -7,13 +7,11 @@ sealed interface AddHighlightUiEvent {
 
     data class ChangePlayerTime(val startTime: Long, val endTime: Long) : AddHighlightUiEvent
 
-    data class ChangeCutStartTime(val startTime: Long) : AddHighlightUiEvent
-
-    data class ChangeCutEndTime(val endTime: Long) : AddHighlightUiEvent
-
     data class ClickPlayOrPause(val isPlay: Boolean) : AddHighlightUiEvent
 
     data object ClickComplete : AddHighlightUiEvent
 
-    data object SeekCut : AddHighlightUiEvent
+    data class AlertError(val message: String) : AddHighlightUiEvent
+
+    data object SuccessAddHighlight : AddHighlightUiEvent
 }

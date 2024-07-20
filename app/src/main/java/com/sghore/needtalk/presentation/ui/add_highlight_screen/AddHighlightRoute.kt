@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun AddHighlightRoute(
     viewModel: AddHighlightViewModel = hiltViewModel(),
+    showSnackBar: suspend (String) -> Unit,
     navigateUp: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
@@ -26,8 +27,6 @@ fun AddHighlightRoute(
                 is AddHighlightUiEvent.ChangePlayerTime ->
                     viewModel.changeTime(event.startTime, event.endTime)
 
-                is AddHighlightUiEvent.ChangeCutStartTime -> TODO()
-                is AddHighlightUiEvent.ChangeCutEndTime -> TODO()
                 is AddHighlightUiEvent.ClickPlayOrPause -> {
                     if (event.isPlay) {
                         viewModel.playRecord()
@@ -36,8 +35,10 @@ fun AddHighlightRoute(
                     }
                 }
 
-                is AddHighlightUiEvent.ClickComplete -> TODO()
-                is AddHighlightUiEvent.SeekCut -> TODO()
+                is AddHighlightUiEvent.ClickComplete -> viewModel.addHighlight()
+
+                is AddHighlightUiEvent.AlertError -> { showSnackBar(event.message) }
+                is AddHighlightUiEvent.SuccessAddHighlight -> { navigateUp() }
             }
         }
     }

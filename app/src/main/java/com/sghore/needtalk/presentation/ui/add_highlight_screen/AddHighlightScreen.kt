@@ -34,6 +34,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -149,10 +150,11 @@ fun AddHighlightScreen(
                     bottom.linkTo(parent.bottom)
                 },
                 isPlaying = uiState.isPlaying,
+                isCompleteEnable = uiState.title.isNotEmpty(),
                 onClickPlay = {
                     onEvent(AddHighlightUiEvent.ClickPlayOrPause(it))
                 },
-                onClickComplete = {}
+                onClickComplete = { onEvent(AddHighlightUiEvent.ClickComplete) }
             )
         }
     }
@@ -407,6 +409,7 @@ fun AudioRecordPlayer(
 fun AudioRecordButtons(
     modifier: Modifier = Modifier,
     isPlaying: Boolean,
+    isCompleteEnable: Boolean,
     onClickPlay: (Boolean) -> Unit,
     onClickComplete: () -> Unit,
 ) {
@@ -438,7 +441,11 @@ fun AudioRecordButtons(
         }
         Spacer(modifier = Modifier.height(32.dp))
         Column(
-            modifier = Modifier.clickable { onClickComplete() },
+            modifier = if (isCompleteEnable) {
+                Modifier.clickable { onClickComplete() }
+            } else {
+                Modifier.alpha(0.4f)
+            },
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Icon(

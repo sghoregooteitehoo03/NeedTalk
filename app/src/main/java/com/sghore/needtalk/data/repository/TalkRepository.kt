@@ -3,6 +3,7 @@ package com.sghore.needtalk.data.repository
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
@@ -58,6 +59,11 @@ class TalkRepository @Inject constructor(
         talkHistoryParticipantEntity: TalkHistoryParticipantEntity
     ) {
         talkDao.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
+    }
+
+    // 대화 하이라이트 정보 저장
+    suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity) {
+        talkDao.insertTalkHighlightEntity(talkHighlightEntity)
     }
 
     // 대화기록 삭제

@@ -88,7 +88,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
     // Admob
-    implementation("com.google.android.gms:play-services-ads:23.1.0")
+    implementation("com.google.android.gms:play-services-ads:23.2.0")
 
     // BottomSheet
     implementation("com.holix.android:bottomsheetdialog-compose:1.3.1")
@@ -97,9 +97,12 @@ dependencies {
     implementation("io.coil-kt:coil-compose:2.5.0")
 
     // Firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation(platform("com.google.firebase:firebase-bom:33.1.2"))
     // Firestore
     implementation("com.google.firebase:firebase-firestore")
+
+    // ffmpeg
+    implementation("com.arthenica:ffmpeg-kit-full:6.0-2")
 
     // Hilt
     implementation("com.google.dagger:hilt-android:2.49")
@@ -125,7 +128,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.2.2")
 
     // Statusbar Color
-    implementation ("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
+    implementation("com.google.accompanist:accompanist-systemuicontroller:0.27.0")
 }
 
 kapt {

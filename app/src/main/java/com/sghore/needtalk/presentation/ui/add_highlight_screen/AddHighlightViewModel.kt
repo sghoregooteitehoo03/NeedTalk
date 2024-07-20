@@ -5,6 +5,7 @@ import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sghore.needtalk.domain.usecase.AddHighlightUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -25,6 +26,7 @@ import javax.inject.Inject
 @OptIn(ExperimentalSerializationApi::class)
 @HiltViewModel
 class AddHighlightViewModel @Inject constructor(
+    private val addHighlightUseCase: AddHighlightUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
@@ -48,6 +50,8 @@ class AddHighlightViewModel @Inject constructor(
 
     // Player Job
     private var playerJob: Job? = null
+
+    private var isFirst: Boolean = true
 
     init {
         val recodeFilePath = savedStateHandle.get<String>("recordFilePath") ?: ""
@@ -96,6 +100,23 @@ class AddHighlightViewModel @Inject constructor(
     // 타이틀 변경
     fun changeTitle(title: String) {
         _uiState.update { it.copy(title = title) }
+    }
+
+    // 하이라이트 생성
+    fun addHighlight() = viewModelScope.launch {
+        if (isFirst) {
+            isFirst = false // 두번 동작 안되게
+
+            val stateValue = _uiState.value
+            addHighlightUseCase(
+                recordFilePath = stateValue.recordFile?.path ?: "",
+                title = stateValue.title,
+                startTime = stateValue.cutStartTime.toInt(),
+                duration = (stateValue.cutEndTime.toInt() - stateValue.cutStartTime.toInt()),
+                onSuccess = { handelEvent(AddHighlightUiEvent.SuccessAddHighlight) },
+                onError = { handelEvent(AddHighlightUiEvent.AlertError(it)) }
+            )
+        }
     }
 
     // Cut Change

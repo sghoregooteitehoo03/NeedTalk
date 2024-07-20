@@ -48,6 +48,7 @@ import javax.inject.Inject
 // TODO:
 //  . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
 //  . fix: 백그라운드에서 녹음이 되지 않는 버그 존재
+//  . fix: 정지 상태에서도 녹음시간이 축적됨
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject

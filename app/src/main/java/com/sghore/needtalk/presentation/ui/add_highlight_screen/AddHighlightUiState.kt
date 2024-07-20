@@ -11,5 +11,5 @@ data class AddHighlightUiState(
     val cutStartTime: Long = 0L,
     val cutEndTime: Long = cutStartTime + 30000L,
     val isPlaying: Boolean = false,
-    val isComplete: Boolean = false,
+    val isComplete: Boolean = false
 )

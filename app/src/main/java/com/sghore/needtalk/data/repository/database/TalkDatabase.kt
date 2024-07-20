@@ -6,6 +6,7 @@ import com.sghore.needtalk.data.model.entity.FriendEntity
 import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
@@ -19,7 +20,7 @@ import com.sghore.needtalk.data.model.entity.UserEntity2
         UserEntity2::class, FriendEntity::class, TalkTopicGroupEntity::class, UserEntity::class,
         TalkEntity::class, TalkTopicEntity::class, TalkSettingEntity::class,
         TalkTopicEntity2::class, GroupSegmentEntity::class,
-        TalkHistoryEntity::class, TalkHistoryParticipantEntity::class
+        TalkHistoryEntity::class, TalkHistoryParticipantEntity::class, TalkHighlightEntity::class
     ],
     version = 1,
     exportSchema = true

@@ -6,6 +6,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.sghore.needtalk.data.model.entity.TalkEntity
+import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicEntity
@@ -34,6 +35,10 @@ interface TalkDao {
     @Query("DELETE FROM TalkHistoryEntity WHERE id == :id")
     suspend fun deleteTalkHistoryEntity(id: String)
 
+
+    @Insert
+    suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity)
+
     @Query("SELECT * FROM UserEntity WHERE userId == :userId")
     fun getUserEntity(userId: String): Flow<UserEntity?>
 
@@ -60,6 +65,7 @@ interface TalkDao {
 
     @Delete
     suspend fun deleteTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
+
 
     @Query("SELECT * FROM TalkSettingEntity")
     fun getTalkSettingEntity(): Flow<TalkSettingEntity?>
