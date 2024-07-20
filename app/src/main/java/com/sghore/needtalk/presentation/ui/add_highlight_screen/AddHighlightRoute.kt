@@ -23,14 +23,19 @@ fun AddHighlightRoute(
             when (event) {
                 is AddHighlightUiEvent.ClickNavigateUp -> navigateUp()
                 is AddHighlightUiEvent.ChangeTitle -> viewModel.changeTitle(event.title)
-                is AddHighlightUiEvent.ChangePlayerTime -> {
-                    viewModel.seekPlayer()
+                is AddHighlightUiEvent.ChangePlayerTime ->
                     viewModel.changeTime(event.startTime, event.endTime)
-                }
 
                 is AddHighlightUiEvent.ChangeCutStartTime -> TODO()
                 is AddHighlightUiEvent.ChangeCutEndTime -> TODO()
-                is AddHighlightUiEvent.ClickPlayOrPause -> TODO()
+                is AddHighlightUiEvent.ClickPlayOrPause -> {
+                    if (event.isPlay) {
+                        viewModel.playRecord()
+                    } else {
+                        viewModel.pauseRecord()
+                    }
+                }
+
                 is AddHighlightUiEvent.ClickComplete -> TODO()
                 is AddHighlightUiEvent.SeekCut -> TODO()
             }
@@ -38,8 +43,14 @@ fun AddHighlightRoute(
     }
 
     DisposableEffectWithLifeCycle(
-        onStop = { viewModel.pauseRecord() },
-        onDispose = { viewModel.finishPlayer() }
+        onResume = {
+            // mediaPlayer 재정의
+            viewModel.preparePlayer(uiState.recordFile?.path ?: "")
+        },
+        onStop = {
+            viewModel.finishPlayer()
+        },
+        onDispose = {}
     )
 
     Surface {

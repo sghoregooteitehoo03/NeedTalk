@@ -28,14 +28,13 @@ fun TalkHistoryDetailRoute(
 
     DisposableEffectWithLifeCycle(
         onResume = {
-            if (uiState.talkHistory != null) { // mediaPlayer 재정의
-                viewModel.preparePlayer(uiState.talkHistory?.recordFile?.path ?: "")
-            }
+            // mediaPlayer 재정의
+            viewModel.preparePlayer(uiState.talkHistory?.recordFile?.path ?: "")
         },
         onStop = {
-            viewModel.pauseRecord()
+            viewModel.finishPlayer()
         },
-        onDispose = { viewModel.finishPlayer() }
+        onDispose = { }
     )
 
     LaunchedEffect(viewModel.uiEvent) {

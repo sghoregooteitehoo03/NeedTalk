@@ -136,7 +136,7 @@ fun AddHighlightScreen(
                     end.linkTo(parent.end)
                 },
                 text = SimpleDateFormat("mm:ss", Locale.KOREA)
-                    .format((uiState.cutEndTime - uiState.cutStartTime).minus(32400000L)),
+                    .format((uiState.cutEndTime - uiState.cutStartTime)),
                 style = MaterialTheme.typography.body1.copy(
                     color = colorResource(id = R.color.gray)
                 )
@@ -149,7 +149,9 @@ fun AddHighlightScreen(
                     bottom.linkTo(parent.bottom)
                 },
                 isPlaying = uiState.isPlaying,
-                onClickPlay = {},
+                onClickPlay = {
+                    onEvent(AddHighlightUiEvent.ClickPlayOrPause(it))
+                },
                 onClickComplete = {}
             )
         }
@@ -276,6 +278,8 @@ fun AudioRecordPlayer(
                 .offset(x = cutStartOffsetDp),
             verticalAlignment = Alignment.Bottom
         ) {
+            val currentOffset =
+                ((currentRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx)
             val cutWidth = with(localDensity) { cutWidthPx.toDp() }
             val rectColor = MaterialTheme.colors.secondary.copy(alpha = 0.2f)
             Box(
@@ -336,9 +340,9 @@ fun AudioRecordPlayer(
                     }
             ) {
                 val path = Path().apply {
-                    moveTo(0 + -4.dp.toPx(), 0f)
-                    lineTo(0 + 4.dp.toPx(), 0f)
-                    lineTo(0f, 12.dp.toPx())
+                    moveTo(currentOffset + -4.dp.toPx(), 0f)
+                    lineTo(currentOffset + 4.dp.toPx(), 0f)
+                    lineTo(currentOffset, 12.dp.toPx())
                     close()
                 }
 
@@ -348,8 +352,8 @@ fun AudioRecordPlayer(
                 )
                 drawLine(
                     color = Color.Red,
-                    start = Offset(0f, 14.dp.toPx()),
-                    end = Offset(0f, size.height),
+                    start = Offset(currentOffset, 14.dp.toPx()),
+                    end = Offset(currentOffset, size.height),
                     strokeWidth = 2.dp.toPx()
                 )
                 drawRect(
@@ -357,8 +361,7 @@ fun AudioRecordPlayer(
                     size = Size(
                         width = size.width,
                         height = size.height
-                    ),
-                    topLeft = Offset(0f, 0f)
+                    )
                 )
             }
             Box(

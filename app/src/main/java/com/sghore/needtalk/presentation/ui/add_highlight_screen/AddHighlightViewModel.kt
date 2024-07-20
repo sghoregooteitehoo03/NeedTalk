@@ -44,7 +44,7 @@ class AddHighlightViewModel @Inject constructor(
     )
 
     // MediaPlayer
-    private val mediaPlayer = MediaPlayer()
+    private var mediaPlayer: MediaPlayer? = null
 
     // Player Job
     private var playerJob: Job? = null
@@ -58,45 +58,34 @@ class AddHighlightViewModel @Inject constructor(
             val recordAmplitude = Json.decodeFromString<List<Int>>(recordAmplitudeJson)
 
             preparePlayer(recordFile.path)
-            mediaPlayer.setOnPreparedListener {
-                _uiState.update {
-                    it.copy(
-                        recordFile = recordFile,
-                        recordAmplitude = recordAmplitude,
-                        playerMaxTime = mediaPlayer.duration.toLong()
-                    )
+            mediaPlayer?.setOnPreparedListener {
+                if (_uiState.value.recordFile == null) {
+                    _uiState.update {
+                        it.copy(
+                            recordFile = recordFile,
+                            recordAmplitude = recordAmplitude,
+                            playerMaxTime = mediaPlayer?.duration?.toLong() ?: 0L
+                        )
+                    }
                 }
-                initListener() // 리스너 초기화
             }
         }
     }
 
-    private fun preparePlayer(recordFilePath: String) {
-        try {// 미디어 플레이어 정의
-            mediaPlayer.setDataSource(recordFilePath)
-            mediaPlayer.prepare()
+    fun preparePlayer(recordFilePath: String) {
+        if (mediaPlayer == null) {
+            try {// 미디어 플레이어 정의
+                mediaPlayer = MediaPlayer()
+                mediaPlayer?.setDataSource(recordFilePath)
+                mediaPlayer?.prepare()
 
-            val playerTime = _uiState.value.playerTime
-            if (playerTime != 0L) { // PlayerTime이 0이 아닐 때
-                mediaPlayer.seekTo(playerTime.toInt())
+                val playerTime = _uiState.value.playerTime
+                if (playerTime != 0L) { // PlayerTime이 0이 아닐 때
+                    mediaPlayer?.seekTo(playerTime.toInt())
+                }
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
             }
-        } catch (e: IllegalStateException) {
-            e.printStackTrace()
-        }
-    }
-
-    // 리스너 초기화
-    private fun initListener() {
-        mediaPlayer.setOnCompletionListener {
-            _uiState.update {
-                it.copy(
-                    isPlaying = false,
-                    isComplete = true
-                )
-            }
-
-            playerJob?.cancel()
-            playerJob = null
         }
     }
 
@@ -109,40 +98,32 @@ class AddHighlightViewModel @Inject constructor(
         _uiState.update { it.copy(title = title) }
     }
 
-    // Player Seek Start/Pause
-    fun seekPlayer() {
-        val isPlaying = _uiState.value.isPlaying
-        if (isPlaying) {
+    // Cut Change
+    fun changeTime(startTime: Long, endTime: Long) {
+        if (_uiState.value.isPlaying) {
             pauseRecord()
         }
 
+        mediaPlayer?.seekTo(startTime.toInt())
         _uiState.update {
-            it.copy(isSeeking = true)
-        }
-    }
-
-    // Cut Change
-    fun changeTime(startTime: Long, endTime: Long) {
-        val isSeeking = _uiState.value.isSeeking
-
-        if (isSeeking) {
-            _uiState.update {
-                it.copy(
-                    playerTime = startTime,
-                    cutStartTime = startTime,
-                    cutEndTime = endTime
-                )
-            }
+            it.copy(
+                playerTime = startTime,
+                cutStartTime = startTime,
+                cutEndTime = endTime
+            )
         }
     }
 
     fun playRecord() {
-        mediaPlayer.start()
+        if (_uiState.value.isComplete) {
+            mediaPlayer?.seekTo(_uiState.value.cutStartTime.toInt())
+        }
+
+        mediaPlayer?.start()
         _uiState.update {
             it.copy(
                 isPlaying = true,
-                isComplete = false,
-                isSeeking = false
+                isComplete = false
             )
         }
 
@@ -150,16 +131,21 @@ class AddHighlightViewModel @Inject constructor(
         playerJob = viewModelScope.launch(context = Dispatchers.Default) {
             while (this.isActive) {
                 _uiState.update {
-                    it.copy(
-                        playerTime = mediaPlayer.currentPosition.toLong()
-                    )
+                    it.copy(playerTime = mediaPlayer?.currentPosition?.toLong() ?: 0L)
+                }
+
+                // TODO: fix. MediaPlayer 끝나는 지점에 대한 시간 오류
+                if (_uiState.value.playerTime == _uiState.value.cutEndTime) {
+                    Log.i("Check", "time: ${_uiState.value.playerTime}")
+                    completeRecord()
+                    break
                 }
             }
         }
     }
 
     fun pauseRecord() {
-        mediaPlayer.pause()
+        mediaPlayer?.pause()
         _uiState.update { it.copy(isPlaying = false) }
 
         playerJob?.cancel()
@@ -167,7 +153,14 @@ class AddHighlightViewModel @Inject constructor(
     }
 
     fun finishPlayer() {
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        pauseRecord()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
+    }
+
+    private fun completeRecord() {
+        _uiState.update { it.copy(isComplete = true) }
+        pauseRecord()
     }
 }

@@ -1,11 +1,9 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import android.media.MediaPlayer
-import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.domain.usecase.DeleteTalkHistoryUseCase
 import com.sghore.needtalk.domain.usecase.GetTalkHistoryUseCase
 import com.sghore.needtalk.domain.usecase.InsertTalkHistoryUseCase
@@ -48,7 +46,7 @@ class TalkHistoryDetailViewModel @Inject constructor(
     )
 
     // MediaPlayer
-    private lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
 
     // Player Job
     private var playerJob: Job? = null
@@ -61,9 +59,15 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
                 try {
                     preparePlayer(talkHistory?.recordFile?.path ?: "")
-                    mediaPlayer.setOnPreparedListener {
-                        _uiState.update {
-                            it.copy(talkHistory = talkHistory?.copy(talkTime = mediaPlayer.duration.toLong()))
+                    mediaPlayer?.setOnPreparedListener {
+                        if (_uiState.value.talkHistory == null) {
+                            _uiState.update {
+                                it.copy(
+                                    talkHistory = talkHistory?.copy(
+                                        talkTime = mediaPlayer?.duration?.toLong() ?: 0
+                                    )
+                                )
+                            }
                         }
                         initListener() // 리스너 초기화
                     }
@@ -76,7 +80,7 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
     // 리스너 초기화
     private fun initListener() {
-        mediaPlayer.setOnCompletionListener {
+        mediaPlayer?.setOnCompletionListener {
             _uiState.update {
                 it.copy(
                     isPlaying = false,
@@ -135,13 +139,13 @@ class TalkHistoryDetailViewModel @Inject constructor(
         val isSeeking = _uiState.value.isSeeking
 
         if (isSeeking) {
-            mediaPlayer.seekTo(changeTime.toInt())
+            mediaPlayer?.seekTo(changeTime.toInt())
             _uiState.update { it.copy(playerTime = changeTime) }
         }
     }
 
     fun playRecord() {
-        mediaPlayer.start()
+        mediaPlayer?.start()
         _uiState.update {
             it.copy(
                 isPlaying = true,
@@ -156,7 +160,7 @@ class TalkHistoryDetailViewModel @Inject constructor(
             while (this.isActive) {
                 _uiState.update {
                     it.copy(
-                        playerTime = mediaPlayer.currentPosition.toLong()
+                        playerTime = mediaPlayer?.currentPosition?.toLong() ?: 0
                     )
                 }
             }
@@ -164,7 +168,7 @@ class TalkHistoryDetailViewModel @Inject constructor(
     }
 
     fun pauseRecord() {
-        mediaPlayer.pause()
+        mediaPlayer?.pause()
         _uiState.update { it.copy(isPlaying = false) }
 
         playerJob?.cancel()
@@ -172,23 +176,27 @@ class TalkHistoryDetailViewModel @Inject constructor(
     }
 
     fun preparePlayer(recordFilePath: String) {
-        try {// 미디어 플레이어 정의
-            mediaPlayer = MediaPlayer()
-            mediaPlayer.setDataSource(recordFilePath)
-            mediaPlayer.prepare()
+        if (mediaPlayer == null) {
+            try {// 미디어 플레이어 정의
+                mediaPlayer = MediaPlayer()
+                mediaPlayer?.setDataSource(recordFilePath)
+                mediaPlayer?.prepare()
 
-            val playerTime = _uiState.value.playerTime
-            if (playerTime != 0L) { // PlayerTime이 0이 아닐 때
-                mediaPlayer.seekTo(playerTime.toInt())
+                val playerTime = _uiState.value.playerTime
+                if (playerTime != 0L) { // PlayerTime이 0이 아닐 때
+                    mediaPlayer?.seekTo(playerTime.toInt())
+                }
+            } catch (e: IllegalStateException) {
+                e.printStackTrace()
             }
-        } catch (e: IllegalStateException) {
-            e.printStackTrace()
         }
     }
 
     fun finishPlayer() {
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        pauseRecord()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     // 건너뛰기
@@ -203,7 +211,7 @@ class TalkHistoryDetailViewModel @Inject constructor(
             jumpTime = maxTime
         }
 
-        mediaPlayer.seekTo(jumpTime.toInt())
+        mediaPlayer?.seekTo(jumpTime.toInt())
         _uiState.update {
             it.copy(
                 playerTime = jumpTime,
