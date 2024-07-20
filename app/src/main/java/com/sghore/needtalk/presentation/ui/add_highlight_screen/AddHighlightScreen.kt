@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.add_highlight_screen
 
+import android.util.Log
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -205,13 +206,14 @@ fun AudioRecordPlayer(
     val maxWidthPx = with(localDensity) { maxWidth.toPx() }.toInt()
     val listMaxWidth = recordWaveForm.size.dp.times(4).minus(2.dp)
     val listMaxWidthPx = with(localDensity) { listMaxWidth.toPx() }.toInt()
+    var cutWidthPx by remember {
+        mutableFloatStateOf(((endRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx))
+    }
 
     val lazyListState = rememberLazyListState()
     var playerOffset by remember { mutableIntStateOf(0) }
     var cutStartOffset by remember { mutableFloatStateOf(0f) }
-    var cutEndOffset by remember {
-        mutableFloatStateOf(((endRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx))
-    }
+    var cutEndOffset by remember { mutableFloatStateOf(cutWidthPx) }
     val cutStartOffsetDp = with(localDensity) { cutStartOffset.toDp() }
 
     LaunchedEffect(lazyListState) {
@@ -270,28 +272,43 @@ fun AudioRecordPlayer(
         }
         Row(
             modifier = Modifier
-                .padding(start = 6.dp, end = 6.dp)
+                .padding(start = 2.dp, end = 2.dp)
                 .offset(x = cutStartOffsetDp),
             verticalAlignment = Alignment.Bottom
         ) {
-            val cutWidthPx =
-                ((endRecordTime - startRecordTime).toFloat() / maxRecordTime * listMaxWidthPx)
             val cutWidth = with(localDensity) { cutWidthPx.toDp() }
             val rectColor = MaterialTheme.colors.secondary.copy(alpha = 0.2f)
             Box(
                 modifier = Modifier
-                    .width(8.dp)
-                    .height(36.dp)
+                    .width(12.dp)
+                    .height(42.dp)
                     .background(
                         color = MaterialTheme.colors.secondary,
                         shape = RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp)
-                    ),
+                    )
+                    .pointerInput(Unit) {
+                        // low: 117.1145, high: 702.68695
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            cutStartOffset += dragAmount
+
+                            cutStartOffset = cutStartOffset
+                                .coerceIn(cutEndOffset - 702.68695f, cutEndOffset - 117.1145f)
+                            cutWidthPx = (cutEndOffset - cutStartOffset)
+
+                            val startTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutStartOffset + playerOffset)).toLong()
+                            val endTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutEndOffset + playerOffset)).toLong()
+
+                            onChangeTime(startTime, endTime)
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(20.dp)
+                        .height(26.dp)
                         .background(
                             color = MaterialTheme.colors.onSecondary,
                             shape = CircleShape
@@ -346,18 +363,33 @@ fun AudioRecordPlayer(
             }
             Box(
                 modifier = Modifier
-                    .width(8.dp)
-                    .height(36.dp)
+                    .width(12.dp)
+                    .height(42.dp)
                     .background(
                         color = MaterialTheme.colors.secondary,
                         shape = RoundedCornerShape(topEnd = 4.dp, bottomEnd = 4.dp)
-                    ),
+                    )
+                    .pointerInput(Unit) {
+                        // low: 117.1145, high: 702.68695
+                        detectHorizontalDragGestures { change, dragAmount ->
+                            cutEndOffset += dragAmount
+                            cutEndOffset = cutEndOffset
+                                .coerceIn(cutStartOffset + 117.1145f, cutStartOffset + 702.68695f)
+                            cutWidthPx = (cutEndOffset - cutStartOffset)
+
+                            val startTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutStartOffset + playerOffset)).toLong()
+                            val endTime =
+                                (maxRecordTime.toFloat() / listMaxWidthPx * (cutEndOffset + playerOffset)).toLong()
+                            onChangeTime(startTime, endTime)
+                        }
+                    },
                 contentAlignment = Alignment.Center
             ) {
                 Box(
                     modifier = Modifier
                         .width(2.dp)
-                        .height(20.dp)
+                        .height(26.dp)
                         .background(
                             color = MaterialTheme.colors.onSecondary,
                             shape = CircleShape
