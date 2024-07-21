@@ -52,12 +52,14 @@ class AddHighlightViewModel @Inject constructor(
     private var playerJob: Job? = null
 
     private var isFirst: Boolean = true
+    private var talkHistoryId: String = ""
 
     init {
+        talkHistoryId = savedStateHandle.get<String>("talkHistoryId") ?: ""
         val recodeFilePath = savedStateHandle.get<String>("recordFilePath") ?: ""
         val recordAmplitudeJson = savedStateHandle.get<String>("recordAmplitude") ?: ""
 
-        if (recodeFilePath.isNotEmpty() && recordAmplitudeJson.isNotEmpty()) {
+        if (talkHistoryId.isNotEmpty() && recodeFilePath.isNotEmpty() && recordAmplitudeJson.isNotEmpty()) {
             val recordFile = File(recodeFilePath)
             val recordAmplitude = Json.decodeFromString<List<Int>>(recordAmplitudeJson)
 
@@ -103,18 +105,23 @@ class AddHighlightViewModel @Inject constructor(
     }
 
     // 하이라이트 생성
-    fun addHighlight() = viewModelScope.launch {
+    fun addHighlight(directoryPath: String) = viewModelScope.launch {
         if (isFirst) {
             isFirst = false // 두번 동작 안되게
 
             val stateValue = _uiState.value
             addHighlightUseCase(
                 recordFilePath = stateValue.recordFile?.path ?: "",
+                directoryPath = directoryPath,
                 title = stateValue.title,
                 startTime = stateValue.cutStartTime.toInt(),
                 duration = (stateValue.cutEndTime.toInt() - stateValue.cutStartTime.toInt()),
+                talkHistoryId = talkHistoryId,
                 onSuccess = { handelEvent(AddHighlightUiEvent.SuccessAddHighlight) },
-                onError = { handelEvent(AddHighlightUiEvent.AlertError(it)) }
+                onError = {
+                    isFirst = true
+                    handelEvent(AddHighlightUiEvent.AlertError(it))
+                }
             )
         }
     }

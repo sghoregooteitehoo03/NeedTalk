@@ -124,12 +124,19 @@ fun AppNavHost(
         ) {
             TalkHistoryDetailRoute(
                 navigateUp = navController::navigateUp,
-                navigateToAddHighlightScreen = { recordFilePath, recordAmplitude ->
+                navigateToAddHighlightScreen = { talkHistory ->
+                    val id = talkHistory?.id ?: ""
+                    val recordFilePath = talkHistory?.recordFile?.path ?: ""
+                    val recordAmplitude = talkHistory
+                        ?.recordAmplitude
+                        ?.chunked(10)
+                        ?.map { it.max() }
+                        ?: emptyList()
                     val recordAmplitudeJson = Json.encodeToJsonElement(recordAmplitude)
 
                     navController.navigate(
                         UiScreen.AddHighlightScreen.route +
-                                "?recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeJson}"
+                                "?talkHistoryId=${id}&recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeJson}"
                     )
                 }
             )
@@ -137,8 +144,11 @@ fun AppNavHost(
 
         composable(
             route = UiScreen.AddHighlightScreen.route +
-                    "?recordFilePath={recordFilePath}&recordAmplitude={recordAmplitude}",
+                    "?talkHistoryId={talkHistoryId}&recordFilePath={recordFilePath}&recordAmplitude={recordAmplitude}",
             arguments = listOf(
+                navArgument("talkHistoryId") {
+                    type = NavType.StringType
+                },
                 navArgument("recordFilePath") {
                     type = NavType.StringType
                 },

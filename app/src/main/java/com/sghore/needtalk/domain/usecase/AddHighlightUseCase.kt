@@ -12,20 +12,15 @@ class AddHighlightUseCase @Inject constructor(
 ) {
     suspend operator fun invoke(
         recordFilePath: String,
+        directoryPath: String,
         title: String,
         startTime: Int,
         duration: Int,
+        talkHistoryId: String,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        val directoryPath = Environment.getExternalStoragePublicDirectory(
-            Environment.DIRECTORY_MUSIC + "/대화가필요해/highlights"
-        )
         val outputPath = File(directoryPath, "${title}|${System.currentTimeMillis()}.m4a")
-
-        if (!directoryPath.exists()) {
-            directoryPath.mkdirs()
-        }
 
         val command =
             "-i $recordFilePath -ss ${startTime.div(1000)} -t ${duration.div(1000)} -c copy $outputPath"
@@ -33,7 +28,12 @@ class AddHighlightUseCase @Inject constructor(
 
         if (result?.returnCode?.isValueSuccess == true) {
             try {
-                val talkHighlightEntity = TalkHighlightEntity(filePath = outputPath.path)
+                val talkHighlightEntity = TalkHighlightEntity(
+                    title = title,
+                    filePath = outputPath.path,
+                    duration = duration,
+                    talkHistoryId = talkHistoryId
+                )
                 talkRepository.insertTalkHighlightEntity(talkHighlightEntity)
 
                 onSuccess()

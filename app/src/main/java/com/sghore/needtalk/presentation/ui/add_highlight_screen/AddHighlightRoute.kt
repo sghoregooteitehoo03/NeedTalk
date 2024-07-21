@@ -4,6 +4,7 @@ import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
@@ -15,6 +16,7 @@ fun AddHighlightRoute(
     showSnackBar: suspend (String) -> Unit,
     navigateUp: () -> Unit
 ) {
+    val context = LocalContext.current
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
     )
@@ -35,10 +37,17 @@ fun AddHighlightRoute(
                     }
                 }
 
-                is AddHighlightUiEvent.ClickComplete -> viewModel.addHighlight()
+                is AddHighlightUiEvent.ClickComplete -> viewModel.addHighlight(
+                    directoryPath = context.getExternalFilesDir("recordings/highlights")?.path ?: ""
+                )
 
-                is AddHighlightUiEvent.AlertError -> { showSnackBar(event.message) }
-                is AddHighlightUiEvent.SuccessAddHighlight -> { navigateUp() }
+                is AddHighlightUiEvent.AlertError -> {
+                    showSnackBar(event.message)
+                }
+
+                is AddHighlightUiEvent.SuccessAddHighlight -> {
+                    navigateUp()
+                }
             }
         }
     }

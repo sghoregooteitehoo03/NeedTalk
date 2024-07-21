@@ -12,15 +12,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
 
+// TODO: fix. 녹음 끝부분에 정상적으로 끝나지 않는 버그
 @Composable
 fun TalkHistoryDetailRoute(
     viewModel: TalkHistoryDetailViewModel = hiltViewModel(),
     navigateUp: () -> Unit,
-    navigateToAddHighlightScreen: (String, List<Int>) -> Unit
+    navigateToAddHighlightScreen: (TalkHistory?) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -64,14 +66,7 @@ fun TalkHistoryDetailRoute(
 
                 is TalkHistoryDetailUiEvent.ClickClips -> TODO()
                 is TalkHistoryDetailUiEvent.ClickMakeClip ->
-                    navigateToAddHighlightScreen(
-                        uiState.talkHistory?.recordFile?.path ?: "",
-                        uiState.talkHistory
-                            ?.recordAmplitude
-                            ?.chunked(10)
-                            ?.map { it.max() }
-                            ?: emptyList()
-                    )
+                    navigateToAddHighlightScreen(uiState.talkHistory)
             }
         }
     }
