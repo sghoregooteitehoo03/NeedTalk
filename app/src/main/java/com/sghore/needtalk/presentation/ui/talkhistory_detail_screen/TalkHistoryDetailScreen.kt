@@ -233,7 +233,7 @@ fun TalkHistoryDetailScreen(
                 onClickBeforeSecond = { onEvent(TalkHistoryDetailUiEvent.ClickBeforeSecond) },
                 onClickAfterSecond = { onEvent(TalkHistoryDetailUiEvent.ClickAfterSecond) },
                 onClickPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) },
-                onClickClipList = { },
+                onClickClipList = { onEvent(TalkHistoryDetailUiEvent.ClickClips) },
                 onClickMakeClip = { onEvent(TalkHistoryDetailUiEvent.ClickMakeClip) }
             )
         }

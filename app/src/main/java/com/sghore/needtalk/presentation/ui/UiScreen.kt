@@ -87,4 +87,6 @@ sealed interface DialogScreen {
     data object DialogRenameTitle : DialogScreen
 
     data object DialogRemoveTalkHistory : DialogScreen
+
+    data object DialogTalkHighlight : DialogScreen
 }

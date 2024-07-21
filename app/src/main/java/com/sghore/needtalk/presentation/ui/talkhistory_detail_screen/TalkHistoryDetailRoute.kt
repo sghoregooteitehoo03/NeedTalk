@@ -15,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.talkhistory_detail_screen.talk_highlight_dialog.TalkHighlightDialog
 import kotlinx.coroutines.flow.collectLatest
 
 // TODO: fix. 녹음 끝부분에 정상적으로 끝나지 않는 버그
@@ -64,7 +65,7 @@ fun TalkHistoryDetailRoute(
                     }
                 }
 
-                is TalkHistoryDetailUiEvent.ClickClips -> TODO()
+                is TalkHistoryDetailUiEvent.ClickClips -> viewModel.setDialogScreen(DialogScreen.DialogTalkHighlight)
                 is TalkHistoryDetailUiEvent.ClickMakeClip ->
                     navigateToAddHighlightScreen(uiState.talkHistory)
             }
@@ -118,6 +119,18 @@ fun TalkHistoryDetailRoute(
                         viewModel.removeTalkHistory()
                         navigateUp()
                     }
+                )
+            }
+
+            is DialogScreen.DialogTalkHighlight -> {
+                TalkHighlightDialog(
+                    modifier = Modifier
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                        )
+                        .padding(14.dp),
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) }
                 )
             }
 
