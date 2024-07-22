@@ -36,8 +36,12 @@ interface TalkDao {
     suspend fun deleteTalkHistoryEntity(id: String)
 
 
+    @Query("SELECT * FROM TalkHighlightEntity WHERE talkHistoryId == :talkHistoryId")
+    fun getTalkHighlightEntities(talkHistoryId: String): Flow<List<TalkHighlightEntity?>>
+
     @Insert
     suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity)
+
 
     @Query("SELECT * FROM UserEntity WHERE userId == :userId")
     fun getUserEntity(userId: String): Flow<UserEntity?>

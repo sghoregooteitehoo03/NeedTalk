@@ -44,15 +44,32 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkHighlight
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import java.text.SimpleDateFormat
+import java.util.Locale
 
 @Composable
 fun TalkHighlightDialog(
     modifier: Modifier = Modifier,
-    onDismiss: () -> Unit
+    viewModel: TalkHighlightViewModel = hiltViewModel(),
+    onDismiss: () -> Unit,
+    talkHistoryId: String
 ) {
     BottomSheetDialog(onDismissRequest = onDismiss) {
+        val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+            lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+        )
+
+        DisposableEffectWithLifeCycle(
+            onCreate = { viewModel.initState(talkHistoryId) },
+            onDispose = { viewModel.finishPlayer() }
+        )
+
         Column(
             modifier = modifier
                 .fillMaxSize()
@@ -81,8 +98,16 @@ fun TalkHighlightDialog(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(top = 6.dp, end = 6.dp)
             ) {
-                items(1) {
-                    TalkHighlightItem()
+                val highlights = uiState.highlights
+                if (highlights != null) {
+                    items(highlights.size) { index ->
+                        TalkHighlightItem(
+                            talkHighlight = highlights[index],
+                            isSelected = index == uiState.playIdx,
+                            isPlaying = uiState.isPlaying
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                    }
                 }
             }
         }
@@ -91,7 +116,10 @@ fun TalkHighlightDialog(
 
 @Composable
 fun TalkHighlightItem(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    talkHighlight: TalkHighlight,
+    isSelected: Boolean,
+    isPlaying: Boolean,
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -108,7 +136,7 @@ fun TalkHighlightItem(
                 top.linkTo(parent.top)
                 width = Dimension.fillToConstraints
             },
-            text = "하이라이트 제목",
+            text = talkHighlight.title,
             style = MaterialTheme.typography.h5.copy(
                 color = MaterialTheme.colors.onPrimary
             )
@@ -119,7 +147,10 @@ fun TalkHighlightItem(
                 end.linkTo(playBtn.start, 20.dp)
                 top.linkTo(title.bottom, 10.dp)
                 width = Dimension.fillToConstraints
-            }
+            },
+            currentTime = 0,
+            maxTime = talkHighlight.duration,
+            isSelected = isSelected
         )
         Box(
             modifier = Modifier
@@ -139,8 +170,12 @@ fun TalkHighlightItem(
             Icon(
                 modifier = Modifier
                     .size(28.dp),
-                painter = painterResource(id = R.drawable.ic_play),
-                contentDescription = "Play",
+                painter = if (isPlaying) {
+                    painterResource(id = R.drawable.ic_pause)
+                } else {
+                    painterResource(id = R.drawable.ic_play)
+                },
+                contentDescription = "PlayAndPause",
                 tint = MaterialTheme.colors.onSecondary
             )
         }
@@ -155,7 +190,10 @@ fun TalkHighlightItem(
 
 @Composable
 fun MediaSeekbar(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    currentTime: Int,
+    maxTime: Int,
+    isSelected: Boolean
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         var canvasMaxWidth by remember { mutableFloatStateOf(0f) }
@@ -167,9 +205,6 @@ fun MediaSeekbar(
                 .height(16.dp),
             contentAlignment = Alignment.CenterStart
         ) {
-            val circleColor = colorResource(id = R.color.orange_80)
-            val barColor = MaterialTheme.colors.secondary
-
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -179,44 +214,51 @@ fun MediaSeekbar(
                         shape = CircleShape
                     )
             )
-            Canvas(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .fillMaxHeight()
-                    .onGloballyPositioned { canvasMaxWidth = it.size.width.toFloat() }
-                    .pointerInput(Unit) {
-                        detectHorizontalDragGestures { change, dragAmount ->
-                            thumbPos =
-                                (thumbPos + dragAmount).coerceIn(0f, canvasMaxWidth)
-                            change.consume()
+            if (isSelected) {
+                val circleColor = colorResource(id = R.color.orange_80)
+                val barColor = MaterialTheme.colors.secondary
+
+                Canvas(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .fillMaxHeight()
+                        .onGloballyPositioned { canvasMaxWidth = it.size.width.toFloat() }
+                        .pointerInput(Unit) {
+                            detectHorizontalDragGestures { change, dragAmount ->
+                                thumbPos =
+                                    (thumbPos + dragAmount).coerceIn(0f, canvasMaxWidth)
+                                change.consume()
+                            }
                         }
-                    }
-            ) {
-                drawRoundRect(
-                    color = barColor,
-                    topLeft = Offset(0f, 2.dp.toPx()),
-                    size = Size(thumbPos, (size.height - 4.dp.toPx())),
-                    cornerRadius = CornerRadius(100f, 100f)
-                )
-                drawCircle(
-                    color = circleColor,
-                    radius = 8.dp.toPx(),
-                    center = Offset(thumbPos, size.height / 2)
-                )
+                ) {
+                    drawRoundRect(
+                        color = barColor,
+                        topLeft = Offset(0f, 2.dp.toPx()),
+                        size = Size(thumbPos, (size.height - 4.dp.toPx())),
+                        cornerRadius = CornerRadius(100f, 100f)
+                    )
+                    drawCircle(
+                        color = circleColor,
+                        radius = 8.dp.toPx(),
+                        center = Offset(thumbPos, size.height / 2)
+                    )
+                }
             }
         }
         Spacer(modifier = Modifier.height(4.dp))
         Box(modifier = Modifier.fillMaxWidth()) {
             Text(
                 modifier = Modifier.align(Alignment.CenterStart),
-                text = "00:00",
+                text = SimpleDateFormat("mm:ss", Locale.KOREA)
+                    .format(currentTime),
                 style = MaterialTheme.typography.subtitle1.copy(
                     color = colorResource(id = R.color.gray)
                 )
             )
             Text(
                 modifier = Modifier.align(Alignment.CenterEnd),
-                text = "01:00",
+                text = SimpleDateFormat("mm:ss", Locale.KOREA)
+                    .format(maxTime),
                 style = MaterialTheme.typography.subtitle1.copy(
                     color = colorResource(id = R.color.gray)
                 )

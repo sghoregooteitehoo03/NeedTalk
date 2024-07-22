@@ -49,6 +49,9 @@ class TalkRepository @Inject constructor(
     fun getTalkHistoryParticipantEntities(id: String) =
         talkDao.getTalkHistoryParticipantEntities(id)
 
+    fun getTalkHighlightEntities(talkHistoryId: String) =
+        talkDao.getTalkHighlightEntities(talkHistoryId)
+
     // 대화 기록 저장
     suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity) {
         talkDao.insertTalkHistoryEntity(talkHistoryEntity)

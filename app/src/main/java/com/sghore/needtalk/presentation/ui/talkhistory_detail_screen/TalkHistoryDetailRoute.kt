@@ -130,7 +130,8 @@ fun TalkHistoryDetailRoute(
                             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                         )
                         .padding(14.dp),
-                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) }
+                    onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
+                    talkHistoryId = uiState.talkHistory?.id ?: ""
                 )
             }
 
