@@ -54,7 +54,6 @@ import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-// TODO: fix. 다이얼로그가 없어져도 State가 저장되는 이슈
 @Composable
 fun TalkHighlightDialog(
     modifier: Modifier = Modifier,
@@ -71,7 +70,10 @@ fun TalkHighlightDialog(
         DisposableEffectWithLifeCycle(
             onCreate = { viewModel.initState(talkHistoryId) },
             onResume = { viewModel.initMediaPlayer() },
-            onDispose = { viewModel.finishPlayer() }
+            onDispose = {
+                viewModel.finishPlayer()
+                viewModel.clearState()
+            }
         )
 
         Column(modifier = modifier.fillMaxSize()) {
@@ -258,8 +260,7 @@ fun MediaSeekbar(
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         var canvasMaxWidth by remember { mutableFloatStateOf(0f) }
-        // TODO: fix 다른 아이템을 실행도중 아이템을 클릭하면 전에 실행되고있던 thumbpos가 적용됨
-        var thumbPos by remember { mutableFloatStateOf(0f) }
+        var thumbPos by remember(isSelected) { mutableFloatStateOf(0f) }
 
         if (isPlaying) {
             LaunchedEffect(currentTime) {

@@ -50,6 +50,10 @@ class TalkHighlightViewModel @Inject constructor(
         }
     }
 
+    fun clearState() {
+        _uiState.update { TalkHighlightUiState() } // State 초기화
+    }
+
     fun initMediaPlayer() {
         mediaPlayer = MediaPlayer()
         mediaPlayer?.setOnCompletionListener {
@@ -79,16 +83,16 @@ class TalkHighlightViewModel @Inject constructor(
     fun playRecord(recordFilePath: String, index: Int) = viewModelScope.launch {
         if (_uiState.value.playIdx != index) {
             pauseRecord()
-            mediaPlayer?.reset()
-            mediaPlayer?.setDataSource(recordFilePath)
-            mediaPlayer?.prepare()
-
             _uiState.update {
                 it.copy(
                     playerTime = 0L,
                     playIdx = index
                 )
             }
+
+            mediaPlayer?.reset()
+            mediaPlayer?.setDataSource(recordFilePath)
+            mediaPlayer?.prepare()
         }
 
         mediaPlayer?.start()
