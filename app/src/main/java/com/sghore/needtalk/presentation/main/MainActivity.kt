@@ -3,6 +3,8 @@ package com.sghore.needtalk.presentation.main
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -40,6 +42,16 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         showSnackBar = { message ->
                             scaffoldState.snackbarHostState.showSnackbar(message)
+                        },
+                        onShareIntent = { path ->
+                            // TODO: fix. 저장 경로 바꿔서 다시 테스트
+                            val uri = Uri.parse(path)
+                            val intent = Intent(Intent.ACTION_SEND).apply {
+                                type = "audio/*"
+                                putExtra(Intent.EXTRA_STREAM, uri)
+                            }
+
+                            startActivity(Intent.createChooser(intent, "공유하기"))
                         }
                     )
                 }

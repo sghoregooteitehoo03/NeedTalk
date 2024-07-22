@@ -38,7 +38,8 @@ fun AppNavHost(
     modifier: Modifier,
     gViewModel: GlobalViewModel,
     navController: NavHostController,
-    showSnackBar: suspend (String) -> Unit
+    showSnackBar: suspend (String) -> Unit,
+    onShareIntent: (String) -> Unit
 ) {
     NavHost(
         modifier = modifier,
@@ -138,7 +139,8 @@ fun AppNavHost(
                         UiScreen.AddHighlightScreen.route +
                                 "?talkHistoryId=${id}&recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeJson}"
                     )
-                }
+                },
+                onShareIntent = onShareIntent
             )
         }
 

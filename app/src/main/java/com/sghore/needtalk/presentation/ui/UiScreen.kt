@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui
 
 import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkHighlight
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.model.UserData
@@ -89,4 +90,6 @@ sealed interface DialogScreen {
     data object DialogRemoveTalkHistory : DialogScreen
 
     data object DialogTalkHighlight : DialogScreen
+
+    data class DialogRemoveTalkHighlight(val talkHighlight: TalkHighlight) : DialogScreen
 }

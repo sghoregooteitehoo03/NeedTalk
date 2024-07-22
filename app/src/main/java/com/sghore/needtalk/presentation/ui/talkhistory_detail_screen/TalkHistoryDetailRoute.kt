@@ -23,7 +23,8 @@ import kotlinx.coroutines.flow.collectLatest
 fun TalkHistoryDetailRoute(
     viewModel: TalkHistoryDetailViewModel = hiltViewModel(),
     navigateUp: () -> Unit,
-    navigateToAddHighlightScreen: (TalkHistory?) -> Unit
+    navigateToAddHighlightScreen: (TalkHistory?) -> Unit,
+    onShareIntent: (String) -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle(
         lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
@@ -130,8 +131,9 @@ fun TalkHistoryDetailRoute(
                             shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
                         )
                         .padding(14.dp),
+                    talkHistoryId = uiState.talkHistory?.id ?: "",
                     onDismiss = { viewModel.setDialogScreen(DialogScreen.DialogDismiss) },
-                    talkHistoryId = uiState.talkHistory?.id ?: ""
+                    onShareIntent = onShareIntent
                 )
             }
 

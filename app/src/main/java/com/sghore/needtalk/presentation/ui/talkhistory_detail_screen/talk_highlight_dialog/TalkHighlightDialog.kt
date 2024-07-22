@@ -18,15 +18,14 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Slider
-import androidx.compose.material.SliderDefaults
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -49,31 +48,33 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkHighlight
+import com.sghore.needtalk.presentation.ui.ConfirmWithCancelDialog
+import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import java.text.SimpleDateFormat
 import java.util.Locale
 
+// TODO: fix. 다이얼로그가 없어져도 State가 저장되는 이슈
 @Composable
 fun TalkHighlightDialog(
     modifier: Modifier = Modifier,
     viewModel: TalkHighlightViewModel = hiltViewModel(),
+    talkHistoryId: String,
     onDismiss: () -> Unit,
-    talkHistoryId: String
+    onShareIntent: (String) -> Unit
 ) {
-    BottomSheetDialog(onDismissRequest = onDismiss) {
-        val uiState by viewModel.uiState.collectAsStateWithLifecycle(
-            lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
-        )
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle(
+        lifecycleOwner = androidx.compose.ui.platform.LocalLifecycleOwner.current
+    )
 
+    BottomSheetDialog(onDismissRequest = onDismiss) {
         DisposableEffectWithLifeCycle(
             onCreate = { viewModel.initState(talkHistoryId) },
+            onResume = { viewModel.initMediaPlayer() },
             onDispose = { viewModel.finishPlayer() }
         )
 
-        Column(
-            modifier = modifier
-                .fillMaxSize()
-        ) {
+        Column(modifier = modifier.fillMaxSize()) {
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     modifier = Modifier.align(Alignment.Center),
@@ -103,8 +104,26 @@ fun TalkHighlightDialog(
                     items(highlights.size) { index ->
                         TalkHighlightItem(
                             talkHighlight = highlights[index],
+                            currentTime = uiState.playerTime,
                             isSelected = index == uiState.playIdx,
-                            isPlaying = uiState.isPlaying
+                            isPlaying = uiState.isPlaying,
+                            onClickPlay = {
+                                if (it) {
+                                    viewModel.playRecord(
+                                        highlights[index].file.path,
+                                        index
+                                    )
+                                } else {
+                                    viewModel.pauseRecord()
+                                }
+                            },
+                            onClickShare = onShareIntent,
+                            onClickDelete = { talkHighlight ->
+                                viewModel.setDialog(
+                                    DialogScreen.DialogRemoveTalkHighlight(talkHighlight)
+                                )
+                            },
+                            onChangeTime = viewModel::seekPlayer
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -112,14 +131,43 @@ fun TalkHighlightDialog(
             }
         }
     }
+
+    when (val dialog = uiState.dialogScreen) {
+        is DialogScreen.DialogRemoveTalkHighlight -> {
+            ConfirmWithCancelDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(14.dp),
+                onDismiss = { viewModel.setDialog(DialogScreen.DialogDismiss) },
+                title = "클립 삭제",
+                message = "제작하신 클립을 삭제하시겠습니까?",
+                confirmText = "삭제하기",
+                cancelText = "취소",
+                onConfirm = {
+                    viewModel.setDialog(DialogScreen.DialogDismiss)
+                    viewModel.removeTalkHighlight(dialog.talkHighlight)
+                }
+            )
+        }
+
+        else -> {}
+    }
 }
 
 @Composable
 fun TalkHighlightItem(
     modifier: Modifier = Modifier,
     talkHighlight: TalkHighlight,
+    currentTime: Long,
     isSelected: Boolean,
     isPlaying: Boolean,
+    onClickPlay: (Boolean) -> Unit,
+    onChangeTime: (Long) -> Unit,
+    onClickShare: (String) -> Unit,
+    onClickDelete: (TalkHighlight) -> Unit
 ) {
     ConstraintLayout(
         modifier = modifier
@@ -148,9 +196,11 @@ fun TalkHighlightItem(
                 top.linkTo(title.bottom, 10.dp)
                 width = Dimension.fillToConstraints
             },
-            currentTime = 0,
+            currentTime = currentTime,
             maxTime = talkHighlight.duration,
-            isSelected = isSelected
+            isSelected = isSelected,
+            isPlaying = isPlaying,
+            onChangeTime = onChangeTime
         )
         Box(
             modifier = Modifier
@@ -164,13 +214,20 @@ fun TalkHighlightItem(
                 .background(
                     color = MaterialTheme.colors.secondary,
                     shape = CircleShape
-                ),
+                )
+                .clickable {
+                    if (isSelected) {
+                        onClickPlay(!isPlaying)
+                    } else {
+                        onClickPlay(true)
+                    }
+                },
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 modifier = Modifier
                     .size(28.dp),
-                painter = if (isPlaying) {
+                painter = if (isPlaying && isSelected) {
                     painterResource(id = R.drawable.ic_pause)
                 } else {
                     painterResource(id = R.drawable.ic_play)
@@ -183,7 +240,9 @@ fun TalkHighlightItem(
             modifier = Modifier.constrainAs(btnLayout) {
                 top.linkTo(seek.bottom, 24.dp)
                 start.linkTo(parent.start)
-            }
+            },
+            onClickShare = { onClickShare(talkHighlight.file.path) },
+            onClickDelete = { onClickDelete(talkHighlight) }
         )
     }
 }
@@ -191,13 +250,22 @@ fun TalkHighlightItem(
 @Composable
 fun MediaSeekbar(
     modifier: Modifier = Modifier,
-    currentTime: Int,
+    currentTime: Long,
     maxTime: Int,
-    isSelected: Boolean
+    isSelected: Boolean,
+    isPlaying: Boolean,
+    onChangeTime: (Long) -> Unit
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         var canvasMaxWidth by remember { mutableFloatStateOf(0f) }
+        // TODO: fix 다른 아이템을 실행도중 아이템을 클릭하면 전에 실행되고있던 thumbpos가 적용됨
         var thumbPos by remember { mutableFloatStateOf(0f) }
+
+        if (isPlaying) {
+            LaunchedEffect(currentTime) {
+                thumbPos = (currentTime.toFloat() / maxTime * canvasMaxWidth)
+            }
+        }
 
         Box(
             modifier = Modifier
@@ -225,8 +293,9 @@ fun MediaSeekbar(
                         .onGloballyPositioned { canvasMaxWidth = it.size.width.toFloat() }
                         .pointerInput(Unit) {
                             detectHorizontalDragGestures { change, dragAmount ->
-                                thumbPos =
-                                    (thumbPos + dragAmount).coerceIn(0f, canvasMaxWidth)
+                                thumbPos = (thumbPos + dragAmount).coerceIn(0f, canvasMaxWidth)
+                                onChangeTime((maxTime / canvasMaxWidth * thumbPos).toLong())
+
                                 change.consume()
                             }
                         }
@@ -250,7 +319,13 @@ fun MediaSeekbar(
             Text(
                 modifier = Modifier.align(Alignment.CenterStart),
                 text = SimpleDateFormat("mm:ss", Locale.KOREA)
-                    .format(currentTime),
+                    .format(
+                        if (isSelected) {
+                            currentTime
+                        } else {
+                            0L
+                        }
+                    ),
                 style = MaterialTheme.typography.subtitle1.copy(
                     color = colorResource(id = R.color.gray)
                 )
@@ -269,7 +344,9 @@ fun MediaSeekbar(
 
 @Composable
 fun ItemMoreButtons(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onClickShare: () -> Unit,
+    onClickDelete: () -> Unit
 ) {
     Row(modifier = modifier) {
         Box(
@@ -279,7 +356,8 @@ fun ItemMoreButtons(
                     color = colorResource(id = R.color.light_gray),
                     shape = CircleShape
                 )
-                .size(32.dp),
+                .size(32.dp)
+                .clickable { onClickShare() },
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -298,7 +376,8 @@ fun ItemMoreButtons(
                     color = colorResource(id = R.color.light_gray),
                     shape = CircleShape
                 )
-                .size(32.dp),
+                .size(32.dp)
+                .clickable { onClickDelete() },
             contentAlignment = Alignment.Center
         ) {
             Icon(

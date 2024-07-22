@@ -42,6 +42,8 @@ interface TalkDao {
     @Insert
     suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity)
 
+    @Query("DELETE FROM TalkHighlightEntity WHERE id == :id")
+    suspend fun deleteTalkHighlightEntity(id: Int?)
 
     @Query("SELECT * FROM UserEntity WHERE userId == :userId")
     fun getUserEntity(userId: String): Flow<UserEntity?>
