@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.ui.Modifier
+import androidx.core.content.FileProvider
 import androidx.navigation.compose.rememberNavController
 import com.google.android.gms.ads.MobileAds
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 import com.sghore.needtalk.util.Constants
 import dagger.hilt.android.AndroidEntryPoint
+import java.io.File
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -44,11 +46,18 @@ class MainActivity : ComponentActivity() {
                             scaffoldState.snackbarHostState.showSnackbar(message)
                         },
                         onShareIntent = { path ->
-                            // TODO: fix. 저장 경로 바꿔서 다시 테스트
-                            val uri = Uri.parse(path)
+                            val file = File(path)
+                            val fileUri =
+                                FileProvider.getUriForFile(
+                                    this,
+                                    "com.sghore.needtalk.provider",
+                                    file
+                                )
+
                             val intent = Intent(Intent.ACTION_SEND).apply {
                                 type = "audio/*"
-                                putExtra(Intent.EXTRA_STREAM, uri)
+                                putExtra(Intent.EXTRA_STREAM, fileUri)
+                                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                             }
 
                             startActivity(Intent.createChooser(intent, "공유하기"))
