@@ -58,8 +58,7 @@ fun getPermissions() =
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.NEARBY_WIFI_DEVICES,
             Manifest.permission.POST_NOTIFICATIONS,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_MEDIA_AUDIO
+            Manifest.permission.RECORD_AUDIO
         )
     } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
         arrayOf(
@@ -70,9 +69,7 @@ fun getPermissions() =
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.RECORD_AUDIO
         )
     } else {
         arrayOf(
@@ -80,9 +77,7 @@ fun getPermissions() =
             Manifest.permission.CHANGE_WIFI_STATE,
             Manifest.permission.ACCESS_COARSE_LOCATION,
             Manifest.permission.ACCESS_FINE_LOCATION,
-            Manifest.permission.RECORD_AUDIO,
-            Manifest.permission.READ_EXTERNAL_STORAGE,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.RECORD_AUDIO
         )
     }
 
