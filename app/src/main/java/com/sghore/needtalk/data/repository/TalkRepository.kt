@@ -2,12 +2,10 @@ package com.sghore.needtalk.data.repository
 
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
-import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.TalkDao
 import com.sghore.needtalk.data.repository.database.UserDao
 import com.sghore.needtalk.data.repository.datasource.GetTalkHistoryPagingSource
@@ -18,23 +16,6 @@ class TalkRepository @Inject constructor(
     private val talkDao: TalkDao,
     private val userDao: UserDao
 ) {
-
-    // 유저 아이디를 통해 유저 정보를 반환함
-    fun getUserEntity(userId: String) = talkDao.getUserEntity(userId)
-
-    // 유저 정보 삽입
-    suspend fun insertUserEntity(userEntity: UserEntity) {
-        talkDao.insertUserEntity(userEntity)
-    }
-
-    // 대화 주제 리스트 반환
-    fun getTalkTopicEntity(groupCode: Int) = talkDao.getTalkTopicEntity(groupCode)
-
-    // 대화 기록 삽입
-    suspend fun insertTalkEntity(talkEntity: TalkEntity) {
-        talkDao.insertTalkEntity(talkEntity)
-    }
-
     fun getTalkHistoryEntity(id: String) =
         talkDao.getTalkHistory(id)
 

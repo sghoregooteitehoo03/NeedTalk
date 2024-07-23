@@ -5,13 +5,10 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.sghore.needtalk.data.model.entity.TalkEntity
 import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TalkSettingEntity
-import com.sghore.needtalk.data.model.entity.UserEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -44,33 +41,6 @@ interface TalkDao {
 
     @Query("DELETE FROM TalkHighlightEntity WHERE id == :id")
     suspend fun deleteTalkHighlightEntity(id: Int?)
-
-    @Query("SELECT * FROM UserEntity WHERE userId == :userId")
-    fun getUserEntity(userId: String): Flow<UserEntity?>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUserEntity(userEntity: UserEntity)
-
-    @Query(
-        "SELECT * " +
-                "FROM TalkEntity " +
-                "ORDER BY createTimeStamp DESC " +
-                "LIMIT :limit " +
-                "OFFSET :offset"
-    )
-    fun getTalkEntity(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
-
-    @Insert
-    suspend fun insertTalkEntity(talkEntity: TalkEntity)
-
-    @Query("SELECT * FROM TalkTopicEntity WHERE groupCode == :groupCode")
-    fun getTalkTopicEntity(groupCode: Int): Flow<List<TalkTopicEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
-
-    @Delete
-    suspend fun deleteTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
 
 
     @Query("SELECT * FROM TalkSettingEntity")

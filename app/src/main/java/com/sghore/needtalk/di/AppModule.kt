@@ -29,9 +29,7 @@ object AppModule {
             context,
             TalkDatabase::class.java,
             "TalkDB"
-        )
-            .createFromAsset("DefaultTalkTopic.db")
-            .build()
+        ).build()
 
     @Singleton
     @Provides

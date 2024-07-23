@@ -6,14 +6,14 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TalkTopicDao {
-    @Query("SELECT * FROM TalkTopicEntity2 WHERE :talkTopicId = id")
-    suspend fun getTalkTopicEntity(talkTopicId: String): TalkTopicEntity2
+    @Query("SELECT * FROM TalkTopicEntity WHERE :talkTopicId = id")
+    suspend fun getTalkTopicEntity(talkTopicId: String): TalkTopicEntity
 
     @Query("SELECT * FROM TalkTopicGroupEntity ORDER BY editedTime DESC")
     fun getAllTalkTopicGroupEntities(): Flow<List<TalkTopicGroupEntity>>
@@ -39,12 +39,12 @@ interface TalkTopicDao {
     suspend fun insertTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
 
     @Insert
-    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity2)
+    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
 
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertGroupSegmentEntity(groupSegmentEntity: GroupSegmentEntity)
 
-    @Query("DELETE FROM TalkTopicEntity2 WHERE :talkTopicId = id")
+    @Query("DELETE FROM TalkTopicEntity WHERE :talkTopicId = id")
     suspend fun deleteTalkTopicEntity(talkTopicId: String)
 
     @Delete

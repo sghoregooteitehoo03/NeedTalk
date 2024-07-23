@@ -1,7 +1,7 @@
 package com.sghore.needtalk.domain.usecase
 
 import com.sghore.needtalk.data.model.document.TalkTopicDoc
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.repository.TalkTopicRepository
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.util.generateTalkTopicId
@@ -28,7 +28,7 @@ class InsertTalkTopicUseCase @Inject constructor(
 
             talkTopicRepository.insertTalkTopicDoc(createdTalkTopicDoc)
         } else {
-            val talkTopicEntity = TalkTopicEntity2(
+            val talkTopicEntity = TalkTopicEntity(
                 id = topicId,
                 topic = talkTopic.topic,
                 uid = talkTopic.uid,

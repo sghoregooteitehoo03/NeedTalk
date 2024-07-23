@@ -1,7 +1,7 @@
 package com.sghore.needtalk.data.repository
 
 import com.sghore.needtalk.data.model.entity.FriendEntity
-import com.sghore.needtalk.data.model.entity.UserEntity2
+import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.data.repository.database.UserDao
 import javax.inject.Inject
 
@@ -13,7 +13,7 @@ class UserRepository @Inject constructor(
     fun getUserEntity(userId: String) = userDao.getUserEntity(userId)
 
     // 유저 정보 삽입
-    suspend fun insertUserEntity(userEntity: UserEntity2) {
+    suspend fun insertUserEntity(userEntity: UserEntity) {
         userDao.insertUserEntity(userEntity)
     }
 

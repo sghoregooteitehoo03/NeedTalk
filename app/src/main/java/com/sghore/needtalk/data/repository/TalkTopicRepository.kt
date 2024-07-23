@@ -8,7 +8,7 @@ import com.google.firebase.firestore.Query
 import com.google.firebase.firestore.toObjects
 import com.sghore.needtalk.data.model.document.TalkTopicDoc
 import com.sghore.needtalk.data.model.entity.GroupSegmentEntity
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity2
+import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.data.model.entity.TalkTopicGroupEntity
 import com.sghore.needtalk.data.repository.database.TalkTopicDao
 import com.sghore.needtalk.data.repository.datasource.SavedTalkTopicPagingSource
@@ -57,7 +57,7 @@ class TalkTopicRepository @Inject constructor(
 
 
     // 비공개 대화주제 추가
-    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity2) =
+    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity) =
         talkTopicDao.insertTalkTopicEntity(talkTopicEntity)
 
     // 공개 대화주제 추가

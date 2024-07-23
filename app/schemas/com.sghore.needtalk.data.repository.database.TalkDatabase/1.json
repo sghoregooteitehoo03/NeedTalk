@@ -2,10 +2,10 @@
   "formatVersion": 1,
   "database": {
     "version": 1,
-    "identityHash": "9763c352d04d2626240c83603cac543a",
+    "identityHash": "adc7f6ad7867853f9d3f4d2708295d39",
     "entities": [
       {
-        "tableName": "UserEntity2",
+        "tableName": "UserEntity",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `name` TEXT NOT NULL, `profileImage` BLOB NOT NULL, `selectedFaceImageRes` INTEGER NOT NULL, `selectedHairImageRes` INTEGER NOT NULL, `selectedAccessoryImageRes` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
           {
@@ -137,115 +137,6 @@
         "foreignKeys": []
       },
       {
-        "tableName": "UserEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `name` TEXT NOT NULL, `color` INTEGER NOT NULL, `createTime` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
-        "fields": [
-          {
-            "fieldPath": "userId",
-            "columnName": "userId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "name",
-            "columnName": "name",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "color",
-            "columnName": "color",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "createTime",
-            "columnName": "createTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "userId"
-          ]
-        },
-        "indices": [],
-        "foreignKeys": []
-      },
-      {
-        "tableName": "TalkEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT, `talkTime` INTEGER NOT NULL, `usersId` TEXT NOT NULL, `createTimeStamp` INTEGER NOT NULL)",
-        "fields": [
-          {
-            "fieldPath": "id",
-            "columnName": "id",
-            "affinity": "INTEGER",
-            "notNull": false
-          },
-          {
-            "fieldPath": "talkTime",
-            "columnName": "talkTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "usersId",
-            "columnName": "usersId",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "createTimeStamp",
-            "columnName": "createTimeStamp",
-            "affinity": "INTEGER",
-            "notNull": true
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": true,
-          "columnNames": [
-            "id"
-          ]
-        },
-        "indices": [],
-        "foreignKeys": []
-      },
-      {
-        "tableName": "TalkTopicEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`topic` TEXT NOT NULL, `createTime` INTEGER NOT NULL, `groupCode` INTEGER NOT NULL DEFAULT 4, PRIMARY KEY(`topic`))",
-        "fields": [
-          {
-            "fieldPath": "topic",
-            "columnName": "topic",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "createTime",
-            "columnName": "createTime",
-            "affinity": "INTEGER",
-            "notNull": true
-          },
-          {
-            "fieldPath": "groupCode",
-            "columnName": "groupCode",
-            "affinity": "INTEGER",
-            "notNull": true,
-            "defaultValue": "4"
-          }
-        ],
-        "primaryKey": {
-          "autoGenerate": false,
-          "columnNames": [
-            "topic"
-          ]
-        },
-        "indices": [],
-        "foreignKeys": []
-      },
-      {
         "tableName": "TalkSettingEntity",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`userId` TEXT NOT NULL, `talkTime` INTEGER NOT NULL, `isTimer` INTEGER NOT NULL, `isAllowMic` INTEGER NOT NULL, `numberOfPeople` INTEGER NOT NULL, PRIMARY KEY(`userId`))",
         "fields": [
@@ -290,7 +181,7 @@
         "foreignKeys": []
       },
       {
-        "tableName": "TalkTopicEntity2",
+        "tableName": "TalkTopicEntity",
         "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` TEXT NOT NULL, `uid` TEXT NOT NULL, `topic` TEXT NOT NULL, `categoryCode1` INTEGER NOT NULL, `categoryCode2` INTEGER, `categoryCode3` INTEGER, `createdTime` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
@@ -520,7 +411,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '9763c352d04d2626240c83603cac543a')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'adc7f6ad7867853f9d3f4d2708295d39')"
     ]
   }
 }

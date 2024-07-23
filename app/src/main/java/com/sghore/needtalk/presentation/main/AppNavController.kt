@@ -246,10 +246,7 @@ fun AppNavHost(
         ) {
             HostTimerRoute(
                 userData = gViewModel.getUserData(),
-                navigateUp = {
-                    gViewModel.setIsRefresh(true)
-                    navigateToHome(navController)
-                },
+                navigateUp = { navigateToHome(navController) },
                 navigateResultScreen = {
                     navController.navigate(
                         route = it,
@@ -271,10 +268,7 @@ fun AppNavHost(
         ) {
             ClientTimerRoute(
                 userData = gViewModel.getUserData(),
-                navigateUp = {
-                    gViewModel.setIsRefresh(true)
-                    navigateToHome(navController)
-                },
+                navigateUp = { navigateToHome(navController) },
                 navigateResultScreen = {
                     navController.navigate(
                         route = it,

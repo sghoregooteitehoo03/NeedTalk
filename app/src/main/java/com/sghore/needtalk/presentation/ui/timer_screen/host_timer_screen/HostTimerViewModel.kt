@@ -1,6 +1,5 @@
 package com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen
 
-import android.util.Log
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -10,7 +9,7 @@ import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.domain.model.UserTalkResult
-import com.sghore.needtalk.domain.usecase.InsertUserEntity2UseCase
+import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiEvent
 import com.sghore.needtalk.presentation.ui.timer_screen.TimerUiState
@@ -30,7 +29,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HostTimerViewModel @Inject constructor(
-    private val insertUserEntityUseCase: InsertUserEntity2UseCase,
+    private val insertUserEntityUseCase: InsertUserEntityUseCase,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(TimerUiState())

@@ -10,15 +10,11 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardOptions
@@ -37,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
-import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
@@ -63,7 +58,6 @@ import com.google.android.gms.ads.AdSize
 import com.google.android.gms.ads.AdView
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import com.sghore.needtalk.domain.model.ParticipantInfo
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.Constants
@@ -231,53 +225,6 @@ fun AdmobBanner(
             }
         }
     )
-}
-
-@Composable
-fun DialogTalkTopics(
-    modifier: Modifier = Modifier,
-    onDismiss: () -> Unit,
-    topicCategory: String,
-    talkTopics: List<TalkTopicEntity>,
-    talkTopicItem: @Composable (TalkTopicEntity) -> Unit
-) {
-    BottomSheetDialog(onDismissRequest = onDismiss) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.7f)
-                .then(modifier)
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth(),
-            ) {
-                Text(
-                    modifier = Modifier.align(Alignment.Center),
-                    text = topicCategory,
-                    style = MaterialTheme.typography.h5.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
-                    )
-                )
-                Icon(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .clip(CircleShape)
-                        .align(Alignment.CenterEnd)
-                        .rotate(90f)
-                        .clickable { onDismiss() },
-                    painter = painterResource(id = R.drawable.ic_arrow_right),
-                    contentDescription = "back",
-                    tint = MaterialTheme.colors.onPrimary
-                )
-            }
-            Spacer(modifier = Modifier.height(8.dp))
-            LazyColumn {
-                items(talkTopics) { talkTopicItem(it) }
-            }
-        }
-    }
 }
 
 @Composable

@@ -11,7 +11,7 @@ import androidx.paging.cachedIn
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
-import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
+import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -23,7 +23,7 @@ import javax.inject.Inject
 @HiltViewModel
 class PinnedTalkTopicViewModel @Inject constructor(
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,
-    private val getTalkTopicUseCase: GetTalkTopicsUseCase2
+    private val getTalkTopicUseCase: GetTalkTopicsUseCase
 ) : ViewModel() {
     var page by mutableIntStateOf(1)
     var talkTopicGroups by mutableStateOf(listOf<TalkTopicGroup>())

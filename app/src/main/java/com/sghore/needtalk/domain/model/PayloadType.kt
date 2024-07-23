@@ -1,6 +1,5 @@
 package com.sghore.needtalk.domain.model
 
-import com.sghore.needtalk.data.model.entity.UserEntity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 

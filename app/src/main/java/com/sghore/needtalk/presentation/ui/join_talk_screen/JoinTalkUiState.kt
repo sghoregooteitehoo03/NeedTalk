@@ -1,6 +1,5 @@
 package com.sghore.needtalk.presentation.ui.join_talk_screen
 
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerInfo
 
 data class JoinUiState(

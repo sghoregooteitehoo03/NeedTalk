@@ -10,7 +10,7 @@ import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.DeleteTalkTopicUseCase
 import com.sghore.needtalk.domain.usecase.GetAllTalkTopicGroupUseCase
-import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase2
+import com.sghore.needtalk.domain.usecase.GetTalkTopicsUseCase
 import com.sghore.needtalk.domain.usecase.SaveGroupSegmentUseCase
 import com.sghore.needtalk.domain.usecase.InsertTalkTopicGroupUseCase
 import com.sghore.needtalk.domain.usecase.SetFavoriteUseCase
@@ -31,7 +31,7 @@ import javax.inject.Inject
 @HiltViewModel
 class TalkTopicsDetailViewModel @Inject constructor(
     private val talkTopicRepository: TalkTopicRepository,
-    private val getTalkTopicUseCase: GetTalkTopicsUseCase2,
+    private val getTalkTopicUseCase: GetTalkTopicsUseCase,
     private val setFavoriteUseCase: SetFavoriteUseCase,
     private val deleteTalkTopicUseCase: DeleteTalkTopicUseCase,
     private val getAllTalkTopicGroupUseCase: GetAllTalkTopicGroupUseCase,

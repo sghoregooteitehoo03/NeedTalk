@@ -1,11 +1,6 @@
 package com.sghore.needtalk
 
-import androidx.compose.ui.graphics.toArgb
-import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.domain.model.PayloadType
-import com.sghore.needtalk.presentation.ui.theme.Blue
 import com.sghore.needtalk.util.getRandomExperiencePoint
-import kotlinx.serialization.json.Json
 import org.junit.Test
 import org.junit.Assert.*
 import java.util.Calendar
@@ -44,32 +39,6 @@ class ExampleUnitTest {
                 time - decimal
             }
         }
-    }
-
-    @Test
-    fun translateTest() {
-        val userEntity = UserEntity(
-            userId = "abc",
-            name = "Nickname",
-            color = Blue.toArgb()
-        )
-//        val test = Json.encodeToString(UserEntity.serializer(), userEntity)
-//        val byteArr = test.toByteArray()
-//
-//        println(byteArr)
-//        println(byteArr.toString(Charset.defaultCharset()))
-//        println(
-//            Json.decodeFromString(
-//                UserEntity.serializer(),
-//                byteArr.toString(Charset.defaultCharset())
-//            )
-//        )
-//        val payloadType = PayloadType.ClientJoinTimer(userEntity)
-//        val json = Json.encodeToString(PayloadType.serializer(), payloadType)
-//        val type = Json.decodeFromString(PayloadType.serializer(), json)
-//
-//        println(json)
-//        println(type)
     }
 
     @Test

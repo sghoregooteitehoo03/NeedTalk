@@ -8,7 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.R
 import com.sghore.needtalk.data.repository.UserRepository
 import com.sghore.needtalk.domain.model.UserData
-import com.sghore.needtalk.domain.usecase.InsertUserEntity2UseCase
+import com.sghore.needtalk.domain.usecase.InsertUserEntityUseCase
 import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.mergeImages
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +24,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class CreateProfileViewModel @Inject constructor(
-    private val insertUserEntity2UseCase: InsertUserEntity2UseCase,
+    private val insertUserEntityUseCase: InsertUserEntityUseCase,
     private val userRepository: UserRepository,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -156,7 +156,7 @@ class CreateProfileViewModel @Inject constructor(
                 friendshipPoint = Constants.MAX_FRIENDSHIP_POINT
             )
 
-            insertUserEntity2UseCase(
+            insertUserEntityUseCase(
                 userData = createUserData,
                 selectedFaceImageRes = faceImageResources[uiState.value.selectedFaceIndex],
                 selectedHairImageRes = hairStyleImageResources[uiState.value.selectedHairStyleIndex],
