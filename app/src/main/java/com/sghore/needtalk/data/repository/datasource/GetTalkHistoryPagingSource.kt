@@ -46,6 +46,8 @@ class GetTalkHistoryPagingSource(
                             friendshipPoint = participantEntity.friendshipPoint
                         )
                     }
+                val talkHighlights = talkDao.getTalkHighlightEntities(talkHistoryEntity.id)
+                    .first()
 
                 val recordPath = talkHistoryEntity.recordFilePath
                 TalkHistory(
@@ -59,7 +61,7 @@ class GetTalkHistoryPagingSource(
                     },
                     recordAmplitude = byteArrayToIntList(talkHistoryEntity.recordAmplitude),
                     users = users,
-                    clipCount = 0,
+                    clipCount = talkHighlights.size,
                     createTimeStamp = talkHistoryEntity.createTimeStamp
                 )
             }

@@ -120,7 +120,6 @@ fun generateTalkTopicId(userId: String, currentTime: Long): String {
     return bytes.joinToString("") { "%02x".format(it) }
 }
 
-// TODO: . 녹음 을질 퀄리티 올리기
 fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) { // 미디어 레코드 설정
         MediaRecorder(context).apply {
@@ -137,8 +136,10 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioEncodingBitRate(128000)
             setAudioSamplingRate(44100)
             setOutputFile(outputFilePath)
+
             setOutputFileName(outputFilePath)
         }
     } else {
@@ -156,8 +157,10 @@ fun getMediaRecord(context: Context, setOutputFileName: (String) -> Unit) =
             setAudioSource(MediaRecorder.AudioSource.MIC)
             setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS)
             setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+            setAudioEncodingBitRate(128000)
             setAudioSamplingRate(44100)
             setOutputFile(outputFilePath)
+
             setOutputFileName(outputFilePath)
         }
     }
