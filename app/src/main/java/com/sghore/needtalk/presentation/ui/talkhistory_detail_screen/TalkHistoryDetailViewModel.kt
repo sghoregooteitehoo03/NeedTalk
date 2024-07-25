@@ -1,6 +1,7 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import android.media.MediaPlayer
+import android.util.Log
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -11,6 +12,7 @@ import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -59,37 +61,17 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
                 try {
                     preparePlayer(talkHistory?.recordFile?.path ?: "")
-                    mediaPlayer?.setOnPreparedListener {
-                        if (_uiState.value.talkHistory == null) {
-                            _uiState.update {
-                                it.copy(
-                                    talkHistory = talkHistory?.copy(
-                                        talkTime = mediaPlayer?.duration?.toLong() ?: 0
-                                    )
-                                )
-                            }
-                        }
-                        initListener() // 리스너 초기화
+                    _uiState.update {
+                        it.copy(
+                            talkHistory = talkHistory?.copy(
+                                talkTime = mediaPlayer?.duration?.toLong() ?: 0
+                            )
+                        )
                     }
                 } catch (e: IOException) {
                     e.printStackTrace()
                 }
             }
-        }
-    }
-
-    // 리스너 초기화
-    private fun initListener() {
-        mediaPlayer?.setOnCompletionListener {
-            _uiState.update {
-                it.copy(
-                    isPlaying = false,
-                    isComplete = true
-                )
-            }
-
-            playerJob?.cancel()
-            playerJob = null
         }
     }
 
@@ -129,7 +111,8 @@ class TalkHistoryDetailViewModel @Inject constructor(
         _uiState.update {
             it.copy(
                 isSeeking = isSeeking,
-                isJumping = false
+                isJumping = false,
+                isComplete = false
             )
         }
     }
@@ -139,12 +122,15 @@ class TalkHistoryDetailViewModel @Inject constructor(
         val isSeeking = _uiState.value.isSeeking
 
         if (isSeeking) {
-            mediaPlayer?.seekTo(changeTime.toInt())
             _uiState.update { it.copy(playerTime = changeTime) }
         }
     }
 
     fun playRecord() {
+        if (!_uiState.value.isComplete) {
+            mediaPlayer?.seekTo(_uiState.value.playerTime.toInt())
+        }
+
         mediaPlayer?.start()
         _uiState.update {
             it.copy(
@@ -157,11 +143,28 @@ class TalkHistoryDetailViewModel @Inject constructor(
 
         playerJob?.cancel()
         playerJob = viewModelScope.launch(context = Dispatchers.Default) {
+            var oldTimeMills = System.currentTimeMillis()
+
             while (this.isActive) {
-                _uiState.update {
-                    it.copy(
-                        playerTime = mediaPlayer?.currentPosition?.toLong() ?: 0
-                    )
+                val duration = _uiState.value.talkHistory?.talkTime ?: 0L
+                if (_uiState.value.playerTime == duration) {
+                    _uiState.update { it.copy(isComplete = true) }
+                    pauseRecord()
+                }
+
+                val delayMills = System.currentTimeMillis() - oldTimeMills
+                if (delayMills >= 50) {
+                    oldTimeMills = System.currentTimeMillis()
+                    val addTime =
+                        if ((duration - _uiState.value.playerTime) < 50) {
+                            duration - _uiState.value.playerTime
+                        } else {
+                            50
+                        }
+
+                    _uiState.update {
+                        it.copy(playerTime = it.playerTime + addTime)
+                    }
                 }
             }
         }

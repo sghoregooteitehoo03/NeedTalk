@@ -7,15 +7,12 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.media.MediaRecorder
 import android.os.Build
-import androidx.compose.ui.graphics.Color
 import com.sghore.needtalk.domain.model.TalkTopicCategory
-import com.sghore.needtalk.presentation.ui.theme.Orange50
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.security.MessageDigest
 import java.text.DecimalFormat
 import java.text.SimpleDateFormat
-import java.util.Calendar
 import java.util.Locale
 
 fun getDefaultTalkTitle(): String = SimpleDateFormat(

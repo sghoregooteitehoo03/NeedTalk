@@ -157,16 +157,28 @@ class AddHighlightViewModel @Inject constructor(
 
         playerJob?.cancel()
         playerJob = viewModelScope.launch(context = Dispatchers.Default) {
+            var oldTimeMills = System.currentTimeMillis()
+
             while (this.isActive) {
-                _uiState.update {
-                    it.copy(playerTime = mediaPlayer?.currentPosition?.toLong() ?: 0L)
+                val duration = _uiState.value.playerMaxTime
+                if (_uiState.value.playerTime == duration) {
+                    _uiState.update { it.copy(isComplete = true) }
+                    pauseRecord()
                 }
 
-                // TODO: fix. MediaPlayer 끝나는 지점에 대한 시간 오류
-                if (_uiState.value.playerTime == _uiState.value.cutEndTime) {
-                    Log.i("Check", "time: ${_uiState.value.playerTime}")
-                    completeRecord()
-                    break
+                val delayMills = System.currentTimeMillis() - oldTimeMills
+                if (delayMills >= 50) {
+                    oldTimeMills = System.currentTimeMillis()
+                    val addTime =
+                        if ((duration - _uiState.value.playerTime) < 50) {
+                            duration - _uiState.value.playerTime
+                        } else {
+                            50
+                        }
+
+                    _uiState.update {
+                        it.copy(playerTime = it.playerTime + addTime)
+                    }
                 }
             }
         }
@@ -185,10 +197,5 @@ class AddHighlightViewModel @Inject constructor(
         mediaPlayer?.stop()
         mediaPlayer?.release()
         mediaPlayer = null
-    }
-
-    private fun completeRecord() {
-        _uiState.update { it.copy(isComplete = true) }
-        pauseRecord()
     }
 }

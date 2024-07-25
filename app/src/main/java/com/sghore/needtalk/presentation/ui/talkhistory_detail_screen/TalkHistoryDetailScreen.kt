@@ -1,7 +1,6 @@
 package com.sghore.needtalk.presentation.ui.talkhistory_detail_screen
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -261,43 +260,6 @@ fun ParticipantUser(
                 color = MaterialTheme.colors.onPrimary
             )
         )
-        Spacer(modifier = Modifier.height(4.dp))
-        FriendshipLayout(friendshipPoint = userData.friendshipPoint)
-    }
-}
-
-@Composable
-fun FriendshipLayout(
-    modifier: Modifier = Modifier,
-    friendshipPoint: Int
-) {
-    Column {
-        Row {
-            repeat(5) { index ->
-                Image(
-                    modifier = Modifier.size(14.dp),
-                    painter = if ((index + 1) <= friendshipPoint) {
-                        painterResource(id = R.drawable.filled_heart)
-                    } else {
-                        painterResource(id = R.drawable.unfilled_heart)
-                    },
-                    contentDescription = "friendshipPoint"
-                )
-            }
-        }
-        Row {
-            repeat(5) { index ->
-                Image(
-                    modifier = Modifier.size(14.dp),
-                    painter = if ((index + 6) <= friendshipPoint) {
-                        painterResource(id = R.drawable.filled_heart)
-                    } else {
-                        painterResource(id = R.drawable.unfilled_heart)
-                    },
-                    contentDescription = "friendshipPoint"
-                )
-            }
-        }
     }
 }
 

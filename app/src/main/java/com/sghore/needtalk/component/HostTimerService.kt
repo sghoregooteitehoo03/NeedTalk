@@ -602,6 +602,9 @@ class HostTimerService : LifecycleService() {
                             text = "대화 타이머가 끝났어요.",
                             title = "즐거운 대화가 되셨나요?\n설정한 타이머가 끝이났습니다."
                         )
+
+                        timerPause()
+                        stopRecording()
                     }
                 },
                 isTimer = isTimer
