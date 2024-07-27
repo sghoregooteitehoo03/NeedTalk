@@ -72,6 +72,8 @@ fun HostTimerRoute(
         object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
                 service = (binder as HostTimerService.LocalBinder).getService() // 서비스 바인드
+
+                service?.startForegroundService() // 포그라운드 서비스 시작
                 service?.startAdvertising( // 다른 장치들이 찾을 수 있도록 광고 수행
                     initTimerCmInfo = uiState.timerCommunicateInfo,
                     onError = {}
@@ -121,7 +123,6 @@ fun HostTimerRoute(
         },
         onResume = {
             val timerActionState = uiState.timerCommunicateInfo.timerActionState
-            service?.stopForegroundService() // 포그라운드 서비스 중지
 
             if (timerActionState != TimerActionState.TimerWaiting
                 && timerActionState != TimerActionState.TimerFinished
@@ -131,13 +132,12 @@ fun HostTimerRoute(
             }
         },
         onStop = {
-            // 포그라운드 서비스 동작
-            service?.startForegroundService()
             // 센서 동작 중지
             stopSensor(context, sensorListener)
         },
         onDispose = {
             // 서비스 중지
+            service?.stopForegroundService()
             stopService(context = context, connection = connection)
         }
     )

@@ -3,7 +3,6 @@ package com.sghore.needtalk.presentation.ui.profile_screen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sghore.needtalk.data.repository.UserRepository
-import com.sghore.needtalk.domain.usecase.AddFriendUseCase
 import com.sghore.needtalk.domain.usecase.GetAllUserDataUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,8 +19,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ProfileViewModel @Inject constructor(
     private val userRepository: UserRepository,
-    private val getAllFriendUseCase: GetAllUserDataUseCase,
-    private val addFriendUseCase: AddFriendUseCase
+    private val getAllFriendUseCase: GetAllUserDataUseCase
 ) : ViewModel() {
     // UI State
     private val _uiState = MutableStateFlow(ProfileUiState())
@@ -39,7 +37,6 @@ class ProfileViewModel @Inject constructor(
     )
 
     init {
-        // TODO: 나중에 테스트
         viewModelScope.launch {
             // 친구 목록을 가져옴
             getAllFriendUseCase().collectLatest { friends ->
@@ -62,7 +59,6 @@ class ProfileViewModel @Inject constructor(
 
     // 친구 삭제
     fun removeFriend(friendId: String) {
-        // TODO: 나중에 테스트
         viewModelScope.launch {
             userRepository.deleteFriendEntity(friendId)
         }

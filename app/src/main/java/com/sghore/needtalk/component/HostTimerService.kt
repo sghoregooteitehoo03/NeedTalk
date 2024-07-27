@@ -41,14 +41,12 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
-import java.io.File
 import java.nio.charset.Charset
 import javax.inject.Inject
 
 // TODO:
 //  . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
-//  . fix: 백그라운드에서 녹음이 되지 않는 버그 존재
-//  . fix: 정지 상태에서도 녹음시간이 축적됨
+//  . feat: 알림창 업데이트
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
@@ -298,46 +296,12 @@ class HostTimerService : LifecycleService() {
         // 기본 알림
         baseNotification =
             NotificationCompat.Builder(applicationContext, Constants.TIMER_SERVICE_CHANNEL)
-                .setAutoCancel(true)
                 .setOngoing(true)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentIntent(actionPendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_LOW)
-
-        // 타이머 상태에 따른 알림 내용 설정
-        when (timerCmInfo.value.timerActionState) {
-            is TimerActionState.TimerWaiting -> {
-                baseNotification
-                    ?.setContentTitle("인원 대기 중")
-                    ?.setContentText("인원이 모일 때 가지 잠시 기다려주세요.")
-            }
-
-            is TimerActionState.TimerReady -> {
-                baseNotification
-                    ?.setContentTitle("대화를 시작해보세요.")
-                    ?.setContentText(
-                        "모든 사용자가 휴대폰을 내려놓으면\n" +
-                                "타이머가 시작됩니다."
-                    )
-            }
-
-            is TimerActionState.TimerRunning, is TimerActionState.StopWatchRunning -> {
-                baseNotification
-                    ?.setContentTitle("대화에 집중하고 있습니다.")
-                    ?.setContentText(parseMinuteSecond(timerCmInfo.value.currentTime))
-            }
-
-            is TimerActionState.TimerPause, is TimerActionState.StopWatchPause -> {
-                baseNotification
-                    ?.setContentTitle("대화에 집중하고 있습니다.")
-                    ?.setContentText(
-                        parseMinuteSecond(timerCmInfo.value.currentTime) +
-                                " (일시 정지)"
-                    )
-            }
-
-            else -> {}
-        }
+                .setContentTitle("인원 대기 중")
+                .setContentText("인원이 모일 때 가지 잠시 기다려주세요.")
 
         acquireWakeLock() // WakeLock 설정
         ServiceCompat.startForeground( // 포그라운드 서비스 시작
@@ -345,7 +309,8 @@ class HostTimerService : LifecycleService() {
             Constants.NOTIFICATION_ID_TIMER,
             baseNotification!!.build(),
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_CONNECTED_DEVICE or
+                        ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE
             } else {
                 0
             }
@@ -375,6 +340,11 @@ class HostTimerService : LifecycleService() {
             onFailure = {}
         )
 
+        onNotifyUpdate(
+            "대화를 시작해보세요.",
+            "모든 사용자가 휴대폰을 내려놓으면\n" +
+                    "타이머가 시작됩니다."
+        )
         onOpenDialog(DialogScreen.DialogTimerReady)
     }
 
@@ -588,7 +558,10 @@ class HostTimerService : LifecycleService() {
                         timerCmInfo.update { it.copy(currentTime = updateTime) }
 
                         // foreground로 동작 시 알림 업데이트
-                        onNotifyUpdate(parseMinuteSecond(updateTime))
+                        onNotifyUpdate(
+                            contentTitle = "대화에 집중하고 있습니다.",
+                            contentText = parseMinuteSecond(updateTime)
+                        )
                     } else { // 타이머 동작이 끝이난 경우
                         timerCmInfo.update {
                             it.copy(
@@ -625,8 +598,8 @@ class HostTimerService : LifecycleService() {
             timerPause() // 타이머 정지
             pauseRecording() // 녹음 정지
             onNotifyUpdate(
-                parseMinuteSecond(timerCmInfo.value.currentTime)
-                        + " (일시 정지)"
+                contentTitle = "대화에 집중하고 있습니다.",
+                contentText = parseMinuteSecond(timerCmInfo.value.currentTime) + " (일시 정지)"
             )
         }
     }
@@ -639,11 +612,12 @@ class HostTimerService : LifecycleService() {
 
     // 알림 내용 업데이트
     private fun onNotifyUpdate(
+        contentTitle: String,
         contentText: String
     ) {
         // foreground로 동작 시 알림 업데이트
         val updateNotification = baseNotification
-            ?.setContentTitle("대화에 집중하고 있습니다.")
+            ?.setContentTitle(contentTitle)
             ?.setContentText(contentText)
             ?.build()
 
@@ -677,7 +651,6 @@ class HostTimerService : LifecycleService() {
                     applicationContext,
                     Constants.DEFAULT_NOTIFY_CHANNEL
                 )
-                    .setAutoCancel(true)
                     .setPriority(NotificationCompat.PRIORITY_DEFAULT)
                     .setSmallIcon(R.mipmap.ic_launcher)
                     .setContentIntent(actionPendingIntent)

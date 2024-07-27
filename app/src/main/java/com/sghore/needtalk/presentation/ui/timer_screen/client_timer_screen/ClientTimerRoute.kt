@@ -74,6 +74,8 @@ fun ClientTimerRoute(
         object : ServiceConnection {
             override fun onServiceConnected(className: ComponentName?, binder: IBinder?) {
                 service = (binder as ClientTimerService.LocalBinder).getService() // 서비스 바인드
+
+                service?.startForegroundService() // 포그라운드 서비스 시작
                 service?.connectToHost( // 호스트에 연결
                     userData = userData,
                     hostEndpointId = uiState.hostEndpointId,
@@ -125,7 +127,6 @@ fun ClientTimerRoute(
         },
         onResume = {
             val timerActionState = uiState.timerCommunicateInfo.timerActionState
-            service?.stopForegroundService() // 포그라운드 서비스 중지
 
             if (timerActionState != TimerActionState.TimerWaiting
                 && timerActionState != TimerActionState.TimerFinished
@@ -136,13 +137,12 @@ fun ClientTimerRoute(
             }
         },
         onStop = {
-            // 포그라운드 서비스 동작
-            service?.startForegroundService()
             // 센서 동작 중지
             stopSensor(context, sensorListener)
         },
         onDispose = {
             // 서비스 중지
+            service?.stopForegroundService()
             stopService(context = context, connection = connection)
         }
     )

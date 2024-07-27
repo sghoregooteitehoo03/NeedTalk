@@ -12,7 +12,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO: fix . 낮은 버전에서 녹음 경로가 넘어오지 않는 버그 발생
 @Composable
 fun ResultRoute(
     viewModel: ResultViewModel = hiltViewModel(),

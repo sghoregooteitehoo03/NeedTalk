@@ -18,7 +18,6 @@ import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.talkhistory_detail_screen.talk_highlight_dialog.TalkHighlightDialog
 import kotlinx.coroutines.flow.collectLatest
 
-// TODO: fix. 녹음 끝부분에 정상적으로 끝나지 않는 버그
 @Composable
 fun TalkHistoryDetailRoute(
     viewModel: TalkHistoryDetailViewModel = hiltViewModel(),
