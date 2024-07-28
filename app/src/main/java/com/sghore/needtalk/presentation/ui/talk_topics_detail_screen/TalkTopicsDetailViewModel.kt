@@ -16,6 +16,7 @@ import com.sghore.needtalk.domain.usecase.SetFavoriteUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -51,6 +52,8 @@ class TalkTopicsDetailViewModel @Inject constructor(
         viewModelScope,
         started = SharingStarted.Eagerly
     )
+
+    private var favoriteJob: Job? = null
 
     init {
         // 어떤 타입의 대화주제를 가져올지(카테고리, 인기, 그룹)에 대한 JSON
@@ -103,35 +106,28 @@ class TalkTopicsDetailViewModel @Inject constructor(
         topicId: String,
         uid: String,
         isFavorite: Boolean
-    ) = viewModelScope.launch {
-
-        // TODO: .fix: 좋아요 클릭 시 리스트 전체 업데이트가 되어버림
-        // 서버에서 대화주제 좋아요 설정
-        setFavoriteUseCase(
-            talkTopicId = topicId,
-            uid = uid,
-            isFavorite = isFavorite,
-            onUpdate = { favoriteCount ->
-                // 리스트 데이터 업데이트
-                val updateTalkTopics = _uiState.value.talkTopics?.map { pagingData ->
-                    pagingData.map { talkTopic ->
-                        if (talkTopic.topicId == topicId) {
-                            talkTopic.copy(
-                                favoriteCount = favoriteCount,
-                                isFavorite = isFavorite
-                            )
-                        } else {
-                            talkTopic
-                        }
+    ) {
+        // TODO: fix: 좋아요 여러번 눌림 방지
+        favoriteJob?.cancel()
+        favoriteJob = viewModelScope.launch {
+            // 서버에서 대화주제 좋아요 설정
+            setFavoriteUseCase(
+                talkTopicId = topicId,
+                uid = uid,
+                isFavorite = isFavorite,
+                onUpdate = { favoriteCount ->
+                    // 좋아요 상태 업데이트
+                    // UI 상태 업데이트
+                    _uiState.update { state ->
+                        state.copy(
+                            favoriteHistory = state.favoriteHistory.toMutableMap().apply {
+                                this[topicId] = FavoriteCounts(isFavorite, favoriteCount)
+                            })
                     }
+                    favoriteJob = null
                 }
-
-                // UI 상태 업데이트
-                _uiState.update {
-                    it.copy(talkTopics = updateTalkTopics)
-                }
-            }
-        )
+            )
+        }
     }
 
     // 대화주제 삭제

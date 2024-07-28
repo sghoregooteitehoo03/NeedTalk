@@ -8,9 +8,15 @@ import kotlinx.coroutines.flow.Flow
 
 data class TalkTopicsDetailUiState(
     val talkTopics: Flow<PagingData<TalkTopic>>? = null,
+    val favoriteHistory: Map<String, FavoriteCounts> = mapOf(),
     val orderType: OrderType = OrderType.Popular,
     val talkTopicsDetailType: TalkTopicsDetailType? = null,
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss
+)
+
+data class FavoriteCounts(
+    val isFavorite: Boolean,
+    val count: Int
 )
 
 sealed interface OrderType {

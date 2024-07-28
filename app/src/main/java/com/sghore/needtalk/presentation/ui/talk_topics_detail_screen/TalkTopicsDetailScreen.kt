@@ -172,9 +172,24 @@ fun TalkTopicsScreen(
                         items(it.itemCount) { index ->
                             val talkTopic = it[index]!!
                             if (talkTopic.isUpload || !talkTopic.isPublic) {
+                                val favoriteHistory = uiState.favoriteHistory[talkTopic.topicId]
+                                val favoriteCounts =
+                                    if (favoriteHistory == null) {
+                                        FavoriteCounts(
+                                            talkTopic.isFavorite,
+                                            talkTopic.favoriteCount
+                                        )
+                                    } else {
+                                        FavoriteCounts(
+                                            favoriteHistory.isFavorite,
+                                            favoriteHistory.count
+                                        )
+                                    }
+
                                 TalkTopicItem(
                                     talkTopic = talkTopic,
                                     userId = userData?.userId ?: "",
+                                    favoriteCounts = favoriteCounts,
                                     onFavoriteClick = { topicId, isFavorite ->
                                         onEvent(
                                             TalkTopicsDetailUiEvent.ClickFavorite(
@@ -184,10 +199,18 @@ fun TalkTopicsScreen(
                                         )
                                     },
                                     onSaveClick = { _talkTopic ->
-                                        onEvent(TalkTopicsDetailUiEvent.ClickBookmark(_talkTopic))
+                                        onEvent(
+                                            TalkTopicsDetailUiEvent.ClickBookmark(
+                                                _talkTopic
+                                            )
+                                        )
                                     },
                                     onRemoveClick = { _talkTopic ->
-                                        onEvent(TalkTopicsDetailUiEvent.ClickRemove(_talkTopic))
+                                        onEvent(
+                                            TalkTopicsDetailUiEvent.ClickRemove(
+                                                _talkTopic
+                                            )
+                                        )
                                     }
                                 )
                             } else {
@@ -195,6 +218,7 @@ fun TalkTopicsScreen(
                                     modifier = Modifier.alpha(0.6f),
                                     talkTopic = talkTopic,
                                     userId = userData?.userId ?: "",
+                                    favoriteCounts = FavoriteCounts(false, 0),
                                     onFavoriteClick = { _, _ -> },
                                     onSaveClick = { }
                                 )
@@ -275,6 +299,7 @@ fun TalkTopicItem(
     modifier: Modifier = Modifier,
     talkTopic: TalkTopic,
     userId: String,
+    favoriteCounts: FavoriteCounts,
     onFavoriteClick: (String, Boolean) -> Unit,
     onSaveClick: (TalkTopic) -> Unit,
     onRemoveClick: (TalkTopic) -> Unit = {}
@@ -337,13 +362,13 @@ fun TalkTopicItem(
         Row(modifier = Modifier.align(Alignment.BottomCenter)) {
             if (talkTopic.isUpload || !talkTopic.isPublic) {
                 TalkTopicItemButton(
-                    icon = if (talkTopic.isFavorite) {
+                    icon = if (favoriteCounts.isFavorite) {
                         painterResource(id = R.drawable.ic_heart)
                     } else {
                         painterResource(id = R.drawable.ic_heart_border)
                     },
-                    text = talkTopic.favoriteCount.toString(),
-                    color = if (talkTopic.isFavorite) {
+                    text = favoriteCounts.count.toString(),
+                    color = if (favoriteCounts.isFavorite) {
                         MaterialTheme.colors.secondary
                     } else {
                         MaterialTheme.colors.onPrimary.copy(
@@ -356,7 +381,7 @@ fun TalkTopicItem(
                     },
                     onClick = {
                         if (userId != talkTopic.uid) {
-                            onFavoriteClick(talkTopic.topicId, !talkTopic.isFavorite)
+                            onFavoriteClick(talkTopic.topicId, !favoriteCounts.isFavorite)
                         }
                     }
                 )
