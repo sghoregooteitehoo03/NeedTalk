@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
 import androidx.paging.map
-import com.sghore.needtalk.data.repository.TalkTopicRepository
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.DeleteTalkTopicUseCase
@@ -30,7 +29,6 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TalkTopicsDetailViewModel @Inject constructor(
-    private val talkTopicRepository: TalkTopicRepository,
     private val getTalkTopicUseCase: GetTalkTopicsUseCase,
     private val setFavoriteUseCase: SetFavoriteUseCase,
     private val deleteTalkTopicUseCase: DeleteTalkTopicUseCase,
@@ -82,7 +80,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
     fun selectOrderType(orderType: OrderType) {
         // 타입에 맞는 페이징 데이터를 받음
         val talkTopics = getPagingTalkTopics(
-            orderType = _uiState.value.orderType,
+            orderType = orderType,
             talkTopicsDetailType = _uiState.value.talkTopicsDetailType
         )
 

@@ -14,7 +14,6 @@ import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.getCodeToCategory
 import kotlinx.coroutines.tasks.await
 
-// TODO: .fix: 정렬 기능 동작하지 않음
 class TalkTopicPagingSource(
     private val userId: String,
     private val firestore: FirebaseFirestore,
