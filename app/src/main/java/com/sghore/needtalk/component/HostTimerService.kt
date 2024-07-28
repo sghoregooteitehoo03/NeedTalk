@@ -605,8 +605,20 @@ class HostTimerService : LifecycleService() {
     }
 
     // 대화주제 고정
-    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?) {
-        timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+    fun pinnedTalkTopic(
+        pinnedTalkTopic: PinnedTalkTopic,
+        onFailure: (String) -> Unit
+    ) {
+        if (timerCmInfo.value.pinnedTalkTopic == null) {
+            timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+            sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
+        } else {
+            onFailure("고정된 대화주제가 이미 존재합니다.")
+        }
+    }
+
+    fun unPinnedTalkTopic() {
+        timerCmInfo.update { it.copy(pinnedTalkTopic = null) }
         sendUpdateTimerCmInfo(timerCmInfo.value, onFailure = {})
     }
 

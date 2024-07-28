@@ -52,7 +52,6 @@ import com.sghore.needtalk.presentation.ui.timer_screen.pinned_talktopic_dialog.
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -201,7 +200,7 @@ fun ClientTimerRoute(
                         }
 
                         is TimerUiEvent.CancelPinnedTopic -> {
-                            service?.pinnedTalkTopic(null, uiState.hostEndpointId)
+                            service?.unPinnedTalkTopic(uiState.hostEndpointId)
                         }
                     }
                 }
@@ -407,10 +406,13 @@ fun ClientTimerRoute(
                             pinnedUserName = userData?.name ?: ""
                         )
 
-                        // TODO: feat: 이미 설정된게 있으면 무시
                         service?.pinnedTalkTopic(
                             pinnedTalkTopic,
-                            hostEndpointId = uiState.hostEndpointId
+                            hostEndpointId = uiState.hostEndpointId,
+                            onFailure = {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
                         )
                     }
                 )
@@ -421,7 +423,6 @@ fun ClientTimerRoute(
     }
 }
 
-@OptIn(ExperimentalSerializationApi::class)
 private fun navigateToResultScreen(
     talkResult: TalkResult,
     navigate: (String) -> Unit

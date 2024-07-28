@@ -12,7 +12,6 @@ import android.os.Build
 import android.os.IBinder
 import android.os.VibrationEffect
 import android.os.Vibrator
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
@@ -37,7 +36,6 @@ import com.sghore.needtalk.domain.model.PinnedTalkTopic
 import com.sghore.needtalk.domain.model.TalkResult
 import com.sghore.needtalk.domain.model.TimerActionState
 import com.sghore.needtalk.domain.model.UserData
-import com.sghore.needtalk.domain.model.UserTalkResult
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.UiScreen
@@ -49,8 +47,6 @@ import com.sghore.needtalk.presentation.ui.timer_screen.pinned_talktopic_dialog.
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 @Composable
@@ -210,7 +206,7 @@ fun HostTimerRoute(
 
                         is TimerUiEvent.CancelPinnedTopic -> {
                             // 대화주제 고정 해제
-                            service?.pinnedTalkTopic(null)
+                            service?.unPinnedTalkTopic()
                         }
                     }
                 }
@@ -378,8 +374,13 @@ fun HostTimerRoute(
                             pinnedUserName = userData?.name ?: ""
                         )
 
-                        // TODO: feat: 이미 설정된게 있으면 무시
-                        service?.pinnedTalkTopic(pinnedTalkTopic)
+                        service?.pinnedTalkTopic(
+                            pinnedTalkTopic = pinnedTalkTopic,
+                            onFailure = {
+                                Toast.makeText(context, it, Toast.LENGTH_SHORT)
+                                    .show()
+                            }
+                        )
                     }
                 )
             }

@@ -448,10 +448,34 @@ class ClientTimerService : LifecycleService() {
     }
 
     // 대화주제 고정
-    fun pinnedTalkTopic(pinnedTalkTopic: PinnedTalkTopic?, hostEndpointId: String) {
-        timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
+    fun pinnedTalkTopic(
+        pinnedTalkTopic: PinnedTalkTopic?,
+        hostEndpointId: String,
+        onFailure: (String) -> Unit
+    ) {
+        if (timerCmInfo.value.pinnedTalkTopic == null) {
+            timerCmInfo.update { it.copy(pinnedTalkTopic = pinnedTalkTopic) }
 
-        val payloadType = PayloadType.ClientPinnedTopic(pinnedTalkTopic)
+            val payloadType = PayloadType.ClientPinnedTopic(pinnedTalkTopic)
+            val payloadTypeJson =
+                Json.encodeToString(PayloadType.serializer(), payloadType)
+
+            sendPayloadUseCase(
+                bytes = payloadTypeJson.toByteArray(),
+                endpointId = hostEndpointId,
+                onFailure = {
+
+                }
+            )
+        } else {
+            onFailure("고정된 대화주제가 이미 존재합니다.")
+        }
+    }
+
+    fun unPinnedTalkTopic(hostEndpointId: String) {
+        timerCmInfo.update { it.copy(pinnedTalkTopic = null) }
+
+        val payloadType = PayloadType.ClientPinnedTopic(null)
         val payloadTypeJson =
             Json.encodeToString(PayloadType.serializer(), payloadType)
 

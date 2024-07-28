@@ -209,7 +209,6 @@ fun TimerWithMic(
                         .width(10.dp)
                         .height(24.dp)
                         .background(
-                            // TODO: fix. 조건 값 조절하기
                             color = if (amplitudeValue > maxAmplitudeValue * index / 12) {
                                 colorResource(id = R.color.orange_80)
                             } else {
