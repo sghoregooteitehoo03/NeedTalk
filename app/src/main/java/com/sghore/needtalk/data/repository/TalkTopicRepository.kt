@@ -114,8 +114,7 @@ class TalkTopicRepository @Inject constructor(
     suspend fun updateFavoriteCount(
         talkTopicId: String,
         uid: String,
-        isFavorite: Boolean,
-        onUpdate: (favoriteCount: Int) -> Unit
+        isFavorite: Boolean
     ) {
         val ref = firestore.collection(Constants.COLLECTION_TALK_TOPIC)
             .document(talkTopicId)
@@ -134,7 +133,6 @@ class TalkTopicRepository @Inject constructor(
                         "favorites" to talkTopicDoc?.favorites
                     )
                 )
-                onUpdate(updateFavoriteCount)
             } else { // 좋아요 취소 시
                 val updateFavoriteCount = (talkTopicDoc?.favoriteCount ?: 0) - 1
                 talkTopicDoc?.favorites?.set(uid, false)
@@ -146,7 +144,6 @@ class TalkTopicRepository @Inject constructor(
                         "favorites" to talkTopicDoc?.favorites
                     )
                 )
-                onUpdate(updateFavoriteCount)
             }
         }.await()
     }

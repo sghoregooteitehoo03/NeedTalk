@@ -11,8 +11,7 @@ class SetFavoriteUseCase @Inject constructor(
     suspend operator fun invoke(
         talkTopicId: String,
         uid: String,
-        isFavorite: Boolean,
-        onUpdate: (Int) -> Unit
+        isFavorite: Boolean
     ) {
         // 좋아요 한 대화모음집 추가
         crGroupSegmentUseCase(
@@ -26,8 +25,7 @@ class SetFavoriteUseCase @Inject constructor(
         talkTopicRepository.updateFavoriteCount(
             talkTopicId = talkTopicId,
             uid = uid,
-            isFavorite = isFavorite,
-            onUpdate = onUpdate
+            isFavorite = isFavorite
         )
     }
 }

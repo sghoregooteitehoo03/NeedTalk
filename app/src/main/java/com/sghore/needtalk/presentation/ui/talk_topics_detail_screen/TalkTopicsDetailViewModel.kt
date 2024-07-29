@@ -4,7 +4,6 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
-import androidx.paging.map
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.DeleteTalkTopicUseCase
@@ -20,7 +19,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -53,7 +51,7 @@ class TalkTopicsDetailViewModel @Inject constructor(
         started = SharingStarted.Eagerly
     )
 
-    private var favoriteJob: Job? = null
+    private var isWait = false
 
     init {
         // 어떤 타입의 대화주제를 가져올지(카테고리, 인기, 그룹)에 대한 JSON
@@ -105,28 +103,27 @@ class TalkTopicsDetailViewModel @Inject constructor(
     fun setFavorite(
         topicId: String,
         uid: String,
-        isFavorite: Boolean
-    ) {
-        // TODO: fix: 좋아요 여러번 눌림 방지
-        favoriteJob?.cancel()
-        favoriteJob = viewModelScope.launch {
+        favoriteCounts: FavoriteCounts
+    ) = viewModelScope.launch {
+        if (!isWait) {
+            isWait = true
+
+            // 좋아요 상태 업데이트
+            // UI 상태 업데이트
+            _uiState.update { state ->
+                state.copy(
+                    favoriteHistory = state.favoriteHistory.toMutableMap().apply {
+                        this[topicId] = favoriteCounts
+                    })
+            }
+
             // 서버에서 대화주제 좋아요 설정
             setFavoriteUseCase(
                 talkTopicId = topicId,
                 uid = uid,
-                isFavorite = isFavorite,
-                onUpdate = { favoriteCount ->
-                    // 좋아요 상태 업데이트
-                    // UI 상태 업데이트
-                    _uiState.update { state ->
-                        state.copy(
-                            favoriteHistory = state.favoriteHistory.toMutableMap().apply {
-                                this[topicId] = FavoriteCounts(isFavorite, favoriteCount)
-                            })
-                    }
-                    favoriteJob = null
-                }
+                isFavorite = favoriteCounts.isFavorite,
             )
+            isWait = false
         }
     }
 

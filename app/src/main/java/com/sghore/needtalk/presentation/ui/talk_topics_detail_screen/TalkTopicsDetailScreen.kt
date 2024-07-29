@@ -190,11 +190,11 @@ fun TalkTopicsScreen(
                                     talkTopic = talkTopic,
                                     userId = userData?.userId ?: "",
                                     favoriteCounts = favoriteCounts,
-                                    onFavoriteClick = { topicId, isFavorite ->
+                                    onFavoriteClick = { topicId, favoriteCounts ->
                                         onEvent(
                                             TalkTopicsDetailUiEvent.ClickFavorite(
                                                 topicId = topicId,
-                                                isFavorite = isFavorite
+                                                favoriteCounts = favoriteCounts
                                             )
                                         )
                                     },
@@ -300,7 +300,7 @@ fun TalkTopicItem(
     talkTopic: TalkTopic,
     userId: String,
     favoriteCounts: FavoriteCounts,
-    onFavoriteClick: (String, Boolean) -> Unit,
+    onFavoriteClick: (String, FavoriteCounts) -> Unit,
     onSaveClick: (TalkTopic) -> Unit,
     onRemoveClick: (TalkTopic) -> Unit = {}
 ) {
@@ -381,7 +381,17 @@ fun TalkTopicItem(
                     },
                     onClick = {
                         if (userId != talkTopic.uid) {
-                            onFavoriteClick(talkTopic.topicId, !favoriteCounts.isFavorite)
+                            onFavoriteClick(
+                                talkTopic.topicId,
+                                favoriteCounts.copy(
+                                    isFavorite = !favoriteCounts.isFavorite,
+                                    count = if (favoriteCounts.isFavorite) {
+                                        favoriteCounts.count - 1
+                                    } else {
+                                        favoriteCounts.count + 1
+                                    }
+                                )
+                            )
                         }
                     }
                 )

@@ -40,7 +40,7 @@ fun TalkTopicsDetailRoute(
                 is TalkTopicsDetailUiEvent.ClickFavorite -> viewModel.setFavorite(
                     topicId = event.topicId,
                     uid = userData?.userId ?: "",
-                    isFavorite = event.isFavorite
+                    favoriteCounts = event.favoriteCounts
                 )
 
                 is TalkTopicsDetailUiEvent.ClickRemove -> viewModel.setOpenDialog(
