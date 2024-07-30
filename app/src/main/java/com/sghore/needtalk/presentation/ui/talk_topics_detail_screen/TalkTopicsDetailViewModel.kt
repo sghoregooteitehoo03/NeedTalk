@@ -1,9 +1,12 @@
 package com.sghore.needtalk.presentation.ui.talk_topics_detail_screen
 
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.paging.cachedIn
+import androidx.paging.filter
+import androidx.paging.map
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.usecase.DeleteTalkTopicUseCase
@@ -15,10 +18,11 @@ import com.sghore.needtalk.domain.usecase.SetFavoriteUseCase
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsDetailType
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.shareIn
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -128,8 +132,22 @@ class TalkTopicsDetailViewModel @Inject constructor(
     }
 
     // 대화주제 삭제
-    fun removeTalkTopic(talkTopic: TalkTopic) = viewModelScope.launch {
-        // TODO: 삭제 후 리스트 업데이트
+    fun removeTalkTopic(
+        talkTopic: TalkTopic,
+        firstVisibleItemIndex: Int,
+        firstVisibleItemScrollOffset: Int
+    ) = viewModelScope.launch {
+        val talkTopics = _uiState.value.talkTopics?.map {
+            it.filter { it.topicId != talkTopic.topicId }
+        }
+
+        // 삭제 후 해당 리스트로 스크롤
+        _uiState.update {
+            it.copy(
+                talkTopics = talkTopics,
+                lazyListState = LazyListState(firstVisibleItemIndex, firstVisibleItemScrollOffset)
+            )
+        }
         deleteTalkTopicUseCase(talkTopic)
     }
 

@@ -7,9 +7,14 @@ sealed interface TalkTopicsDetailUiEvent {
 
     data class SelectOrderType(val orderType: OrderType) : TalkTopicsDetailUiEvent
 
-    data class ClickFavorite(val topicId: String, val favoriteCounts: FavoriteCounts) : TalkTopicsDetailUiEvent
+    data class ClickFavorite(val topicId: String, val favoriteCounts: FavoriteCounts) :
+        TalkTopicsDetailUiEvent
 
     data class ClickBookmark(val talkTopic: TalkTopic) : TalkTopicsDetailUiEvent
 
-    data class ClickRemove(val talkTopic: TalkTopic) : TalkTopicsDetailUiEvent
+    data class ClickRemove(
+        val talkTopic: TalkTopic,
+        val firstVisibleItemIndex: Int,
+        val firstVisibleItemScrollOffset: Int
+    ) : TalkTopicsDetailUiEvent
 }

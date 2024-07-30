@@ -74,6 +74,7 @@ fun TalkTopicsScreen(
 ) {
     val talkTopics = uiState.talkTopics?.collectAsLazyPagingItems()
     val listState = rememberLazyListState()
+
     val isLoading by remember(talkTopics) { derivedStateOf { talkTopics?.loadState?.refresh is LoadState.Loading } }
     if (uiState.talkTopicsDetailType is TalkTopicsDetailType.PopularType) {
         if (uiState.talkTopicsDetailType.index != 0) {
@@ -86,6 +87,13 @@ fun TalkTopicsScreen(
                 }
             }
         }
+    }
+
+    LaunchedEffect(uiState.lazyListState) {
+        listState.scrollToItem(
+            uiState.lazyListState?.firstVisibleItemIndex ?: 0,
+            uiState.lazyListState?.firstVisibleItemScrollOffset ?: 0
+        )
     }
 
     Column(
@@ -190,11 +198,11 @@ fun TalkTopicsScreen(
                                     talkTopic = talkTopic,
                                     userId = userData?.userId ?: "",
                                     favoriteCounts = favoriteCounts,
-                                    onFavoriteClick = { topicId, favoriteCounts ->
+                                    onFavoriteClick = { topicId, _favoriteCounts ->
                                         onEvent(
                                             TalkTopicsDetailUiEvent.ClickFavorite(
                                                 topicId = topicId,
-                                                favoriteCounts = favoriteCounts
+                                                favoriteCounts = _favoriteCounts
                                             )
                                         )
                                     },
@@ -208,7 +216,9 @@ fun TalkTopicsScreen(
                                     onRemoveClick = { _talkTopic ->
                                         onEvent(
                                             TalkTopicsDetailUiEvent.ClickRemove(
-                                                _talkTopic
+                                                _talkTopic,
+                                                listState.firstVisibleItemIndex,
+                                                listState.firstVisibleItemScrollOffset
                                             )
                                         )
                                     }

@@ -69,7 +69,11 @@ sealed interface DialogScreen {
 
     data class DialogRemoveGroup(val group: TalkTopicGroup) : DialogScreen
 
-    data class DialogRemoveTalkTopic(val talkTopic: TalkTopic) : DialogScreen
+    data class DialogRemoveTalkTopic(
+        val talkTopic: TalkTopic,
+        val firstVisibleItemIndex: Int,
+        val firstVisibleItemScrollOffset: Int
+    ) : DialogScreen
 
     data class DialogRemoveFriend(val friend: UserData) : DialogScreen
 

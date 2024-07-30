@@ -46,7 +46,6 @@ import javax.inject.Inject
 
 // TODO:
 //  . fix: 앱을 처음 실행한 상태에서 타이머를 백그라운드에서 타이머를 동작시킬 시 서로 연결이 끊기는 버그 발생
-//  . feat: 알림창 업데이트
 @AndroidEntryPoint
 class HostTimerService : LifecycleService() {
     @Inject
