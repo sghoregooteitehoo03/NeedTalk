@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -42,10 +43,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.constraintlayout.compose.ConstraintLayout
@@ -144,7 +147,25 @@ fun JoinTalkScreen(
                 }
 
                 is SearchNearDevice.Load -> {
+                    val heightPixel = with(LocalDensity.current) {
+                        LocalConfiguration.current.screenHeightDp.dp.toPx()
+                    }
+                    val offsetAnim = remember { Animatable(heightPixel) }
+
+                    LaunchedEffect(uiState.searchNearDevice) {
+                        offsetAnim.animateTo(
+                            targetValue = 0f,
+                            animationSpec = tween(800)
+                        )
+                    }
+
                     TimerInfoPager(
+                        modifier = Modifier.offset {
+                            IntOffset(
+                                0,
+                                offsetAnim.value.toInt()
+                            )
+                        },
                         timerInfoList = uiState.searchNearDevice.timerInfoList,
                         loadTimerInfo = { onEvent(JoinTalkUiEvent.LoadTimerInfo(it)) },
                         onClickJoin = { onEvent(JoinTalkUiEvent.ClickJoin(it)) }
@@ -230,7 +251,6 @@ fun FoundingNearDevice(
     }
 }
 
-// TODO: Feat: 나중에 확장 애니메이션 구현
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TimerInfoPager(
