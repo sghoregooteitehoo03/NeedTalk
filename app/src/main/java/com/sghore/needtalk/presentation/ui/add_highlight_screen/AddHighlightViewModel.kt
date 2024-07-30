@@ -145,6 +145,7 @@ class AddHighlightViewModel @Inject constructor(
     fun playRecord() {
         if (_uiState.value.isComplete) {
             mediaPlayer?.seekTo(_uiState.value.cutStartTime.toInt())
+            _uiState.update { it.copy(playerTime = it.cutStartTime) }
         }
 
         mediaPlayer?.start()
@@ -160,7 +161,7 @@ class AddHighlightViewModel @Inject constructor(
             var oldTimeMills = System.currentTimeMillis()
 
             while (this.isActive) {
-                val duration = _uiState.value.playerMaxTime
+                val duration = _uiState.value.cutEndTime
                 if (_uiState.value.playerTime == duration) {
                     _uiState.update { it.copy(isComplete = true) }
                     pauseRecord()
