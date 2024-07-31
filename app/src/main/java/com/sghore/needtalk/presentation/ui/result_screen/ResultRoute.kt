@@ -42,9 +42,13 @@ fun ResultRoute(
                     index = event.index
                 )
 
-                ResultUiEvent.ClickConfirm -> {
+                is ResultUiEvent.ClickConfirm -> {
                     viewModel.saveTalkHistory()
                     navigateUp()
+                }
+
+                is ResultUiEvent.AnimationEnd -> {
+
                 }
             }
         }

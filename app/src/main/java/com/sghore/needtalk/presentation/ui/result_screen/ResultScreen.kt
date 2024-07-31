@@ -1,5 +1,8 @@
 package com.sghore.needtalk.presentation.ui.result_screen
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearOutSlowInEasing
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -19,6 +22,12 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -41,8 +50,12 @@ import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.ExperiencePointBar
 import com.sghore.needtalk.presentation.ui.FriendshipPointBar
 import com.sghore.needtalk.presentation.ui.ProfileImage
+import com.sghore.needtalk.util.Constants
 import com.sghore.needtalk.util.getFileSizeToStr
 import com.sghore.needtalk.util.parseMinuteSecond
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 
 @Composable
 fun ResultScreen(
@@ -93,7 +106,8 @@ fun ResultScreen(
                             isNotFriend = friend.friendshipPoint == -1,
                             onAddFriend = { userId ->
                                 onEvent(ResultUiEvent.AddFriend(userId, index))
-                            }
+                            },
+                            onAnimationEnd = {}
                         )
                     }
                 }
@@ -162,15 +176,51 @@ fun SetTalkTitleLayout(
 
 // TODO: feat:
 //  . 포인트 증가 기능 구현하기
-//  . 포인트 증가 애니메이션 구현하기
 @Composable
 fun FriendshipResult(
     modifier: Modifier = Modifier,
     friend: UserData,
     userTalkResult: UserTalkResult,
     isNotFriend: Boolean,
-    onAddFriend: (String) -> Unit
+    onAddFriend: (String) -> Unit,
+    onAnimationEnd: () -> Unit
 ) {
+    val pointAnim = remember { Animatable(initialValue = friend.experiencePoint) }
+    var friendship by remember { mutableIntStateOf(friend.friendshipPoint) }
+
+    LaunchedEffect(friend.friendshipPoint) {
+        var getExperiencePoint = userTalkResult.experiencePoint.toFloat()
+        while (getExperiencePoint != 0f) {
+            delay(300)
+            var isOver = false
+            val targetValue =
+                if (pointAnim.value + getExperiencePoint >= Constants.MAX_EXPERIENCE_POINT) {
+                    isOver = true
+                    Constants.MAX_EXPERIENCE_POINT
+                } else {
+                    pointAnim.value + getExperiencePoint
+                }
+            pointAnim.animateTo(
+                targetValue = targetValue,
+                animationSpec = tween(
+                    durationMillis = 1000,
+                    easing = LinearOutSlowInEasing
+                )
+            )
+
+            getExperiencePoint = if (isOver) {
+                launch { pointAnim.snapTo(0f) }
+
+                friendship += 1
+                getExperiencePoint - Constants.MAX_EXPERIENCE_POINT
+            } else {
+                0f
+            }
+        }
+
+        onAnimationEnd()
+    }
+
     ConstraintLayout(
         modifier = modifier
             .fillMaxWidth()
@@ -230,9 +280,9 @@ fun FriendshipResult(
                         }
                     )
                 ) {
-                    ExperiencePointBar(experiencePoint = friend.experiencePoint)
+                    ExperiencePointBar(experiencePoint = pointAnim.value)
                     Spacer(modifier = Modifier.height(6.dp))
-                    FriendshipPointBar(friendshipPoint = friend.friendshipPoint)
+                    FriendshipPointBar(friendshipPoint = friendship)
                 }
             }
         }
