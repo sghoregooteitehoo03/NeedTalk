@@ -1,5 +1,6 @@
 package com.sghore.needtalk.presentation.ui.result_screen
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
 import androidx.compose.runtime.Composable
@@ -56,6 +57,8 @@ fun ResultRoute(
             }
         }
     }
+
+    BackHandler {}
 
     Surface {
         ResultScreen(

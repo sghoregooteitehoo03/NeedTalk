@@ -15,5 +15,6 @@ class DeleteTalkHistoryUseCase @Inject constructor(
         }
 
         talkRepository.deleteTalkHistoryEntity(talkHistory.id)
+        talkRepository.deleteTalkHistoryParticipantEntities(talkHistory.id)
     }
 }
