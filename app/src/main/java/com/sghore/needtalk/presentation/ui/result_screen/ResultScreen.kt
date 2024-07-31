@@ -104,10 +104,19 @@ fun ResultScreen(
                             friend = friend,
                             userTalkResult = uiState.talkResult.userTalkResult[index],
                             isNotFriend = friend.friendshipPoint == -1,
+                            isAnimationEnd = uiState.animationEndList[index],
                             onAddFriend = { userId ->
                                 onEvent(ResultUiEvent.AddFriend(userId, index))
                             },
-                            onAnimationEnd = {}
+                            onAnimationEnd = { experiencePoint, friendshipPoint ->
+                                onEvent(
+                                    ResultUiEvent.AnimationEnd(
+                                        index = index,
+                                        experiencePoint = experiencePoint,
+                                        friendshipPoint = friendshipPoint
+                                    )
+                                )
+                            }
                         )
                     }
                 }
@@ -117,6 +126,7 @@ fun ResultScreen(
                     .align(Alignment.BottomCenter)
                     .padding(14.dp),
                 text = "확인",
+                isEnabled = uiState.animationEndList.any { it },
                 onClick = {
                     onEvent(ResultUiEvent.ClickConfirm)
                 }
@@ -174,51 +184,52 @@ fun SetTalkTitleLayout(
     }
 }
 
-// TODO: feat:
-//  . 포인트 증가 기능 구현하기
 @Composable
 fun FriendshipResult(
     modifier: Modifier = Modifier,
     friend: UserData,
     userTalkResult: UserTalkResult,
     isNotFriend: Boolean,
+    isAnimationEnd: Boolean,
     onAddFriend: (String) -> Unit,
-    onAnimationEnd: () -> Unit
+    onAnimationEnd: (Float, Int) -> Unit
 ) {
     val pointAnim = remember { Animatable(initialValue = friend.experiencePoint) }
-    var friendship by remember { mutableIntStateOf(friend.friendshipPoint) }
+    var friendship by remember(friend.friendshipPoint) { mutableIntStateOf(friend.friendshipPoint) }
 
     LaunchedEffect(friend.friendshipPoint) {
-        var getExperiencePoint = userTalkResult.experiencePoint.toFloat()
-        while (getExperiencePoint != 0f) {
-            delay(300)
-            var isOver = false
-            val targetValue =
-                if (pointAnim.value + getExperiencePoint >= Constants.MAX_EXPERIENCE_POINT) {
-                    isOver = true
-                    Constants.MAX_EXPERIENCE_POINT
-                } else {
-                    pointAnim.value + getExperiencePoint
-                }
-            pointAnim.animateTo(
-                targetValue = targetValue,
-                animationSpec = tween(
-                    durationMillis = 1000,
-                    easing = LinearOutSlowInEasing
+        if (!isAnimationEnd && friend.friendshipPoint != -1) {
+            var getExperiencePoint = userTalkResult.experiencePoint.toFloat()
+            while (getExperiencePoint != 0f) {
+                delay(300)
+                var isOver = false
+                val targetValue =
+                    if (pointAnim.value + getExperiencePoint >= Constants.MAX_EXPERIENCE_POINT) {
+                        isOver = true
+                        Constants.MAX_EXPERIENCE_POINT
+                    } else {
+                        pointAnim.value + getExperiencePoint
+                    }
+                pointAnim.animateTo(
+                    targetValue = targetValue,
+                    animationSpec = tween(
+                        durationMillis = 1000,
+                        easing = LinearOutSlowInEasing
+                    )
                 )
-            )
 
-            getExperiencePoint = if (isOver) {
-                launch { pointAnim.snapTo(0f) }
+                getExperiencePoint = if (isOver) {
+                    launch { pointAnim.snapTo(0f) }
 
-                friendship += 1
-                getExperiencePoint - Constants.MAX_EXPERIENCE_POINT
-            } else {
-                0f
+                    friendship += 1
+                    getExperiencePoint - Constants.MAX_EXPERIENCE_POINT
+                } else {
+                    0f
+                }
             }
-        }
 
-        onAnimationEnd()
+            onAnimationEnd(pointAnim.value, friendship)
+        }
     }
 
     ConstraintLayout(

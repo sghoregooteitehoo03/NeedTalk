@@ -47,9 +47,12 @@ fun ResultRoute(
                     navigateUp()
                 }
 
-                is ResultUiEvent.AnimationEnd -> {
-
-                }
+                is ResultUiEvent.AnimationEnd ->
+                    viewModel.animationEnd(
+                        event.index,
+                        event.experiencePoint,
+                        event.friendshipPoint
+                    )
             }
         }
     }

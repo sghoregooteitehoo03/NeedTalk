@@ -7,5 +7,9 @@ sealed interface ResultUiEvent {
 
     data class ChangeTalkTitle(val title: String) : ResultUiEvent
 
-    data class AnimationEnd(val index: Int) : ResultUiEvent
+    data class AnimationEnd(
+        val index: Int,
+        val experiencePoint: Float,
+        val friendshipPoint: Int
+    ) : ResultUiEvent
 }

@@ -75,6 +75,9 @@ class ResultViewModel @Inject constructor(
                     fileSize = fileSize,
                     otherUsers = otherUsers,
                     talkResult = talkResult,
+                    animationEndList = otherUsers.map {
+                        it?.friendshipPoint == -1
+                    },
                     isLoading = false
                 )
             }
@@ -83,6 +86,26 @@ class ResultViewModel @Inject constructor(
     // 타이틀 변경 이벤트 처리
     fun changeTalkTitle(title: String) {
         _uiState.update { it.copy(talkTitle = title) }
+    }
+
+    // 애니메이션이 끝나면 State 저장
+    fun animationEnd(
+        index: Int,
+        experiencePoint: Float,
+        friendshipPoint: Int
+    ) {
+        _uiState.update {
+            it.copy(
+                otherUsers = it.otherUsers.toMutableList().apply {
+                    this[index] = this[index]?.copy(
+                        experiencePoint = experiencePoint,
+                        friendshipPoint = friendshipPoint
+                    )
+                },
+                animationEndList = it.animationEndList.toMutableList()
+                    .apply { this[index] = true }
+            )
+        }
     }
 
     // 친구 추가
@@ -99,7 +122,14 @@ class ResultViewModel @Inject constructor(
         val updateOtherUsers = _uiState.value.otherUsers.toMutableList()
         updateOtherUsers[index] = friend
 
-        _uiState.update { it.copy(otherUsers = updateOtherUsers) }
+        _uiState.update {
+            it.copy(
+                otherUsers = updateOtherUsers,
+                animationEndList = it.animationEndList.toMutableList().apply {
+                    this[index] = false
+                }
+            )
+        }
     }
 
     // 대화기록 저장

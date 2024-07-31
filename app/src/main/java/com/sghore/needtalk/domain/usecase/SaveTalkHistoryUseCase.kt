@@ -1,15 +1,18 @@
 package com.sghore.needtalk.domain.usecase
 
+import com.sghore.needtalk.data.model.entity.FriendEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
 import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
 import com.sghore.needtalk.data.repository.TalkRepository
+import com.sghore.needtalk.data.repository.UserRepository
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.util.generateTalkTopicId
 import java.nio.ByteBuffer
 import javax.inject.Inject
 
 class SaveTalkHistoryUseCase @Inject constructor(
-    private val talkRepository: TalkRepository
+    private val talkRepository: TalkRepository,
+    private val userRepository: UserRepository
 ) {
     suspend operator fun invoke(
         talkTitle: String,
@@ -40,6 +43,17 @@ class SaveTalkHistoryUseCase @Inject constructor(
                     friendshipPoint = it.friendshipPoint
                 )
                 talkRepository.insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity)
+
+                // 친밀도 저장
+                if (it.friendshipPoint != -1) {
+                    userRepository.insertFriendEntity(
+                        FriendEntity(
+                            userId = it.userId,
+                            experiencePoint = it.experiencePoint,
+                            friendshipPoint = it.friendshipPoint
+                        )
+                    )
+                }
             }
         }
     }

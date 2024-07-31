@@ -10,5 +10,6 @@ data class ResultUiState(
     val fileSize: Long = 0L,
     val otherUsers: List<UserData?> = listOf(),
     val talkResult: TalkResult? = null,
+    val animationEndList: List<Boolean> = listOf(),
     val isLoading: Boolean = true
 )
