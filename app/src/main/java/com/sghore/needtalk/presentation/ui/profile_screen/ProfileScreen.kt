@@ -40,29 +40,6 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onEvent: (ProfileUiEvent) -> Unit
 ) {
-    val testList = listOf(
-        UserData(
-            userId = "",
-            name = "민머리",
-            profileImage = userData!!.profileImage,
-            experiencePoint = 80f,
-            friendshipPoint = 4
-        ),
-        UserData(
-            userId = "",
-            name = "대충 지은 이름",
-            profileImage = userData.profileImage,
-            experiencePoint = 50f,
-            friendshipPoint = 7
-        ),
-        UserData(
-            userId = "",
-            name = "닉네임",
-            profileImage = userData.profileImage,
-            experiencePoint = 13f,
-            friendshipPoint = 0
-        )
-    )
     Column(modifier = Modifier.fillMaxWidth()) {
         Box(
             modifier = Modifier

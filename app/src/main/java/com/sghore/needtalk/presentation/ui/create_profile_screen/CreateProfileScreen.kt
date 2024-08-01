@@ -16,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
@@ -50,7 +52,10 @@ fun CreateProfileScreen(
 ) {
     val context = LocalContext.current
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -67,18 +72,17 @@ fun CreateProfileScreen(
             )
         }
 
-        ConstraintLayout(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(14.dp)
         ) {
-            val (mainLayout, button) = createRefs()
-
-            Column(modifier = Modifier.constrainAs(mainLayout) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-            }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .align(Alignment.TopCenter)
+                    .verticalScroll(rememberScrollState())
+            ) {
                 ProfileImage(
                     modifier = Modifier.align(Alignment.CenterHorizontally),
                     selectedFaceImageRes = faceImageResources[uiState.selectedFaceIndex],
@@ -118,12 +122,11 @@ fun CreateProfileScreen(
                         onEvent(CreateProfileUiEvent.SelectProfileImage(ProfileType.Accessory, it))
                     }
                 )
+                Spacer(modifier = Modifier.height(68.dp))
             }
 
             DefaultButton(
-                modifier = Modifier.constrainAs(button) {
-                    bottom.linkTo(parent.bottom)
-                },
+                modifier = Modifier.align(Alignment.BottomCenter),
                 isEnabled = uiState.profileName.isNotEmpty(),
                 text = if (uiState.isUpdateProfile) {
                     "수정하기"

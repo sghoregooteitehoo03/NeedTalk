@@ -2,14 +2,20 @@
 
 package com.sghore.needtalk.presentation.ui.create_talk_screen
 
+import android.annotation.SuppressLint
+import android.util.Log
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.calculateTargetValue
+import androidx.compose.animation.splineBasedDecay
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.horizontalDrag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,9 +26,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.PagerState
-import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.Icon
@@ -30,14 +33,22 @@ import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.input.pointer.positionChange
+import androidx.compose.ui.input.pointer.util.VelocityTracker
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +58,9 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
 import com.sghore.needtalk.presentation.ui.EmptyTalkUserInfo
 import com.sghore.needtalk.presentation.ui.TalkUserInfo
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 @Composable
 fun CreateTalkScreen(
@@ -54,85 +68,85 @@ fun CreateTalkScreen(
     uiState: CreateTalkUiState,
     onEvent: (CreateTalkUiEvent) -> Unit
 ) {
-    Column(modifier = Modifier.background(MaterialTheme.colors.secondary)) {
-        val times = remember { (5..120 step 5).toList() }
-        val pagerState = rememberPagerState(pageCount = { times.size })
+    if (!uiState.isLoading) {
+        Column(modifier = Modifier.background(MaterialTheme.colors.secondary)) {
+            val times = remember { (5..120 step 5).toList() }
+            var currentIndex by remember {
+                mutableIntStateOf(times.indexOf((uiState.talkTime / 60000).toInt()))
+            }
 
-        LaunchedEffect(key1 = uiState.talkTime) {
-            pagerState.scrollToPage(
-                page = times.indexOf((uiState.talkTime / 60000).toInt())
-            )
-        }
-
-        Box(
-            modifier = Modifier
-                .padding(start = 14.dp, end = 14.dp)
-                .fillMaxWidth()
-                .height(56.dp)
-                .background(color = MaterialTheme.colors.secondary),
-        ) {
-            Icon(
+            Box(
                 modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.CenterStart)
-                    .clickable { onEvent(CreateTalkUiEvent.ClickBackArrow) },
-                painter = painterResource(id = R.drawable.ic_back_arrow),
-                contentDescription = "navigateUp",
-                tint = MaterialTheme.colors.onSecondary
-            )
-            Icon(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(CircleShape)
-                    .align(Alignment.CenterEnd)
-                    .clickable {
-                        onEvent(
-                            CreateTalkUiEvent.ClickComplete(
-                                times[pagerState.currentPage] * 60000L
-                            )
-                        )
-                    },
-                painter = painterResource(id = R.drawable.ic_check),
-                contentDescription = "navigateUp",
-                tint = MaterialTheme.colors.onSecondary
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.28f)
-                .padding(14.dp)
-        ) {
-            SetTalkTimeLayout(
-                times = times,
-                pagerState = pagerState,
-                isEnabled = uiState.isTimer
-            )
-        }
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight()
-                .background(
-                    color = MaterialTheme.colors.background,
-                    shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    .padding(start = 14.dp, end = 14.dp)
+                    .fillMaxWidth()
+                    .height(56.dp)
+                    .background(color = MaterialTheme.colors.secondary),
+            ) {
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterStart)
+                        .clickable { onEvent(CreateTalkUiEvent.ClickBackArrow) },
+                    painter = painterResource(id = R.drawable.ic_back_arrow),
+                    contentDescription = "navigateUp",
+                    tint = MaterialTheme.colors.onSecondary
                 )
-                .padding(10.dp)
-        ) {
-            TalkOptionsLayout(
-                isTimer = uiState.isTimer,
-                isAllowMic = uiState.isMicAllow,
-                onClickAllowTimer = { onEvent(CreateTalkUiEvent.ClickAllowTimer(it)) },
-                onClickAllowMic = { onEvent(CreateTalkUiEvent.ClickAllowMic(it)) }
-            )
-            Spacer(modifier = Modifier.height(32.dp))
-            SetPeopleCountLayout(
-                userData = userData,
-                numberOfPeople = uiState.numberOfPeople,
-                onClickDecrease = { onEvent(CreateTalkUiEvent.ClickDecreasePeople) },
-                onClickIncrease = { onEvent(CreateTalkUiEvent.ClickIncreasePeople) }
-            )
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable {
+                            onEvent(
+                                CreateTalkUiEvent.ClickComplete(
+                                    times[currentIndex] * 60000L
+                                )
+                            )
+                        },
+                    painter = painterResource(id = R.drawable.ic_check),
+                    contentDescription = "navigateUp",
+                    tint = MaterialTheme.colors.onSecondary
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.28f)
+                    .padding(14.dp)
+            ) {
+                SetTalkTimeLayout(
+                    times = times,
+                    isEnabled = uiState.isTimer,
+                    currentIndex = currentIndex,
+                    isTimer = uiState.isTimer,
+                    onChangeSelectedIndex = { currentIndex = it }
+                )
+            }
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight()
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(10.dp)
+            ) {
+                TalkOptionsLayout(
+                    isTimer = uiState.isTimer,
+                    isAllowMic = uiState.isMicAllow,
+                    onClickAllowTimer = { onEvent(CreateTalkUiEvent.ClickAllowTimer(it)) },
+                    onClickAllowMic = { onEvent(CreateTalkUiEvent.ClickAllowMic(it)) }
+                )
+                Spacer(modifier = Modifier.height(32.dp))
+                SetPeopleCountLayout(
+                    userData = userData,
+                    numberOfPeople = uiState.numberOfPeople,
+                    onClickDecrease = { onEvent(CreateTalkUiEvent.ClickDecreasePeople) },
+                    onClickIncrease = { onEvent(CreateTalkUiEvent.ClickIncreasePeople) }
+                )
+            }
         }
     }
 }
@@ -141,8 +155,10 @@ fun CreateTalkScreen(
 fun SetTalkTimeLayout(
     modifier: Modifier = Modifier,
     times: List<Int>,
-    pagerState: PagerState,
-    isEnabled: Boolean
+    isEnabled: Boolean,
+    currentIndex: Int,
+    isTimer: Boolean,
+    onChangeSelectedIndex: (Int) -> Unit
 ) {
     Column(
         modifier = modifier.fillMaxSize(),
@@ -170,19 +186,12 @@ fun SetTalkTimeLayout(
                         shape = MaterialTheme.shapes.medium
                     )
             )
-            HorizontalPager(
-                modifier = Modifier,
-                state = pagerState,
-                contentPadding = PaddingValues(horizontal = 136.dp),
-                pageSpacing = 12.dp,
-                userScrollEnabled = isEnabled
-            ) { index ->
-                TalkTimeItem(
-                    modifier = Modifier.align(Alignment.Center),
-                    time = times[index],
-                    isSelected = pagerState.currentPage == index
-                )
-            }
+            TalkTimePager(
+                times = times,
+                currentIndex = currentIndex,
+                isEnabled = isTimer,
+                onChangeSelectedIndex = onChangeSelectedIndex
+            )
         }
         Spacer(modifier = Modifier.height(14.dp))
         Text(
@@ -192,6 +201,91 @@ fun SetTalkTimeLayout(
                 fontSize = 24.sp
             )
         )
+    }
+}
+
+@SuppressLint("ReturnFromAwaitPointerEventScope", "MultipleAwaitPointerEventScopes")
+@Composable
+fun TalkTimePager(
+    modifier: Modifier = Modifier,
+    times: List<Int>,
+    currentIndex: Int,
+    isEnabled: Boolean = true,
+    onChangeSelectedIndex: (Int) -> Unit
+) {
+    val localDensity = LocalDensity.current
+
+    val itemWidth = with(localDensity) { 100.dp.toPx() }
+    val animatable = remember { Animatable(currentIndex.toFloat()) }
+    val decay = splineBasedDecay<Float>(localDensity)
+
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .then(
+                if (isEnabled) {
+                    Modifier.pointerInput(Unit) {
+                        coroutineScope {
+                            while (true) {
+                                val pointerId = awaitPointerEventScope { awaitFirstDown().id }
+                                val tracker = VelocityTracker()
+
+                                animatable.stop()
+                                awaitPointerEventScope {
+                                    horizontalDrag(pointerId) { change ->
+                                        tracker.addPosition(change.uptimeMillis, change.position)
+                                        val horizontalDragOffset =
+                                            animatable.value - change.positionChange().x / itemWidth
+
+                                        Log.i("Check", "offset: $horizontalDragOffset")
+                                        launch {
+                                            val value = horizontalDragOffset.coerceIn(
+                                                0f,
+                                                (times.size - 1).toFloat()
+                                            )
+
+                                            onChangeSelectedIndex(value.toInt())
+                                            animatable.snapTo(value)
+                                        }
+                                        change.consume()
+                                    }
+                                }
+
+                                launch {
+                                    val velocity = tracker.calculateVelocity().x / (times.size - 1)
+                                    val targetValue =
+                                        decay.calculateTargetValue(animatable.value, -velocity)
+                                    val target = targetValue
+                                        .roundToInt()
+                                        .coerceIn(0, times.size - 1)
+                                        .toFloat()
+
+                                    onChangeSelectedIndex(target.toInt())
+                                    animatable.animateTo(
+                                        targetValue = target,
+                                        initialVelocity = velocity
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    Modifier
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        times.forEachIndexed { index, time ->
+            val offsetX = (index - animatable.value) * itemWidth
+
+            TalkTimeItem(
+                modifier = Modifier.graphicsLayer {
+                    translationX = offsetX
+                },
+                time = time,
+                isSelected = currentIndex == index
+            )
+        }
     }
 }
 
