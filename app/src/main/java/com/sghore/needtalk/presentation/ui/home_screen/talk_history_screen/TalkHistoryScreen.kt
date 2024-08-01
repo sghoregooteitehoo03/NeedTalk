@@ -49,13 +49,12 @@ fun TalkHistoryScreen(
     uiState: TalkHistoryUiState,
     onClickTalkHistory: (String) -> Unit
 ) {
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-    ) {
+    Box(modifier = Modifier.fillMaxSize()) {
         val talkHistories = uiState.talkHistory?.collectAsLazyPagingItems()
         talkHistories?.let {
-            val isLoading by remember { derivedStateOf { it.loadState.refresh is LoadState.Loading } }
+            val isLoading by remember(it) {
+                derivedStateOf { it.loadState.refresh is LoadState.Loading }
+            }
             if (!isLoading) {
                 if (it.itemCount == 0) {
                     Column(

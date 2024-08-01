@@ -59,17 +59,21 @@ class TalkHistoryDetailViewModel @Inject constructor(
             viewModelScope.launch {
                 val talkHistory = getTalkHistoryUseCase(talkHistoryId)
 
-                try {
-                    preparePlayer(talkHistory?.recordFile?.path ?: "")
-                    _uiState.update {
-                        it.copy(
-                            talkHistory = talkHistory?.copy(
-                                talkTime = mediaPlayer?.duration?.toLong() ?: 0
+                if (talkHistory?.recordFile?.path != null) {
+                    try {
+                        preparePlayer(talkHistory.recordFile.path ?: "")
+                        _uiState.update {
+                            it.copy(
+                                talkHistory = talkHistory.copy(
+                                    talkTime = mediaPlayer?.duration?.toLong() ?: 0
+                                )
                             )
-                        )
+                        }
+                    } catch (e: IOException) {
+                        e.printStackTrace()
                     }
-                } catch (e: IOException) {
-                    e.printStackTrace()
+                } else {
+                    _uiState.update { it.copy(talkHistory = talkHistory) }
                 }
             }
         }
@@ -178,8 +182,8 @@ class TalkHistoryDetailViewModel @Inject constructor(
         playerJob = null
     }
 
-    fun preparePlayer(recordFilePath: String) {
-        if (mediaPlayer == null) {
+    fun preparePlayer(recordFilePath: String?) {
+        if (mediaPlayer == null && recordFilePath != null) {
             try {// 미디어 플레이어 정의
                 mediaPlayer = MediaPlayer()
                 mediaPlayer?.setDataSource(recordFilePath)

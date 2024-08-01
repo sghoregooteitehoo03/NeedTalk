@@ -139,18 +139,18 @@ fun TalkHistoryDetailScreen(
                         expanded = isExpended,
                         onDismissRequest = { isExpended = false }
                     ) {
-                        DropdownMenuItem(onClick = {
-                            if (uiState.talkHistory?.recordFile != null) {
+                        if (uiState.talkHistory?.recordFile != null) {
+                            DropdownMenuItem(onClick = {
                                 onEvent(TalkHistoryDetailUiEvent.OptionInfo)
-                            }
-                            isExpended = false
-                        }) {
-                            Text(
-                                text = "파일 정보",
-                                style = MaterialTheme.typography.body1.copy(
-                                    color = MaterialTheme.colors.onPrimary
+                                isExpended = false
+                            }) {
+                                Text(
+                                    text = "파일 정보",
+                                    style = MaterialTheme.typography.body1.copy(
+                                        color = MaterialTheme.colors.onPrimary
+                                    )
                                 )
-                            )
+                            }
                         }
                         DropdownMenuItem(onClick = {
                             onEvent(TalkHistoryDetailUiEvent.OptionRenameTitle)
@@ -189,52 +189,54 @@ fun TalkHistoryDetailScreen(
             }
         }
 
-        if (uiState.talkHistory?.recordAmplitude?.isNotEmpty() == true) {
-            AudioRecordTime(
-                modifier = Modifier.constrainAs(subMidLayout) {
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(midLayout.top, 12.dp)
-                },
-                maxRecordTime = talkHistory?.talkTime ?: 0L,
-                currentRecordTime = uiState.playerTime
-            )
+        if (uiState.talkHistory?.recordFile != null) {
+            if (uiState.talkHistory.recordAmplitude.isNotEmpty()) {
+                AudioRecordTime(
+                    modifier = Modifier.constrainAs(subMidLayout) {
+                        start.linkTo(parent.start)
+                        end.linkTo(parent.end)
+                        bottom.linkTo(midLayout.top, 12.dp)
+                    },
+                    maxRecordTime = talkHistory?.talkTime ?: 0L,
+                    currentRecordTime = uiState.playerTime
+                )
 
-            AudioRecordPlayer(
-                modifier = Modifier
-                    .constrainAs(midLayout) {
-                        top.linkTo(parent.top)
+                AudioRecordPlayer(
+                    modifier = Modifier
+                        .constrainAs(midLayout) {
+                            top.linkTo(parent.top)
+                            start.linkTo(parent.start)
+                            end.linkTo(parent.end)
+                            bottom.linkTo(parent.bottom)
+                        },
+                    currentRecordTime = uiState.playerTime,
+                    maxRecordTime = uiState.talkHistory.talkTime,
+                    recordWaveForm = uiState.talkHistory.recordAmplitude,
+                    isPlaying = uiState.isPlaying,
+                    isJumping = uiState.isJumping,
+                    onChangeTime = {
+                        onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
+                    },
+                    onSeeking = {
+                        onEvent(TalkHistoryDetailUiEvent.SeekPlayer(it))
+                    }
+                )
+
+                AudioRecordButtons(
+                    modifier = Modifier.constrainAs(bottomLayout) {
+                        top.linkTo(midLayout.bottom)
                         start.linkTo(parent.start)
                         end.linkTo(parent.end)
                         bottom.linkTo(parent.bottom)
                     },
-                currentRecordTime = uiState.playerTime,
-                maxRecordTime = uiState.talkHistory.talkTime,
-                recordWaveForm = uiState.talkHistory.recordAmplitude,
-                isPlaying = uiState.isPlaying,
-                isJumping = uiState.isJumping,
-                onChangeTime = {
-                    onEvent(TalkHistoryDetailUiEvent.ChangeTime(it))
-                },
-                onSeeking = {
-                    onEvent(TalkHistoryDetailUiEvent.SeekPlayer(it))
-                }
-            )
-
-            AudioRecordButtons(
-                modifier = Modifier.constrainAs(bottomLayout) {
-                    top.linkTo(midLayout.bottom)
-                    start.linkTo(parent.start)
-                    end.linkTo(parent.end)
-                    bottom.linkTo(parent.bottom)
-                },
-                isPlaying = uiState.isPlaying,
-                onClickBeforeSecond = { onEvent(TalkHistoryDetailUiEvent.ClickBeforeSecond) },
-                onClickAfterSecond = { onEvent(TalkHistoryDetailUiEvent.ClickAfterSecond) },
-                onClickPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) },
-                onClickClipList = { onEvent(TalkHistoryDetailUiEvent.ClickClips) },
-                onClickMakeClip = { onEvent(TalkHistoryDetailUiEvent.ClickMakeClip) }
-            )
+                    isPlaying = uiState.isPlaying,
+                    onClickBeforeSecond = { onEvent(TalkHistoryDetailUiEvent.ClickBeforeSecond) },
+                    onClickAfterSecond = { onEvent(TalkHistoryDetailUiEvent.ClickAfterSecond) },
+                    onClickPlay = { onEvent(TalkHistoryDetailUiEvent.ClickPlayOrPause(it)) },
+                    onClickClipList = { onEvent(TalkHistoryDetailUiEvent.ClickClips) },
+                    onClickMakeClip = { onEvent(TalkHistoryDetailUiEvent.ClickMakeClip) }
+                )
+            }
         }
     }
 }
@@ -555,7 +557,8 @@ fun FileInfoDialog(
                     modifier = Modifier
                         .size(20.dp)
                         .clip(CircleShape)
-                        .align(Alignment.CenterEnd),
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
                     painter = painterResource(id = R.drawable.ic_close),
                     contentDescription = "Close",
                     tint = MaterialTheme.colors.onPrimary
