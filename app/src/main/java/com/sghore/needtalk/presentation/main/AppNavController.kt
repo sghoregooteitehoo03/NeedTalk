@@ -44,7 +44,11 @@ fun AppNavHost(
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.EmptyScreen.route
+        startDestination = UiScreen.EmptyScreen.route,
+        enterTransition = { fadeIn(tween(200)) },
+        popEnterTransition = { fadeIn(tween(200)) },
+        exitTransition = { fadeOut(tween(200)) },
+        popExitTransition = { fadeOut(tween(200)) }
     ) {
         composable(UiScreen.EmptyScreen.route) {
             EmptyRoute(

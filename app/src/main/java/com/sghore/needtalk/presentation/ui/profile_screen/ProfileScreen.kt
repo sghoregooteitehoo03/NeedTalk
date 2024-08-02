@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,7 +41,7 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onEvent: (ProfileUiEvent) -> Unit
 ) {
-    Column(modifier = Modifier.fillMaxWidth()) {
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .padding(start = 14.dp, end = 14.dp)

@@ -31,7 +31,7 @@ import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
 
 @Composable
 fun PermissionScreen(onClickConfirm: () -> Unit) {
-    Column {
+    Column(modifier = Modifier.fillMaxSize()) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()

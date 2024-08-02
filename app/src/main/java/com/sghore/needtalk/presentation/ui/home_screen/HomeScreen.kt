@@ -1,6 +1,8 @@
 package com.sghore.needtalk.presentation.ui.home_screen
 
-import androidx.compose.foundation.Image
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -45,7 +47,6 @@ import androidx.navigation.compose.rememberNavController
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
-import com.sghore.needtalk.domain.model.TalkHistory
 import com.sghore.needtalk.presentation.main.GlobalViewModel
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
@@ -53,8 +54,6 @@ import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
 import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
-import com.sghore.needtalk.presentation.ui.theme.Orange50
-import kotlinx.serialization.json.Json
 
 @Composable
 fun HomeScreen(
@@ -199,7 +198,11 @@ fun HomeScreen(
         NavHost(
             modifier = Modifier.padding(it),
             navController = navController,
-            startDestination = UiScreen.TalkHistoryScreen.route
+            startDestination = UiScreen.TalkHistoryScreen.route,
+            enterTransition = { fadeIn(tween(200)) },
+            popEnterTransition = { fadeIn(tween(200)) },
+            exitTransition = { fadeOut(tween(200)) },
+            popExitTransition = { fadeOut(tween(200)) }
         ) {
             composable(UiScreen.TalkHistoryScreen.route) {
                 TalkHistoryRoute(

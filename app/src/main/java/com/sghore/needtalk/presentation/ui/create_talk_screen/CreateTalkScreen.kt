@@ -69,7 +69,11 @@ fun CreateTalkScreen(
     onEvent: (CreateTalkUiEvent) -> Unit
 ) {
     if (!uiState.isLoading) {
-        Column(modifier = Modifier.background(MaterialTheme.colors.secondary)) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(MaterialTheme.colors.secondary)
+        ) {
             val times = remember { (5..120 step 5).toList() }
             var currentIndex by remember {
                 mutableIntStateOf(times.indexOf((uiState.talkTime / 60000).toInt()))

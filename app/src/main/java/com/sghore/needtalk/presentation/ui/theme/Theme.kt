@@ -30,14 +30,14 @@ fun NeedTalkTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colors = if (darkTheme) {
-        DarkColorPalette
-    } else {
-        LightColorPalette
-    }
+//    val colors = if (darkTheme) {
+//        DarkColorPalette
+//    } else {
+//        LightColorPalette
+//    }
 
     MaterialTheme(
-        colors = colors,
+        colors = LightColorPalette,
         typography = Typography,
         shapes = Shapes,
         content = content
