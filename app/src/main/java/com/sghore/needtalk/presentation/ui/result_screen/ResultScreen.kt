@@ -219,10 +219,13 @@ fun FriendshipResult(
                 )
 
                 getExperiencePoint = if (isOver) {
-                    launch { pointAnim.snapTo(0f) }
-
-                    friendship += 1
-                    getExperiencePoint - Constants.MAX_EXPERIENCE_POINT
+                    if (friendship < Constants.MAX_FRIENDSHIP_POINT) {
+                        launch { pointAnim.snapTo(0f) }
+                        friendship += 1
+                        getExperiencePoint - Constants.MAX_EXPERIENCE_POINT
+                    } else {
+                        0f
+                    }
                 } else {
                     0f
                 }

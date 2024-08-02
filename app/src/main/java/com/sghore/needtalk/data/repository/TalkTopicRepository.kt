@@ -1,6 +1,5 @@
 package com.sghore.needtalk.data.repository
 
-import android.util.Log
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import com.google.firebase.firestore.FirebaseFirestore
@@ -16,7 +15,6 @@ import com.sghore.needtalk.data.repository.datasource.TalkTopicPagingSource
 import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.OrderType
 import com.sghore.needtalk.util.Constants
 import kotlinx.coroutines.tasks.await
-import java.security.MessageDigest
 import javax.inject.Inject
 
 class TalkTopicRepository @Inject constructor(
@@ -52,6 +50,9 @@ class TalkTopicRepository @Inject constructor(
         talkTopicDao.insertGroupSegmentEntity(groupSegmentEntity)
 
     // 모음집 조각 데이터 삭제
+    suspend fun deleteGroupSegmentEntity(topicId: String) =
+        talkTopicDao.deleteGroupSegmentEntity(topicId)
+
     suspend fun deleteGroupSegmentEntity(groupId: Int, talkTopicId: String) =
         talkTopicDao.deleteGroupSegmentEntity(groupId, talkTopicId)
 
@@ -159,38 +160,5 @@ class TalkTopicRepository @Inject constructor(
     // 오프라인 대화주제 삭제
     suspend fun deleteTalkTopicEntity(talkTopicId: String) {
         talkTopicDao.deleteTalkTopicEntity(talkTopicId)
-    }
-
-    // TODO: 나중에 지울것
-    fun setData() {
-        val uid = ""
-        val time = System.currentTimeMillis()
-
-        val input = uid + time
-        val bytes = MessageDigest
-            .getInstance("SHA-256")
-            .digest(input.toByteArray())
-        val id = bytes.joinToString("") { "%02x".format(it) }
-
-        val data = TalkTopicDoc(
-            id = id,
-            uid = "",
-            topic = "인생에 대한 목표가 무엇인가요?",
-            uploaded = true,
-            categoryCode1 = 5,
-            categoryCode2 = -1,
-            categoryCode3 = -1,
-            createdTime = time
-        )
-
-        firestore.collection(Constants.COLLECTION_TALK_TOPIC)
-            .document(id)
-            .set(data)
-            .addOnSuccessListener {
-                Log.i("Check", "Success")
-            }
-            .addOnFailureListener {
-                Log.i("Check", "Fail: ${it.printStackTrace()}")
-            }
     }
 }

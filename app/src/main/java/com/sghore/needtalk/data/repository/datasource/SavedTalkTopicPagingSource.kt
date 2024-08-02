@@ -21,7 +21,6 @@ class SavedTalkTopicPagingSource(
         return null
     }
 
-    // TODO: 데이터 추가 후 다시 테스트 해보기
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, TalkTopic> {
         return try {
             val offset = params.key ?: 0

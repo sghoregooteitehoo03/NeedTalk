@@ -50,6 +50,9 @@ interface TalkTopicDao {
     @Delete
     suspend fun deleteTalkTopicGroupEntity(groupEntity: TalkTopicGroupEntity)
 
+    @Query("DELETE FROM GroupSegmentEntity WHERE :topicId = topicId")
+    suspend fun deleteGroupSegmentEntity(topicId: String)
+
     @Query("DELETE FROM GroupSegmentEntity WHERE :groupId = groupId AND :topicId = topicId")
     suspend fun deleteGroupSegmentEntity(groupId: Int, topicId: String)
 }

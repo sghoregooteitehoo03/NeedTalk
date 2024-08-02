@@ -5,8 +5,7 @@ import com.sghore.needtalk.domain.model.TalkTopic
 import javax.inject.Inject
 
 class DeleteTalkTopicUseCase @Inject constructor(
-    private val talkTopicRepository: TalkTopicRepository,
-    private val crGroupSegmentUseCase: CRGroupSegmentUseCase
+    private val talkTopicRepository: TalkTopicRepository
 ) {
 
     suspend operator fun invoke(talkTopic: TalkTopic) {
@@ -17,11 +16,6 @@ class DeleteTalkTopicUseCase @Inject constructor(
         }
 
         // 내가 제작한 대화주제 모음집에서 삭제
-        crGroupSegmentUseCase(
-            groupId = 0,
-            topicId = talkTopic.topicId,
-            isPublic = talkTopic.isPublic,
-            isRemove = true
-        )
+        talkTopicRepository.deleteGroupSegmentEntity(talkTopic.topicId)
     }
 }
