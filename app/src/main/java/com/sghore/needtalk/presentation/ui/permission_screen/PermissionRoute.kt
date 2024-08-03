@@ -23,7 +23,9 @@ fun PermissionRoute(
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false ||
                 result[Manifest.permission.POST_NOTIFICATIONS] == false ||
-                result[Manifest.permission.NEARBY_WIFI_DEVICES] == false
+                result[Manifest.permission.NEARBY_WIFI_DEVICES] == false ||
+                result[Manifest.permission.POST_NOTIFICATIONS] == false ||
+                result[Manifest.permission.RECORD_AUDIO] == false
             ) {
                 Toast.makeText(context, "권한을 모두 허용해주세요.", Toast.LENGTH_SHORT)
                     .show()
@@ -31,8 +33,10 @@ fun PermissionRoute(
             } else {
                 navigateOtherScreen()
             }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false) {
+        } else {
+            if (result[Manifest.permission.ACCESS_COARSE_LOCATION] == false ||
+                result[Manifest.permission.RECORD_AUDIO] == false
+            ) {
                 Toast.makeText(context, "권한을 모두 허용해주세요.", Toast.LENGTH_SHORT)
                     .show()
             } else {

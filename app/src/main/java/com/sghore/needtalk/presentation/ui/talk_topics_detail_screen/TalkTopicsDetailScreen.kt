@@ -58,6 +58,7 @@ import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TalkTopic
 import com.sghore.needtalk.domain.model.TalkTopicGroup
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.DialogScreen
 import com.sghore.needtalk.presentation.ui.SimpleInputDialog
@@ -123,122 +124,131 @@ fun TalkTopicsScreen(
             )
         }
         Spacer(modifier = Modifier.height(14.dp))
-        if (isLoading) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = MaterialTheme.colors.onPrimary)
-            }
-        } else {
-            talkTopics?.let {
-                if (it.itemCount == 0) {
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "대화주제가 없습니다.",
-                            style = MaterialTheme.typography.h4.copy(
-                                color = MaterialTheme.colors.onPrimary,
-                                fontWeight = FontWeight.Bold
+        Box(modifier = Modifier.fillMaxSize()) {
+            if (isLoading) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator(color = MaterialTheme.colors.onPrimary)
+                }
+            } else {
+                talkTopics?.let {
+                    if (it.itemCount == 0) {
+                        Column(
+                            modifier = Modifier.fillMaxSize(),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "대화주제가 없습니다.",
+                                style = MaterialTheme.typography.h4.copy(
+                                    color = MaterialTheme.colors.onPrimary,
+                                    fontWeight = FontWeight.Bold
+                                )
                             )
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "다양한 대화주제들을 추가해보세요!",
-                            style = MaterialTheme.typography.h5.copy(
-                                color = colorResource(id = R.color.gray)
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "다양한 대화주제들을 추가해보세요!",
+                                style = MaterialTheme.typography.h5.copy(
+                                    color = colorResource(id = R.color.gray)
+                                )
                             )
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(14.dp),
-                        state = listState
-                    ) {
-                        if (uiState.talkTopicsDetailType is TalkTopicsDetailType.CategoryType) {
-                            item {
-                                Column(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalAlignment = Alignment.End
-                                ) {
-                                    ListFilter(
-                                        orderType = uiState.orderType,
-                                        onSelectOrderType = {
-                                            onEvent(TalkTopicsDetailUiEvent.SelectOrderType(it))
+                        }
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .align(Alignment.TopCenter)
+                                .padding(14.dp),
+                            state = listState
+                        ) {
+                            if (uiState.talkTopicsDetailType is TalkTopicsDetailType.CategoryType) {
+                                item {
+                                    Column(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalAlignment = Alignment.End
+                                    ) {
+                                        ListFilter(
+                                            orderType = uiState.orderType,
+                                            onSelectOrderType = {
+                                                onEvent(TalkTopicsDetailUiEvent.SelectOrderType(it))
+                                            }
+                                        )
+                                        Spacer(modifier = Modifier.height(10.dp))
+                                    }
+                                }
+                            }
+
+                            items(it.itemCount) { index ->
+                                val talkTopic = it[index]!!
+                                if (talkTopic.isUpload || !talkTopic.isPublic) {
+                                    val favoriteHistory = uiState.favoriteHistory[talkTopic.topicId]
+                                    val favoriteCounts =
+                                        if (favoriteHistory == null) {
+                                            FavoriteCounts(
+                                                talkTopic.isFavorite,
+                                                talkTopic.favoriteCount
+                                            )
+                                        } else {
+                                            FavoriteCounts(
+                                                favoriteHistory.isFavorite,
+                                                favoriteHistory.count
+                                            )
+                                        }
+
+                                    TalkTopicItem(
+                                        talkTopic = talkTopic,
+                                        userId = userData?.userId ?: "",
+                                        favoriteCounts = favoriteCounts,
+                                        onFavoriteClick = { topicId, _favoriteCounts ->
+                                            onEvent(
+                                                TalkTopicsDetailUiEvent.ClickFavorite(
+                                                    topicId = topicId,
+                                                    favoriteCounts = _favoriteCounts
+                                                )
+                                            )
+                                        },
+                                        onSaveClick = { _talkTopic ->
+                                            onEvent(
+                                                TalkTopicsDetailUiEvent.ClickBookmark(
+                                                    _talkTopic
+                                                )
+                                            )
+                                        },
+                                        onRemoveClick = { _talkTopic ->
+                                            onEvent(
+                                                TalkTopicsDetailUiEvent.ClickRemove(
+                                                    _talkTopic,
+                                                    listState.firstVisibleItemIndex,
+                                                    listState.firstVisibleItemScrollOffset
+                                                )
+                                            )
                                         }
                                     )
-                                    Spacer(modifier = Modifier.height(10.dp))
+                                } else {
+                                    TalkTopicItem(
+                                        modifier = Modifier.alpha(0.6f),
+                                        talkTopic = talkTopic,
+                                        userId = userData?.userId ?: "",
+                                        favoriteCounts = FavoriteCounts(false, 0),
+                                        onFavoriteClick = { _, _ -> },
+                                        onSaveClick = { }
+                                    )
+                                }
+
+                                if (index == it.itemCount - 1) {
+                                    Spacer(modifier = Modifier.height(42.dp))
+                                } else {
+                                    Spacer(modifier = Modifier.height(24.dp))
                                 }
                             }
                         }
-
-                        items(it.itemCount) { index ->
-                            val talkTopic = it[index]!!
-                            if (talkTopic.isUpload || !talkTopic.isPublic) {
-                                val favoriteHistory = uiState.favoriteHistory[talkTopic.topicId]
-                                val favoriteCounts =
-                                    if (favoriteHistory == null) {
-                                        FavoriteCounts(
-                                            talkTopic.isFavorite,
-                                            talkTopic.favoriteCount
-                                        )
-                                    } else {
-                                        FavoriteCounts(
-                                            favoriteHistory.isFavorite,
-                                            favoriteHistory.count
-                                        )
-                                    }
-
-                                TalkTopicItem(
-                                    talkTopic = talkTopic,
-                                    userId = userData?.userId ?: "",
-                                    favoriteCounts = favoriteCounts,
-                                    onFavoriteClick = { topicId, _favoriteCounts ->
-                                        onEvent(
-                                            TalkTopicsDetailUiEvent.ClickFavorite(
-                                                topicId = topicId,
-                                                favoriteCounts = _favoriteCounts
-                                            )
-                                        )
-                                    },
-                                    onSaveClick = { _talkTopic ->
-                                        onEvent(
-                                            TalkTopicsDetailUiEvent.ClickBookmark(
-                                                _talkTopic
-                                            )
-                                        )
-                                    },
-                                    onRemoveClick = { _talkTopic ->
-                                        onEvent(
-                                            TalkTopicsDetailUiEvent.ClickRemove(
-                                                _talkTopic,
-                                                listState.firstVisibleItemIndex,
-                                                listState.firstVisibleItemScrollOffset
-                                            )
-                                        )
-                                    }
-                                )
-                            } else {
-                                TalkTopicItem(
-                                    modifier = Modifier.alpha(0.6f),
-                                    talkTopic = talkTopic,
-                                    userId = userData?.userId ?: "",
-                                    favoriteCounts = FavoriteCounts(false, 0),
-                                    onFavoriteClick = { _, _ -> },
-                                    onSaveClick = { }
-                                )
-                            }
-                            Spacer(modifier = Modifier.height(24.dp))
-                        }
                     }
-                }
 
+                }
             }
+            AdmobBanner(modifier = Modifier.align(Alignment.BottomCenter))
         }
     }
 }

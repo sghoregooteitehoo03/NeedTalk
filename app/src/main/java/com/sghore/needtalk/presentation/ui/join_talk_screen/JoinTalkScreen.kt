@@ -55,6 +55,7 @@ import androidx.constraintlayout.compose.ConstraintLayout
 import androidx.constraintlayout.compose.Dimension
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.TimerInfo
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.DefaultButton
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
@@ -109,10 +110,6 @@ fun JoinTalkScreen(
             }
         }
 
-//        AdmobBanner(modifier = Modifier.constrainAs(adview) {
-//            bottom.linkTo(parent.bottom)
-//        })
-
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -144,6 +141,7 @@ fun JoinTalkScreen(
                             )
                         )
                     }
+                    AdmobBanner(modifier = Modifier.align(Alignment.BottomCenter))
                 }
 
                 is SearchNearDevice.Load -> {

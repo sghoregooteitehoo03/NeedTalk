@@ -221,7 +221,6 @@ fun FriendInfoItem(
             modifier = Modifier.constrainAs(info) {
                 top.linkTo(parent.top)
                 start.linkTo(profileImage.end, margin = 16.dp)
-                end.linkTo(remove.start, margin = 16.dp)
                 width = Dimension.fillToConstraints
             }
         ) {

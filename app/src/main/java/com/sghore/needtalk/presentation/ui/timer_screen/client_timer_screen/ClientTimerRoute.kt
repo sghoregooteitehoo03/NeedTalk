@@ -142,6 +142,8 @@ fun ClientTimerRoute(
         onDispose = {
             // 서비스 중지
             service?.stopForegroundService()
+            service = null
+
             stopService(context = context, connection = connection)
         }
     )
@@ -190,8 +192,6 @@ fun ClientTimerRoute(
                                         }
                                     }
                                 )
-
-                                service = null
                             }
                         }
 

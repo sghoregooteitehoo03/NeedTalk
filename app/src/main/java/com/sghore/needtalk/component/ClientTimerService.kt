@@ -233,9 +233,6 @@ class ClientTimerService : LifecycleService() {
                 .setContentText("인원이 모일 때 가지 잠시 기다려주세요.")
 
         acquireWakeLock() // WakeLock 설정
-        if (mediaRecorder != null) {
-            cancelAmplitudeJob() // 마이크 높낮이 수집 X
-        }
         ServiceCompat.startForeground( // 포그라운드 서비스 시작
             this,
             Constants.NOTIFICATION_ID_TIMER,
@@ -255,9 +252,6 @@ class ClientTimerService : LifecycleService() {
             baseNotification = null
 
             releaseWakeLock()
-            if (mediaRecorder != null) {
-                startAmplitudeJob()
-            }
             ServiceCompat.stopForeground(this, ServiceCompat.STOP_FOREGROUND_REMOVE)
         }
     }

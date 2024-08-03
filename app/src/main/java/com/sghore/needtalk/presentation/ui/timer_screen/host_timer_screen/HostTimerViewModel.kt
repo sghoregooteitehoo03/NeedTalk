@@ -54,6 +54,7 @@ class HostTimerViewModel @Inject constructor(
             val timerCmInfo =
                 Json.decodeFromString(TimerCommunicateInfo.serializer(), timerCmInfoJson)
 
+            savedStateHandle.remove<String>("timerCmInfo")
             _uiState.update {
                 it.copy(timerCommunicateInfo = timerCmInfo)
             }

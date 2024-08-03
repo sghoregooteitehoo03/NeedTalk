@@ -50,6 +50,7 @@ class ClientTimerViewModel @Inject constructor(
     init {
         val hostEndpointId = savedStateHandle.get<String>("hostEndpointId")
 
+        savedStateHandle.remove<String>("hostEndpointId")
         if (hostEndpointId != null) {
             _uiState.update { it.copy(hostEndpointId = hostEndpointId) }
         }

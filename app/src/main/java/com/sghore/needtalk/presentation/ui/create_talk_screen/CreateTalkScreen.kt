@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalFoundationApi::class, ExperimentalFoundationApi::class)
-
 package com.sghore.needtalk.presentation.ui.create_talk_screen
 
 import android.annotation.SuppressLint
@@ -7,7 +5,6 @@ import android.util.Log
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.calculateTargetValue
 import androidx.compose.animation.splineBasedDecay
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -32,7 +29,6 @@ import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +52,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sghore.needtalk.R
 import com.sghore.needtalk.domain.model.UserData
+import com.sghore.needtalk.presentation.ui.AdmobBanner
 import com.sghore.needtalk.presentation.ui.EmptyTalkUserInfo
 import com.sghore.needtalk.presentation.ui.TalkUserInfo
 import kotlinx.coroutines.coroutineScope
@@ -127,7 +124,7 @@ fun CreateTalkScreen(
                     onChangeSelectedIndex = { currentIndex = it }
                 )
             }
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .fillMaxHeight()
@@ -137,19 +134,26 @@ fun CreateTalkScreen(
                     )
                     .padding(10.dp)
             ) {
-                TalkOptionsLayout(
-                    isTimer = uiState.isTimer,
-                    isAllowMic = uiState.isMicAllow,
-                    onClickAllowTimer = { onEvent(CreateTalkUiEvent.ClickAllowTimer(it)) },
-                    onClickAllowMic = { onEvent(CreateTalkUiEvent.ClickAllowMic(it)) }
-                )
-                Spacer(modifier = Modifier.height(32.dp))
-                SetPeopleCountLayout(
-                    userData = userData,
-                    numberOfPeople = uiState.numberOfPeople,
-                    onClickDecrease = { onEvent(CreateTalkUiEvent.ClickDecreasePeople) },
-                    onClickIncrease = { onEvent(CreateTalkUiEvent.ClickIncreasePeople) }
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter)
+                ) {
+                    TalkOptionsLayout(
+                        isTimer = uiState.isTimer,
+                        isAllowMic = uiState.isMicAllow,
+                        onClickAllowTimer = { onEvent(CreateTalkUiEvent.ClickAllowTimer(it)) },
+                        onClickAllowMic = { onEvent(CreateTalkUiEvent.ClickAllowMic(it)) }
+                    )
+                    Spacer(modifier = Modifier.height(32.dp))
+                    SetPeopleCountLayout(
+                        userData = userData,
+                        numberOfPeople = uiState.numberOfPeople,
+                        onClickDecrease = { onEvent(CreateTalkUiEvent.ClickDecreasePeople) },
+                        onClickIncrease = { onEvent(CreateTalkUiEvent.ClickIncreasePeople) }
+                    )
+                }
+                AdmobBanner(modifier = Modifier.align(Alignment.BottomCenter))
             }
         }
     }
