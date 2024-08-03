@@ -1,21 +1,83 @@
 package com.sghore.needtalk.presentation.ui
 
-sealed class UiScreen(val route: String) {
-    data object HomeScreen : UiScreen(route = "Home")
-    data object CreateScreen : UiScreen(route = "Create")
+import com.sghore.needtalk.R
+import com.sghore.needtalk.domain.model.TalkHighlight
+import com.sghore.needtalk.domain.model.TalkTopic
+import com.sghore.needtalk.domain.model.TalkTopicGroup
+import com.sghore.needtalk.domain.model.UserData
+
+sealed class UiScreen(
+    val route: String,
+    val bottomName: String = "",
+    val bottomIcon: Int = -1,
+) {
+    data object Nothing : UiScreen(route = "")
+
+    data object EmptyScreen : UiScreen(route = "EmptyScreen")
+
+    data object PermissionScreen : UiScreen(route = "PermissionScreen")
+
+    data object StartScreen : UiScreen(route = "StartScreen")
+
+    data object CreateProfileScreen : UiScreen(route = "CreateProfileScreen")
+
+    data object HomeScreen : UiScreen(route = "HomeScreen")
+
+    data object TalkHistoryScreen : UiScreen(
+        route = "TalkHistoryScreen",
+        bottomName = "대화 기록",
+        bottomIcon = R.drawable.ic_talk_history
+    )
+
+    data object TalkTopicsScreen : UiScreen(
+        route = "TalkTopicsScreen",
+        bottomName = "대화 주제",
+        bottomIcon = R.drawable.ic_talk_topic
+    )
+
+    data object TalkHistoryDetailScreen : UiScreen(route = "TalkHistoryDetailScreen")
+
+    data object AddHighlightScreen : UiScreen(route = "AddHighlightScreen")
+
+    data object ProfileScreen : UiScreen(route = "ProfileScreen")
+
+    data object AddTalkTopicScreen : UiScreen(route = "AddTalkTopicScreen")
+
+    data object TalkTopicsDetailScreen : UiScreen(route = "TalkTopicsDetailScreen")
+
+    data object GroupsDetailScreen : UiScreen(route = "GroupsDetailScreen")
+
+    data object CreateTalkScreen : UiScreen(route = "CreateTalkScreen")
+
+    data object JoinTalkScreen : UiScreen(route = "JoinTalkScreen")
+
     data object HostTimerScreen : UiScreen(route = "HostTimer")
+
     data object ClientTimerScreen : UiScreen(route = "ClientTimer")
-    data object JoinScreen : UiScreen(route = "Join")
-    data object StaticsScreen : UiScreen(route = "StaticsScreen")
+
+    data object ResultScreen : UiScreen("ResultScreen")
 }
 
 sealed interface DialogScreen {
     data object DialogDismiss : DialogScreen
-    data object DialogSetName : DialogScreen
 
-    data class DialogTalkTopics(val topicCategory: String, val groupCode: Int) : DialogScreen
+    data object DialogStart : DialogScreen
 
-    data object DialogAddTopic : DialogScreen
+    data class DialogSaveTopic(val talkTopic: TalkTopic) : DialogScreen
+
+    data class DialogAddOrEditGroup(val group: TalkTopicGroup? = null) : DialogScreen
+
+    data class DialogRemoveGroup(val group: TalkTopicGroup) : DialogScreen
+
+    data class DialogRemoveTalkTopic(
+        val talkTopic: TalkTopic,
+        val firstVisibleItemIndex: Int,
+        val firstVisibleItemScrollOffset: Int
+    ) : DialogScreen
+
+    data class DialogRemoveFriend(val friend: UserData) : DialogScreen
+
+    data object DialogPinnedTalkTopic : DialogScreen
 
     data class DialogWarning(
         val message: String,
@@ -24,4 +86,14 @@ sealed interface DialogScreen {
     ) : DialogScreen
 
     data object DialogTimerReady : DialogScreen
+
+    data object DialogFileInfo : DialogScreen
+
+    data object DialogRenameTitle : DialogScreen
+
+    data object DialogRemoveTalkHistory : DialogScreen
+
+    data object DialogTalkHighlight : DialogScreen
+
+    data class DialogRemoveTalkHighlight(val talkHighlight: TalkHighlight) : DialogScreen
 }

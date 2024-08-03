@@ -1,516 +1,347 @@
 package com.sghore.needtalk.presentation.ui.home_screen
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material.Divider
-import androidx.compose.material.FloatingActionButton
+import androidx.compose.material.BottomNavigation
+import androidx.compose.material.BottomNavigationItem
 import androidx.compose.material.Icon
 import androidx.compose.material.MaterialTheme
+import androidx.compose.material.Scaffold
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.constraintlayout.compose.ConstraintLayout
-import androidx.paging.LoadState
-import androidx.paging.compose.collectAsLazyPagingItems
+import androidx.navigation.NavDestination.Companion.hierarchy
+import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
-import com.sghore.needtalk.data.model.entity.UserEntity
-import com.sghore.needtalk.domain.model.TalkHistory
-import com.sghore.needtalk.presentation.ui.NameTag
-import com.sghore.needtalk.presentation.ui.RoundedButton
-import com.sghore.needtalk.presentation.ui.TopBar
-import com.sghore.needtalk.presentation.ui.theme.Blue
-import com.sghore.needtalk.presentation.ui.theme.Green
-import com.sghore.needtalk.presentation.ui.theme.NeedTalkTheme
-import com.sghore.needtalk.presentation.ui.theme.Purple
-import java.text.SimpleDateFormat
-import java.util.Locale
+import com.sghore.needtalk.presentation.main.GlobalViewModel
+import com.sghore.needtalk.presentation.ui.DialogScreen
+import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
+import com.sghore.needtalk.presentation.ui.ProfileImage
+import com.sghore.needtalk.presentation.ui.UiScreen
+import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
+import com.sghore.needtalk.presentation.ui.home_screen.talk_topics_screen.TalkTopicsRoute
 
 @Composable
 fun HomeScreen(
-    uiState: HomeUiState,
-    onEvent: (HomeUiEvent) -> Unit
+    gViewModel: GlobalViewModel,
+    navigateToOther: (route: String) -> Unit
 ) {
-    ConstraintLayout(modifier = Modifier.fillMaxSize()) {
-        val (layoutRef, subLayoutRef, startCloseBtnRef, createBtnRef,
-            joinBtnRef, createExplainRef, joinExplainRef) = createRefs()
+    val navController = rememberNavController()
+    val userData = gViewModel.getUserData()!!
+    var dialogScreen by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
+    val systemUiController = rememberSystemUiController()
+    val statusbarColor = MaterialTheme.colors.background
+    val context = LocalContext.current
 
-        Column(modifier = Modifier
-            .fillMaxSize()
-            .constrainAs(layoutRef) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            }) {
-            val pagingItems = uiState.talkHistory?.collectAsLazyPagingItems()
-            val user = uiState.user ?: UserEntity("", "", 0)
+    DisposableEffectWithLifeCycle(
+        onCreate = {
+            systemUiController.setStatusBarColor(
+                color = statusbarColor,
+                darkIcons = true
+            )
+        },
+        onDispose = {}
+    )
 
-            TopBar(
+    Scaffold(
+        topBar = {
+            Row(
                 modifier = Modifier
+                    .padding(start = 14.dp, end = 14.dp)
                     .fillMaxWidth()
-                    .height(54.dp)
-                    .padding(start = 14.dp, end = 14.dp),
-                content = { modifier ->
-
-                    NameTag(
-                        modifier = modifier.clickable {
-                            onEvent(HomeUiEvent.ClickNameTag)
-                        },
-                        name = user.name,
-                        color = Color(user.color),
-                        interval = 6.dp,
-                        colorSize = 16.dp,
-                        textStyle = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold),
-                        isBorder = true
+                    .height(56.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    modifier = Modifier.clickable { navigateToOther(UiScreen.ProfileScreen.route) },
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ProfileImage(
+                        backgroundSize = 32.dp,
+                        imageSize = 24.dp,
+                        profileImage = userData.profileImage
                     )
-                },
-                actions = { modifier ->
-                    Icon(
-                        modifier = modifier
-                            .clip(CircleShape)
-                            .size(24.dp)
-                            .clickable { onEvent(HomeUiEvent.ClickStatics) },
-                        painter = painterResource(id = R.drawable.ic_graph),
-                        contentDescription = "Graph",
-                        tint = MaterialTheme.colors.onPrimary
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = userData.name,
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
                     )
                 }
-            )
-            pagingItems?.let { talkHistory ->
-                val isLoading by derivedStateOf { pagingItems.loadState.refresh is LoadState.Loading }
+            }
+        },
+        bottomBar = {
+            val backStack by navController.currentBackStackEntryAsState()
+            val currentDestination = backStack?.destination
+            val bottomScreenList = remember {
+                listOf(UiScreen.TalkHistoryScreen, UiScreen.Nothing, UiScreen.TalkTopicsScreen)
+            }
+            val width = LocalConfiguration.current
+                .screenWidthDp
+                .minus(80)
+                .div(2)
+                .dp
 
-                if (!isLoading) {
-                    if (talkHistory.itemCount == 0) {
-                        TalkHistoryNotExist(modifier = Modifier.fillMaxSize())
-                    } else {
-                        LazyColumn {
-                            items(talkHistory.itemCount) { index ->
-                                TalkHistoryItem(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    owner = user,
-                                    talkHistory = talkHistory[index]
+            BottomNavigation {
+                bottomScreenList.forEach { screen ->
+                    if (screen == UiScreen.Nothing) {
+                        Box(
+                            modifier = Modifier
+                                .height(56.dp)
+                                .width(80.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        color = MaterialTheme.colors.secondary,
+                                        shape = CircleShape
+                                    )
+                                    .clickable { dialogScreen = DialogScreen.DialogStart },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = R.drawable.ic_add),
+                                    contentDescription = "Add",
+                                    tint = MaterialTheme.colors.onSecondary
                                 )
                             }
                         }
+                    } else {
+                        val selected =
+                            currentDestination?.hierarchy?.any { it.route == screen.route } == true
+
+                        BottomNavigationItem(
+                            modifier = Modifier.width(width),
+                            selected = selected,
+                            label = {
+                                Text(
+                                    text = screen.bottomName,
+                                    style = MaterialTheme.typography.subtitle1.copy(
+                                        color = if (selected) {
+                                            MaterialTheme.colors.secondary
+                                        } else {
+                                            colorResource(id = R.color.gray)
+                                        },
+                                        fontWeight = if (selected) {
+                                            FontWeight.Bold
+                                        } else {
+                                            FontWeight.Medium
+                                        }
+                                    )
+                                )
+                            },
+                            onClick = {
+                                navController.navigate(screen.route) {
+                                    popUpTo(navController.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    launchSingleTop = true
+                                    restoreState = true
+                                }
+                            },
+                            icon = {
+                                Icon(
+                                    modifier = Modifier.size(24.dp),
+                                    painter = painterResource(id = screen.bottomIcon),
+                                    contentDescription = screen.route,
+                                    tint = if (selected) {
+                                        MaterialTheme.colors.secondary
+                                    } else {
+                                        colorResource(id = R.color.gray)
+                                    }
+                                )
+                            })
                     }
                 }
             }
         }
-        ButtonBackground(
-            modifier = Modifier.constrainAs(subLayoutRef) {
-                top.linkTo(parent.top)
-                start.linkTo(parent.start)
-                end.linkTo(parent.end)
-                bottom.linkTo(parent.bottom)
-            },
-            isStart = uiState.isStart,
-            onClick = {
-                onEvent(HomeUiEvent.ClickStartAndClose(false))
-            })
-
-        if (uiState.isStart) {
-            val alphaAnimatable1 = remember { Animatable(0f) }
-            val alphaAnimatable2 = remember { Animatable(0f) }
-
-            LaunchedEffect(true) {
-                alphaAnimatable1.animateTo(1f, tween(100))
-                alphaAnimatable2.animateTo(1f, tween(100))
-            }
-
-            FloatingActionButton(
-                modifier = Modifier
-                    .alpha(alphaAnimatable1.value)
-                    .size(40.dp)
-                    .constrainAs(createBtnRef) {
-                        start.linkTo(startCloseBtnRef.start)
-                        end.linkTo(parent.end, margin = 14.dp)
-                        bottom.linkTo(startCloseBtnRef.top, margin = 12.dp)
-                    },
-                onClick = { onEvent(HomeUiEvent.ClickCreate) }
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = R.drawable.ic_add_timer),
-                    contentDescription = "AddTimer"
-                )
-            }
-            RoundedButton(
-                modifier = Modifier
-                    .alpha(alphaAnimatable1.value)
-                    .constrainAs(createExplainRef) {
-                        top.linkTo(createBtnRef.top)
-                        end.linkTo(createBtnRef.start, margin = 8.dp)
-                        bottom.linkTo(createBtnRef.bottom)
-                    },
-                text = "생성하기",
-                color = MaterialTheme.colors.secondary,
-                textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
-                paddingValues = PaddingValues(
-                    start = 14.dp,
-                    end = 14.dp,
-                    top = 6.dp,
-                    bottom = 6.dp
-                ),
-                onClick = { onEvent(HomeUiEvent.ClickCreate) }
-            )
-            FloatingActionButton(
-                modifier = Modifier
-                    .alpha(alphaAnimatable2.value)
-                    .size(40.dp)
-                    .constrainAs(joinBtnRef) {
-                        start.linkTo(startCloseBtnRef.start)
-                        end.linkTo(parent.end, margin = 14.dp)
-                        bottom.linkTo(createBtnRef.top, margin = 12.dp)
-                    },
-                onClick = { onEvent(HomeUiEvent.ClickJoin) }
-            ) {
-                Icon(
-                    modifier = Modifier.size(24.dp),
-                    painter = painterResource(id = R.drawable.ic_join),
-                    contentDescription = "Join"
-                )
-            }
-            RoundedButton(
-                modifier = Modifier
-                    .alpha(alphaAnimatable2.value)
-                    .constrainAs(joinExplainRef) {
-                        top.linkTo(joinBtnRef.top)
-                        end.linkTo(joinBtnRef.start, margin = 8.dp)
-                        bottom.linkTo(joinBtnRef.bottom)
-                    },
-                text = "참가하기",
-                color = MaterialTheme.colors.secondary,
-                textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
-                paddingValues = PaddingValues(
-                    start = 14.dp,
-                    end = 14.dp,
-                    top = 6.dp,
-                    bottom = 6.dp
-                ),
-                onClick = {})
-        }
-
-        JoinOrCloseFloatingButton(
-            modifier = Modifier
-                .constrainAs(startCloseBtnRef) {
-                    end.linkTo(parent.end, margin = 14.dp)
-                    bottom.linkTo(parent.bottom, margin = 14.dp)
-                },
-            text = "시작하기",
-            isExpanded = !uiState.isStart,
-            onClick = { onEvent(HomeUiEvent.ClickStartAndClose(true)) }
-        )
-    }
-}
-
-@Composable
-fun TalkHistoryItem(
-    modifier: Modifier = Modifier,
-    owner: UserEntity,
-    talkHistory: TalkHistory?
-) {
-    Column {
-        Column(
-            modifier = modifier,
-            horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        NavHost(
+            modifier = Modifier.padding(it),
+            navController = navController,
+            startDestination = UiScreen.TalkHistoryScreen.route,
+            enterTransition = { fadeIn(tween(200)) },
+            popEnterTransition = { fadeIn(tween(200)) },
+            exitTransition = { fadeOut(tween(200)) },
+            popExitTransition = { fadeOut(tween(200)) }
         ) {
-            Text(
-                text = SimpleDateFormat(
-                    "yyyy년 M월 d일 (E)",
-                    Locale.KOREA
-                ).format(talkHistory?.createTimeStamp ?: 0L),
-                style = MaterialTheme.typography.subtitle1.copy(color = colorResource(id = R.color.gray))
+            composable(UiScreen.TalkHistoryScreen.route) {
+                TalkHistoryRoute(
+                    navigateToTalkHistoryDetail = { talkHistoryId ->
+                        navigateToOther(
+                            UiScreen.TalkHistoryDetailScreen.route +
+                                    "?talkHistoryId=${talkHistoryId}"
+                        )
+                    }
+                )
+            }
+
+            composable(route = UiScreen.TalkTopicsScreen.route) {
+                TalkTopicsRoute(
+                    userData = gViewModel.getUserData(),
+                    navigateToOther = navigateToOther
+                )
+            }
+        }
+    }
+
+    when (dialogScreen) {
+        is DialogScreen.DialogStart -> {
+            StartDialog(
+                modifier = Modifier
+                    .background(
+                        color = MaterialTheme.colors.background,
+                        shape = RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)
+                    )
+                    .padding(14.dp),
+                onDismiss = { dialogScreen = DialogScreen.DialogDismiss },
+                onClickCreate = {
+                    navigateToOther(UiScreen.CreateTalkScreen.route)
+                },
+                onClickJoin = {
+                    navigateToOther(
+                        UiScreen.JoinTalkScreen.route +
+                                "?packageName=${context.packageName}"
+                    )
+                }
             )
-            Spacer(modifier = Modifier.height(14.dp))
-            Text(
-                text = SimpleDateFormat(
-                    "HH:mm:ss",
-                    Locale.KOREA
-                ).format(talkHistory?.talkTime?.minus(32400000)),
-                style = MaterialTheme.typography.h2
-            )
-            Text(
-                text = "대화에 집중 한 시간",
-                style = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onPrimary.copy(
-                        alpha = 0.6f
+        }
+
+        else -> {}
+    }
+}
+
+@Composable
+fun StartDialog(
+    modifier: Modifier = Modifier,
+    onDismiss: () -> Unit,
+    onClickCreate: () -> Unit,
+    onClickJoin: () -> Unit
+) {
+    BottomSheetDialog(onDismissRequest = onDismiss) {
+        Column(modifier = modifier) {
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Text(
+                    modifier = Modifier.align(Alignment.Center),
+                    text = "시작하기",
+                    style = MaterialTheme.typography.h5.copy(
+                        color = MaterialTheme.colors.onPrimary,
+                        fontWeight = FontWeight.Bold
                     )
                 )
-            )
-            Spacer(modifier = Modifier.height(28.dp))
-            Row {
-                repeat(talkHistory?.users?.size ?: 0) { index ->
-                    val user = talkHistory?.users?.get(index)
-
-                    Spacer(modifier = Modifier.width(8.dp))
-                    NameTag(
-                        name = user?.name ?: "",
-                        color = Color(user?.color ?: 0),
-                        interval = 4.dp,
-                        colorSize = 10.dp,
-                        textStyle = if (owner.userId == (user?.userId ?: "")) {
-                            MaterialTheme.typography.body1.copy(fontWeight = FontWeight.Bold)
-                        } else {
-                            MaterialTheme.typography.body1
+                Icon(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .align(Alignment.CenterEnd)
+                        .clickable { onDismiss() },
+                    painter = painterResource(id = R.drawable.ic_close),
+                    contentDescription = "Close"
+                )
+            }
+            Spacer(modifier = Modifier.height(16.dp))
+            Row(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .shadow(2.dp, MaterialTheme.shapes.medium)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .fillMaxWidth(0.5f)
+                        .clickable {
+                            onDismiss()
+                            onClickCreate()
                         }
+                        .padding(top = 20.dp, bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(48.dp),
+                        painter = painterResource(id = R.drawable.ic_create),
+                        contentDescription = "CreateTalk"
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "대화방 생성",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    )
+                }
+                Spacer(modifier = Modifier.width(10.dp))
+                Column(
+                    modifier = Modifier
+                        .shadow(2.dp, MaterialTheme.shapes.medium)
+                        .clip(MaterialTheme.shapes.medium)
+                        .background(
+                            color = MaterialTheme.colors.background,
+                            shape = MaterialTheme.shapes.medium
+                        )
+                        .fillMaxWidth()
+                        .clickable {
+                            onDismiss()
+                            onClickJoin()
+                        }
+                        .padding(top = 20.dp, bottom = 20.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        modifier = Modifier.size(48.dp),
+                        painter = painterResource(id = R.drawable.ic_join),
+                        contentDescription = "JoinTalk"
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "대화방 참가",
+                        style = MaterialTheme.typography.h5.copy(
+                            color = MaterialTheme.colors.onPrimary
+                        )
+                    )
                 }
             }
         }
-
-        Divider(color = colorResource(id = R.color.light_gray), thickness = 2.dp)
-    }
-}
-
-@Composable
-fun SetName(
-    modifier: Modifier,
-    userName: String,
-    onCloseClick: () -> Unit,
-    onEditClick: (String) -> Unit
-) {
-    var name by remember { mutableStateOf(userName) }
-
-    Column(modifier = modifier) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            Text(
-                text = "닉네임 설정",
-                style = MaterialTheme.typography.h5.copy(fontWeight = FontWeight.Bold)
-            )
-            Icon(
-                modifier = Modifier
-                    .size(20.dp)
-                    .clip(CircleShape)
-                    .clickable { onCloseClick() }
-                    .align(Alignment.CenterEnd),
-                painter = painterResource(id = R.drawable.ic_close),
-                contentDescription = "Close",
-                tint = MaterialTheme.colors.onPrimary
-            )
-        }
-        Spacer(modifier = Modifier.height(12.dp))
-        TextField(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(4.dp),
-            value = name,
-            onValueChange = {
-                if (it.length <= 6) {
-                    name = it
-                }
-            },
-            placeholder = {
-                Text(text = "닉네임 입력")
-            },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-            maxLines = 1,
-            colors = TextFieldDefaults.textFieldColors(
-                backgroundColor = colorResource(id = R.color.light_gray),
-                focusedIndicatorColor = Color.Transparent,
-                unfocusedIndicatorColor = Color.Transparent,
-                cursorColor = MaterialTheme.colors.onPrimary
-            )
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = "닉네임은 최대 6글자까지 설정 가능합니다.",
-            style = MaterialTheme.typography.subtitle2.copy(color = colorResource(id = R.color.gray))
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        RoundedButton(
-            modifier = Modifier.fillMaxWidth(),
-            text = "수정하기",
-            color = MaterialTheme.colors.secondary,
-            textStyle = MaterialTheme.typography.body1.copy(color = MaterialTheme.colors.onSecondary),
-            paddingValues = PaddingValues(14.dp),
-            enable = name.isNotEmpty() && name != userName,
-            onClick = { onEditClick(name) }
-        )
-    }
-}
-
-@Composable
-fun TalkHistoryNotExist(modifier: Modifier = Modifier) {
-    Column(
-        modifier = modifier,
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            modifier = Modifier.size(160.dp),
-            painter = painterResource(id = R.drawable.ic_talk),
-            contentDescription = "",
-            tint = colorResource(id = R.color.gray)
-        )
-        Spacer(modifier = Modifier.height(28.dp))
-        Text(
-            text = "대화에 집중한 기록이 없습니다.",
-            style = MaterialTheme.typography.h3.copy(
-                fontSize = 24.sp,
-                color = colorResource(id = R.color.gray)
-            )
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "인원들과 대화를 시작하는것이 어떨까요?",
-            style = MaterialTheme.typography.h5.copy(
-                color = colorResource(id = R.color.gray)
-            )
-        )
-    }
-}
-
-@Composable
-fun JoinOrCloseFloatingButton(
-    modifier: Modifier = Modifier,
-    text: String,
-    isExpanded: Boolean,
-    onClick: () -> Unit
-) {
-    val rotateState by animateFloatAsState(
-        targetValue = if (isExpanded) 0f else 45f,
-        animationSpec = tween(200), label = ""
-    )
-    val widthState by animateFloatAsState(
-        targetValue = if (isExpanded) 120.dp.value else 48.dp.value,
-        animationSpec = tween(200), label = ""
-    )
-
-    Row(
-        modifier = modifier
-            .clip(CircleShape)
-            .background(color = MaterialTheme.colors.secondary, shape = CircleShape)
-            .height(48.dp)
-            .width(widthState.dp)
-            .clickable { onClick() },
-        horizontalArrangement = Arrangement.Center,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            modifier = Modifier
-                .size(24.dp)
-                .rotate(rotateState),
-            painter = painterResource(id = R.drawable.ic_add),
-            contentDescription = "Add",
-            tint = MaterialTheme.colors.onSecondary
-        )
-        if (isExpanded) {
-            Spacer(modifier = Modifier.width(14.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.body1.copy(
-                    color = MaterialTheme.colors.onSecondary
-                )
-            )
-        }
-    }
-}
-
-@Composable
-fun ButtonBackground(
-    modifier: Modifier = Modifier,
-    isStart: Boolean,
-    onClick: () -> Unit
-) {
-    val alphaState by animateFloatAsState(
-        targetValue = if (isStart) 1f else 0f,
-        animationSpec = tween(200), label = ""
-    )
-
-    Box(
-        modifier = modifier
-            .alpha(alphaState)
-            .then(if (isStart) {
-                Modifier
-                    .fillMaxSize()
-                    .background(color = Color.Black.copy(alpha = 0.4f))
-                    .pointerInput(Unit) {
-                        onClick()
-                    }
-            } else {
-                Modifier.size(0.dp)
-            })
-    )
-}
-
-@Preview
-@Composable
-fun TalkHistoryItemPreview() {
-    val owner = UserEntity("asdf", "김수한무", color = Purple.toArgb())
-    val testData = TalkHistory(
-        talkTime = (3600000L),
-        users = listOf(
-            owner,
-            UserEntity("bdsc", "거북이", color = Blue.toArgb()),
-            UserEntity("hsef", "두루미", color = Green.toArgb())
-        ),
-        createTimeStamp = System.currentTimeMillis()
-    )
-    NeedTalkTheme {
-        TalkHistoryItem(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            owner = owner,
-            talkHistory = testData
-        )
-    }
-}
-
-@Preview
-@Composable
-fun SetNamePreview() {
-    NeedTalkTheme {
-        SetName(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            userName = "닉네임",
-            onCloseClick = {},
-            onEditClick = {}
-        )
     }
 }

@@ -1,14 +1,13 @@
 package com.sghore.needtalk.presentation.ui.timer_screen
 
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.DialogScreen
 
 data class TimerUiState(
-    val userEntity: UserEntity? = null,
     val timerCommunicateInfo: TimerCommunicateInfo = TimerCommunicateInfo(),
     val hostEndpointId: String = "",
     val talkTopic: String = "",
-    val isFlip: Boolean = false,
+    val amplitudeValue: Int = 0,
+    val isFlip: Boolean = false, // 한번만 동작되게 하기 위한 변수
     val dialogScreen: DialogScreen = DialogScreen.DialogDismiss,
 )

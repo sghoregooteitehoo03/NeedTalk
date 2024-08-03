@@ -1,9 +1,14 @@
 package com.sghore.needtalk.domain.model
 
-import com.sghore.needtalk.data.model.entity.UserEntity
+import java.io.File
 
 data class TalkHistory(
+    val id: String,
+    val talkTitle: String,
     val talkTime: Long,
-    val users: List<UserEntity?>,
+    val recordFile: File?,
+    val recordAmplitude: List<Int>,
+    val users: List<UserData>,
+    val clipCount: Int,
     val createTimeStamp: Long
 )

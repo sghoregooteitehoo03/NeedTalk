@@ -1,6 +1,5 @@
 package com.sghore.needtalk.domain.model
 
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -9,7 +8,8 @@ data class TimerCommunicateInfo(
     val participantInfoList: List<ParticipantInfo?> = listOf(),
     val currentTime: Long = -1L,
     val maxTime: Long = -1L,
-    val isStopWatch: Boolean = false,
+    val isTimer: Boolean = false,
+    val isAllowMic: Boolean = false,
     val maxMember: Int = -1,
     val pinnedTalkTopic: PinnedTalkTopic? = null,
     val timerActionState: TimerActionState = TimerActionState.TimerWaiting

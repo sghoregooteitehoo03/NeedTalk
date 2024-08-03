@@ -7,93 +7,235 @@ import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.sghore.needtalk.data.model.entity.UserEntity
 import com.sghore.needtalk.domain.model.TimerCommunicateInfo
 import com.sghore.needtalk.presentation.ui.UiScreen
-import com.sghore.needtalk.presentation.ui.create_screen.CreateRoute
-import com.sghore.needtalk.presentation.ui.home_screen.HomeRoute
-import com.sghore.needtalk.presentation.ui.join_screen.JoinRoute
-import com.sghore.needtalk.presentation.ui.statics_screen.StaticsRoute
+import com.sghore.needtalk.presentation.ui.add_highlight_screen.AddHighlightRoute
+import com.sghore.needtalk.presentation.ui.add_talktopic_screen.AddTalkTopicRoute
+import com.sghore.needtalk.presentation.ui.create_profile_screen.CreateProfileRoute
+import com.sghore.needtalk.presentation.ui.create_talk_screen.CreateTalkRoute
+import com.sghore.needtalk.presentation.ui.empty_screen.EmptyRoute
+import com.sghore.needtalk.presentation.ui.groups_detail_screen.GroupsDetailRoute
+import com.sghore.needtalk.presentation.ui.home_screen.HomeScreen
+import com.sghore.needtalk.presentation.ui.join_talk_screen.JoinTalkRoute
+import com.sghore.needtalk.presentation.ui.permission_screen.PermissionRoute
+import com.sghore.needtalk.presentation.ui.profile_screen.ProfileRoute
+import com.sghore.needtalk.presentation.ui.result_screen.ResultRoute
+import com.sghore.needtalk.presentation.ui.start_screen.StartRoute
+import com.sghore.needtalk.presentation.ui.talk_topics_detail_screen.TalkTopicsDetailRoute
+import com.sghore.needtalk.presentation.ui.talkhistory_detail_screen.TalkHistoryDetailRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.client_timer_screen.ClientTimerRoute
 import com.sghore.needtalk.presentation.ui.timer_screen.host_timer_screen.HostTimerRoute
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 @Composable
 fun AppNavHost(
     modifier: Modifier,
     gViewModel: GlobalViewModel,
     navController: NavHostController,
-    showSnackBar: suspend (String) -> Unit
+    showSnackBar: suspend (String) -> Unit,
+    onShareIntent: (String) -> Unit
 ) {
-    val context = LocalContext.current
-
     NavHost(
         modifier = modifier,
         navController = navController,
-        startDestination = UiScreen.HomeScreen.route,
-        enterTransition = { enterTransition() },
-        exitTransition = { exitTransition() },
-        popEnterTransition = { popEnterTransition() },
-        popExitTransition = { popExitTransition() }
+        startDestination = UiScreen.EmptyScreen.route,
+        enterTransition = { fadeIn(tween(200)) },
+        popEnterTransition = { fadeIn(tween(200)) },
+        exitTransition = { fadeOut(tween(200)) },
+        popExitTransition = { fadeOut(tween(200)) }
     ) {
-        composable(UiScreen.HomeScreen.route) {
-            HomeRoute(
-                isRefresh = gViewModel.getIsRefresh(),
-                setRefresh = gViewModel::setIsRefresh,
-                navigateToStaticsScreen = {
-                    navigateToStaticsScreen(navController, gViewModel.getUserEntity())
+        composable(UiScreen.EmptyScreen.route) {
+            EmptyRoute(
+                onUpdateUserData = {
+                    gViewModel.setUserData(it)
                 },
-                navigateToCreateScreen = {
-                    navigateToCreateScreen(navController, gViewModel.getUserEntity())
-                },
-                navigateToJoinScreen = {
-                    navigateToJoinScreen(
-                        navController,
-                        gViewModel.getUserEntity(),
-                        context.packageName
-                    )
-                },
-                updateUserEntity = { userEntity -> gViewModel.setUserEntity(userEntity) }
+                navigateOtherScreen = { route ->
+                    navController.navigate(route) {
+                        popUpTo(UiScreen.EmptyScreen.route) { inclusive = true }
+                    }
+                }
             )
         }
+        composable(UiScreen.PermissionScreen.route) {
+            PermissionRoute(navigateOtherScreen = {
+                navController.navigate(
+                    if (gViewModel.getUserData() != null) {
+                        UiScreen.HomeScreen.route
+                    } else {
+                        UiScreen.StartScreen.route
+                    }
+                ) {
+                    popUpTo(UiScreen.EmptyScreen.route) { inclusive = true }
+                }
+            })
+        }
+
+        composable(UiScreen.StartScreen.route) {
+            StartRoute(navigateToCreateProfile = {
+                navController.navigate(
+                    UiScreen.CreateProfileScreen.route +
+                            "?userId=${null}"
+                )
+            })
+        }
+
         composable(
-            route = UiScreen.CreateScreen.route + "?userEntity={userEntity}",
+            UiScreen.CreateProfileScreen.route +
+                    "?userId={userId}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType }
+                navArgument("userId") {
+                    type = NavType.StringType
+                    nullable = true
+                },
             )
         ) {
-            CreateRoute(
+            CreateProfileRoute(
+                onUpdateUserData = { userData, isCreated ->
+                    gViewModel.setUserData(userData)
+                    if (isCreated) {
+                        navController.navigate(UiScreen.HomeScreen.route) {
+                            popUpTo(0) { inclusive = true } // 모든 백스택 제거
+                        }
+                    } else {
+                        navController.navigateUp()
+                    }
+                }
+            )
+        }
+
+        composable(route = UiScreen.HomeScreen.route) {
+            HomeScreen(
+                gViewModel = gViewModel,
+                navigateToOther = {
+                    navController.navigate(route = it)
+                }
+            )
+        }
+
+        composable(
+            route = UiScreen.TalkHistoryDetailScreen.route +
+                    "?talkHistoryId={talkHistoryId}",
+            arguments = listOf(
+                navArgument("talkHistoryId") {
+                    type = NavType.StringType
+                }
+            )
+        ) {
+            TalkHistoryDetailRoute(
+                navigateUp = navController::navigateUp,
+                navigateToAddHighlightScreen = { talkHistory ->
+                    val id = talkHistory?.id ?: ""
+                    val recordFilePath = talkHistory?.recordFile?.path ?: ""
+                    val recordAmplitude = talkHistory
+                        ?.recordAmplitude
+                        ?.chunked(10)
+                        ?.map { it.max() }
+                        ?: emptyList()
+                    val recordAmplitudeJson = Json.encodeToJsonElement(recordAmplitude)
+
+                    navController.navigate(
+                        UiScreen.AddHighlightScreen.route +
+                                "?talkHistoryId=${id}&recordFilePath=${recordFilePath}&recordAmplitude=${recordAmplitudeJson}"
+                    )
+                },
+                onShareIntent = onShareIntent
+            )
+        }
+
+        composable(
+            route = UiScreen.AddHighlightScreen.route +
+                    "?talkHistoryId={talkHistoryId}&recordFilePath={recordFilePath}&recordAmplitude={recordAmplitude}",
+            arguments = listOf(
+                navArgument("talkHistoryId") {
+                    type = NavType.StringType
+                },
+                navArgument("recordFilePath") {
+                    type = NavType.StringType
+                },
+                navArgument("recordAmplitude") {
+                    type = NavType.StringType
+                },
+            )
+        ) {
+            AddHighlightRoute(
+                showSnackBar = showSnackBar,
+                navigateUp = navController::navigateUp
+            )
+        }
+
+        composable(route = UiScreen.ProfileScreen.route) {
+            ProfileRoute(
+                userData = gViewModel.getUserData(),
+                navigateUp = navController::navigateUp,
+                navigateToCreateProfile = {
+                    navController.navigate(
+                        UiScreen.CreateProfileScreen.route +
+                                "?userId=${gViewModel.getUserData()?.userId}"
+                    )
+                }
+            )
+        }
+
+        composable(route = UiScreen.AddTalkTopicScreen.route) {
+            AddTalkTopicRoute(
+                userData = gViewModel.getUserData(),
+                navigateBack = { navController.navigateUp() }
+            )
+        }
+
+        composable(
+            route = UiScreen.TalkTopicsDetailScreen.route +
+                    "?type={type}",
+            arguments = listOf(
+                navArgument("type") { type = NavType.StringType },
+            )
+        ) {
+            TalkTopicsDetailRoute(
+                userData = gViewModel.getUserData(),
+                navigateUp = { navController.navigateUp() }
+            )
+        }
+
+        composable(route = UiScreen.GroupsDetailScreen.route) {
+            GroupsDetailRoute(
+                userData = gViewModel.getUserData(),
+                navigateUp = navController::navigateUp,
+                navigateToTalkTopicsDetailScreen = { navController.navigate(it) }
+            )
+        }
+
+        composable(route = UiScreen.CreateTalkScreen.route) {
+            CreateTalkRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
                 navigateToTimer = { timerCmInfo ->
                     navigateToHostTimerScreen(
                         navController = navController,
-                        userEntity = gViewModel.getUserEntity(),
                         timerCmInfo = timerCmInfo
                     )
                 }
             )
         }
         composable(
-            route = UiScreen.JoinScreen.route +
-                    "?userEntity={userEntity}&packageName={packageName}",
+            route = UiScreen.JoinTalkScreen.route +
+                    "?packageName={packageName}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
-                navArgument("packageName") { type = NavType.StringType }
+                navArgument("packageName") { type = NavType.StringType },
             )
         ) {
-            JoinRoute(
+            JoinTalkRoute(
+                userData = gViewModel.getUserData(),
                 navigateUp = navController::navigateUp,
-                navigateToTimerScreen = { timerInfo ->
+                navigateToTimerScreen = { hostEndpointId ->
                     navigateToClientTimerScreen(
                         navController = navController,
-                        userEntity = gViewModel.getUserEntity(),
-                        hostEndpointId = timerInfo.hostEndpointId
+                        hostEndpointId = hostEndpointId
                     )
                 },
                 showSnackBar = showSnackBar
@@ -101,110 +243,82 @@ fun AppNavHost(
         }
         composable(
             route = UiScreen.HostTimerScreen.route +
-                    "?userEntity={userEntity}&timerCmInfo={timerCmInfo}",
+                    "?timerCmInfo={timerCmInfo}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
                 navArgument("timerCmInfo") { type = NavType.StringType }
             )
         ) {
             HostTimerRoute(
-                navigateUp = {
-                    gViewModel.setIsRefresh(true)
-                    navigateToHome(navController)
+                userData = gViewModel.getUserData(),
+                navigateUp = { navigateToHome(navController) },
+                navigateResultScreen = {
+                    navController.navigate(
+                        route = it,
+                        builder = {
+                            popUpTo(UiScreen.HomeScreen.route) {
+                                inclusive = false
+                            }
+                        })
                 },
                 showSnackBar = showSnackBar
             )
         }
         composable(
             route = UiScreen.ClientTimerScreen.route +
-                    "?userEntity={userEntity}&hostEndpointId={hostEndpointId}",
+                    "?hostEndpointId={hostEndpointId}",
             arguments = listOf(
-                navArgument("userEntity") { type = NavType.StringType },
                 navArgument("hostEndpointId") { type = NavType.StringType }
             )
         ) {
             ClientTimerRoute(
-                navigateUp = {
-                    gViewModel.setIsRefresh(true)
-                    navigateToHome(navController)
-                }
+                userData = gViewModel.getUserData(),
+                navigateUp = { navigateToHome(navController) },
+                navigateResultScreen = {
+                    navController.navigate(
+                        route = it,
+                        builder = {
+                            popUpTo(UiScreen.HomeScreen.route) {
+                                inclusive = false
+                            }
+                        })
+                },
             )
         }
         composable(
-            route = UiScreen.StaticsScreen.route + "?userEntity={userEntity}",
-            arguments = listOf(navArgument("userEntity") { type = NavType.StringType })
+            route = UiScreen.ResultScreen.route +
+                    "?talkResult={talkResult}",
+            arguments = listOf(navArgument("talkResult") { type = NavType.StringType })
         ) {
-            StaticsRoute(
-                navigateUp = navController::navigateUp
-            )
+            ResultRoute(navigateUp = navController::navigateUp)
         }
     }
 }
 
-private fun navigateToStaticsScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(UiScreen.StaticsScreen.route + "?userEntity=${userEntityJson}")
-    }
-}
-
-private fun navigateToCreateScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(UiScreen.CreateScreen.route + "?userEntity=${userEntityJson}")
-    }
-}
-
-private fun navigateToJoinScreen(
-    navController: NavHostController,
-    userEntity: UserEntity?,
-    packageName: String
-) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        navController.navigate(
-            UiScreen.JoinScreen.route +
-                    "?&userEntity=${userEntityJson}&packageName=${packageName}"
-        )
-    }
+@Composable
+fun EmptyScreen() {
 }
 
 private fun navigateToHostTimerScreen(
     navController: NavHostController,
-    userEntity: UserEntity?,
     timerCmInfo: TimerCommunicateInfo
 ) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-        val timerCmInfoJson = Json.encodeToString(TimerCommunicateInfo.serializer(), timerCmInfo)
-            .replace("&", "%26")
+    val timerCmInfoJson = Json.encodeToString(TimerCommunicateInfo.serializer(), timerCmInfo)
+        .replace("&", "%26")
 
-        navController.navigate(
-            UiScreen.HostTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&timerCmInfo=${timerCmInfoJson}"
-        )
-    }
+    navController.navigate(
+        UiScreen.HostTimerScreen.route +
+                "?timerCmInfo=${timerCmInfoJson}"
+    )
 }
 
 private fun navigateToClientTimerScreen(
     navController: NavHostController,
-    userEntity: UserEntity?,
     hostEndpointId: String
 ) {
-    if (userEntity != null) {
-        val userEntityJson = Json.encodeToString(UserEntity.serializer(), userEntity)
-
-        navController.navigate(
-            UiScreen.ClientTimerScreen.route +
-                    "?&userEntity=${userEntityJson}&hostEndpointId=${hostEndpointId}"
-        )
-    }
+    navController.navigate(
+        UiScreen.ClientTimerScreen.route +
+                "?hostEndpointId=${hostEndpointId}"
+    )
 }
 
 private fun navigateToHome(navController: NavHostController) {

@@ -5,47 +5,49 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import com.sghore.needtalk.data.model.entity.TalkEntity
-import com.sghore.needtalk.data.model.entity.TalkTopicEntity
-import com.sghore.needtalk.data.model.entity.TimerSettingEntity
-import com.sghore.needtalk.data.model.entity.UserEntity
+import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryEntity
+import com.sghore.needtalk.data.model.entity.TalkHistoryParticipantEntity
+import com.sghore.needtalk.data.model.entity.TalkSettingEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TalkDao {
-    @Query("SELECT * FROM UserEntity WHERE userId == :userId")
-    fun getUserEntity(userId: String): Flow<UserEntity?>
+
+    @Query("SELECT * FROM TalkHistoryEntity WHERE id == :id")
+    fun getTalkHistory(id: String): Flow<TalkHistoryEntity?>
+
+    @Query("SELECT * FROM TalkHistoryEntity ORDER BY createTimeStamp DESC LIMIT :limit OFFSET :offset")
+    fun getTalkHistoryEntities(offset: Int, limit: Int = 20): Flow<List<TalkHistoryEntity>>
+
+    @Query("SELECT * FROM TalkHistoryParticipantEntity WHERE talkHistoryId == :talkId")
+    fun getTalkHistoryParticipantEntities(talkId: String): Flow<List<TalkHistoryParticipantEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertUserEntity(userEntity: UserEntity)
-
-    @Query(
-        "SELECT * " +
-                "FROM TalkEntity " +
-                "ORDER BY createTimeStamp DESC " +
-                "LIMIT :limit " +
-                "OFFSET :offset"
-    )
-    fun getTalkEntity(offset: Int, limit: Int = 5): Flow<List<TalkEntity>>
-
-    @Query("SELECT * FROM TalkEntity WHERE createTimeStamp BETWEEN :startTime AND :endTime")
-    suspend fun getTalkEntity(startTime: Long, endTime: Long): List<TalkEntity>
+    suspend fun insertTalkHistoryEntity(talkHistoryEntity: TalkHistoryEntity)
 
     @Insert
-    suspend fun insertTalkEntity(talkEntity: TalkEntity)
+    suspend fun insertTalkHistoryParticipantEntity(talkHistoryParticipantEntity: TalkHistoryParticipantEntity)
 
-    @Query("SELECT * FROM TalkTopicEntity WHERE groupCode == :groupCode")
-    fun getTalkTopicEntity(groupCode: Int): Flow<List<TalkTopicEntity>>
+    @Query("DELETE FROM TalkHistoryEntity WHERE id == :id")
+    suspend fun deleteTalkHistoryEntity(id: String)
 
-    @Insert(onConflict = OnConflictStrategy.IGNORE)
-    suspend fun insertTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
+    @Query("DELETE FROM TalkHistoryParticipantEntity WHERE :id == talkHistoryId")
+    suspend fun deleteTalkHistoryParticipantEntities(id: String)
 
-    @Delete
-    suspend fun deleteTalkTopicEntity(talkTopicEntity: TalkTopicEntity)
+    @Query("SELECT * FROM TalkHighlightEntity WHERE talkHistoryId == :talkHistoryId ORDER BY timestamp DESC")
+    fun getTalkHighlightEntities(talkHistoryId: String): Flow<List<TalkHighlightEntity?>>
 
-    @Query("SELECT * FROM TimerSettingEntity")
-    fun getTimerSettingEntity(): Flow<TimerSettingEntity?>
+    @Insert
+    suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity)
+
+    @Query("DELETE FROM TalkHighlightEntity WHERE id == :id")
+    suspend fun deleteTalkHighlightEntity(id: Int?)
+
+
+    @Query("SELECT * FROM TalkSettingEntity")
+    fun getTalkSettingEntity(): Flow<TalkSettingEntity?>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertTimerSettingEntity(timerSettingEntity: TimerSettingEntity)
+    suspend fun insertTalkSettingEntity(talkSettingEntity: TalkSettingEntity)
 }

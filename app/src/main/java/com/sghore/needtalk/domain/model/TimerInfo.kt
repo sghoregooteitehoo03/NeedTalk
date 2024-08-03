@@ -1,11 +1,10 @@
 package com.sghore.needtalk.domain.model
 
-import com.sghore.needtalk.data.model.entity.UserEntity
-
 data class TimerInfo(
-    val hostUser: UserEntity,
+    val participantInfoList: List<ParticipantInfo?>,
     val timerTime: Long,
-    val currentMember: Int,
+    val isAllowMic: Boolean,
     val maxMember: Int,
-    val hostEndpointId: String = ""
+    val hostEndpointId: String = "",
+    val isStart: Boolean = false
 )

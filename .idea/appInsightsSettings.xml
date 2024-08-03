@@ -28,10 +28,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="com.sghore.needtalk" />
+                  <option name="mobileSdkAppId" value="1:998708418503:android:c3449b4d5ee74bb6ffabe2" />
+                  <option name="projectId" value="needtalk" />
+                  <option name="projectNumber" value="998708418503" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />
