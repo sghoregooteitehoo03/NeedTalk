@@ -1,27 +1,37 @@
-## 스니커즈 어시스턴트
-![그래픽 이미지](https://github.com/sghoregooteitehoo03/NikeDrawAlarm/blob/master/image/graphic_image.png)
+## 대화가 필요해
+![그래픽 이미지](https://github.com/sghoregooteitehoo03/NeedTalk/blob/main/image/%E1%84%80%E1%85%B3%E1%84%85%E1%85%A2%E1%84%91%E1%85%B5%E1%86%A8%E1%84%8B%E1%85%B5%E1%84%86%E1%85%B5%E1%84%8C%E1%85%B5.png)
 
-스니커즈의 정보들을 손쉽게 얻을 수 있도록 도와드리겠습니다.
+### 가족, 친구, 애인 모두 휴대폰은 잠시 내려놓고, 직접 만든 대화주제들을 통해 서로간의 대화에만 집중 해보세요!
 
-**스니커즈 어시스턴트**는 사용자들에게 필요한 스니커즈 정보만을 제공하여 원하는 제품에 대한 정보를 편리하게 얻을 수 있도록 도움을 드립니다.  
-뿐만 아니라, 알림 기능을 통해 제품 출시에 대한 소식도 놓치지 않도록 지원하고 있습니다. 이제 더욱 편리하고 즐거운 스니커즈 탐험을 시작해보세요!
+  
+대화 중 휴대폰만 바라보는 사람들 때문에 기분 나쁘셨던 경험이 있을까요??  
+휴대폰에서 잠시 벗어나 소중한 사람들과 함께하는 순간을 더욱 특별하게 만들어드립니다.  
+가족, 친구, 애인과 함께 휴대폰은 잠시 내려놓고 
+소중한 이들과 오롯이 대화에만 집중해보세요!
+
+다양한 카테고리의 기본 대화주제들이 기다리고 있어요.
+직접 제작한 대화주제들을 이용하여 더욱 즐거운 대화를 해보아요.
 
 ## 다운로드
-<a href='https://play.google.com/store/apps/details?id=com.nikealarm.nikedrawalarm&hl=ko-KR&pcampaignid=pcampaignidMKT-Other-global-all-co-prtnr-py-PartBadge-Mar2515-1'><img alt='다운로드하기 Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' height="80"/></a>
+<a href='https://play.google.com/store/apps/details?id=com.sghore.needtalk'><img alt='다운로드하기 Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' height="80"/></a>
 
 ## 기능
-- **카테고리 기능**  
-다양한 스니커즈 목록을 카테고리로 나눠 원하는 제품을 손쉽게 찾아보세요.
+- **대화 기록**  
+기록된 대화내역을 통해 다른 이들과 얼마나 대화에 집중하였는지,  
+대화 중 놓쳤던 부분을 확인하거나 다시 그 순간을 즐길 수 있습니다.  
+소중한 순간을 기록해보세요.  
+  
+- **하이라이트 제작**  
+녹음 된 대화내용 중 하이라이트를 제작하여 다른 이들과 공유해보세요!
 
-- **UPCOMING 기능**  
-앞으로 출시될 스니커즈들의 일정을 미리 확인하세요.
+- **다양한 대화주제**  
+본인만의 대화 주제를 제작할 수 있을 뿐만 아니라 다른 유저들이 만든 다양한 대화주제가 제공되고 있습니다.  
+어떤 엉뚱한 질문이나 진지한 이야기든 상관없습니다.  
+대화의 세계를 더욱 풍부하게 만들어보세요.
 
-- **제품 알림 기능**  
-곧 출시 예정인 제품에 대한 알림을 설정하여 제품 출시 소식을 신속하게 받아보세요.
-
-- **DRAW 신제품 출시 알림 기능**  
-응모 확인의 번거로움을 덜어드릴게요.
-새로운 응모 제품이 나올 때 푸시 알림으로 알려드립니다.
+- **타이머/스톱워치 기능**  
+대화에 참여한 사용자 모두가 휴대폰을 내려놓으면 실행되는 타이머로  
+설정한 시간 동안 서로에게 집중할 수 있게 도와드립니다.
 
 ## 스크린샷
 ![스크린샷](https://github.com/sghoregooteitehoo03/NikeDrawAlarm/blob/master/image/screenshot.png)
