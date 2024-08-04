@@ -43,19 +43,24 @@
      
 - Jetpack
   - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
-  - WorkManager: 안정적인 백그라운드 작업을 처리하도록 도와줍니다.
   - Paging3: 로컬 데이터베이스나 네트워크에서 가져온 데이터를 페이징하여 데이터를 처리합니다.
   - Navigation: 화면 구성 및 화면전환에 관련된 다양한 기능을 제공합니다.
-  - Browser: 앱 내에서 외부 브라우저를 호출하거나 웹뷰를 제공합니다.
-  - Room: SQL 기능을 이용하여 데이터베이스를 이용합니다.
-  - Datastore: 키-값 유형의 데이터를 읽고 저장하는 데이터 저장소입니다.
+  - Room: SQL 기능을 이용하여 앱 내 데이터베이스를 이용합니다.
   - Compose: 기존의 XML레이아웃을 이용하지 않고, Kotlin 코드를 통해 UI 화면을 제작합니다.
   - [Hilt](https://dagger.dev/hilt/): 의존성 주입을 통해 보일러플레이트 코드를 줄여줍니다.
-    
+
+- Firebase
+  - Firestore: NoSql 기반의 클라우드 데이터베이스를 이용할 수 있는 기능을 제공합니다.
+
 - [Retrofit](https://github.com/square/retrofit): Android 및 Java를 위한 HTTP 클라이언트입니다.
 
-- [Coil](https://github.com/coil-kt/coil), [Picasso](https://github.com/square/picasso): 네트워크로부터 이미지를 로드합니다.
+- [Coil](https://github.com/coil-kt/coil): 네트워크로부터 이미지를 로드합니다.
+
+- [Nearby](https://developers.google.com/nearby?hl=ko): 블루투스, Wi-Fi, IP, 등을 통해 근처 기기와 통신하는것을 도와줍니다.
+
+- [ffmpeg-kti](https://github.com/arthenica/ffmpeg-kit): Android에서 ffmpeg 라이브러리를 이용할 수 있도록합니다.
+
+- kotlinx.serialization: JSON 인코딩 디코딩을 도와주는 라이브러리입니다.
 
 - Custom Views
-  - [compose-collapsing-toolbar](https://github.com/onebone/compose-collapsing-toolbar): Jetapck Compose용 Collapsing Toolbar를 제공합니다.
-  - [compose-shimmer](https://github.com/valentinilk/compose-shimmer): Jetpack Compose에 shimmer 효과를 제공합니다.
+  - [bottomsheetdialog-compose](https://github.com/workspace/bottomsheetdialog-compose): Jetpack Compose용 Bottom Sheet Dialog를 제공합니다.
