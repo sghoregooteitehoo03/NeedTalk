@@ -34,7 +34,7 @@
 설정한 시간 동안 서로에게 집중할 수 있게 도와드립니다.
 
 ## 스크린샷
-![스크린샷](https://github.com/sghoregooteitehoo03/NikeDrawAlarm/blob/master/image/screenshot.png)
+![스크린샷](https://github.com/sghoregooteitehoo03/NeedTalk/blob/main/image/screenshot.png)
 
 ## 아키텍쳐 및 라이브러리
 - 아키텍처
