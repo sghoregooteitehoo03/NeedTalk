@@ -5,6 +5,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -39,10 +40,10 @@ fun AppNavHost(
     gViewModel: GlobalViewModel,
     navController: NavHostController,
     showSnackBar: suspend (String) -> Unit,
-    onShareIntent: (String) -> Unit
+    onShareIntent: (String) -> Unit,
 ) {
     NavHost(
-        modifier = modifier,
+        modifier = modifier.fillMaxSize(),
         navController = navController,
         startDestination = UiScreen.EmptyScreen.route,
         enterTransition = { fadeIn(tween(200)) },
@@ -300,7 +301,7 @@ fun EmptyScreen() {
 
 private fun navigateToHostTimerScreen(
     navController: NavHostController,
-    timerCmInfo: TimerCommunicateInfo
+    timerCmInfo: TimerCommunicateInfo,
 ) {
     val timerCmInfoJson = Json.encodeToString(TimerCommunicateInfo.serializer(), timerCmInfo)
         .replace("&", "%26")
@@ -313,7 +314,7 @@ private fun navigateToHostTimerScreen(
 
 private fun navigateToClientTimerScreen(
     navController: NavHostController,
-    hostEndpointId: String
+    hostEndpointId: String,
 ) {
     navController.navigate(
         UiScreen.ClientTimerScreen.route +

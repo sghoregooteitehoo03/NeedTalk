@@ -44,12 +44,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.google.accompanist.systemuicontroller.rememberSystemUiController
 import com.holix.android.bottomsheetdialog.compose.BottomSheetDialog
 import com.sghore.needtalk.R
 import com.sghore.needtalk.presentation.main.GlobalViewModel
 import com.sghore.needtalk.presentation.ui.DialogScreen
-import com.sghore.needtalk.presentation.ui.DisposableEffectWithLifeCycle
 import com.sghore.needtalk.presentation.ui.ProfileImage
 import com.sghore.needtalk.presentation.ui.UiScreen
 import com.sghore.needtalk.presentation.ui.home_screen.talk_history_screen.TalkHistoryRoute
@@ -63,19 +61,7 @@ fun HomeScreen(
     val navController = rememberNavController()
     val userData = gViewModel.getUserData()!!
     var dialogScreen by remember { mutableStateOf<DialogScreen>(DialogScreen.DialogDismiss) }
-    val systemUiController = rememberSystemUiController()
-    val statusbarColor = MaterialTheme.colors.background
     val context = LocalContext.current
-
-    DisposableEffectWithLifeCycle(
-        onCreate = {
-            systemUiController.setStatusBarColor(
-                color = statusbarColor,
-                darkIcons = true
-            )
-        },
-        onDispose = {}
-    )
 
     Scaffold(
         topBar = {

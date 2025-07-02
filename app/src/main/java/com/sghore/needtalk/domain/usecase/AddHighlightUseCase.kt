@@ -1,6 +1,5 @@
 package com.sghore.needtalk.domain.usecase
 
-import android.os.Environment
 import com.arthenica.ffmpegkit.FFmpegKit
 import com.sghore.needtalk.data.model.entity.TalkHighlightEntity
 import com.sghore.needtalk.data.repository.TalkRepository
