@@ -4,14 +4,15 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Scaffold
+import androidx.compose.material.ScaffoldDefaults
 import androidx.compose.material.rememberScaffoldState
 import androidx.compose.ui.Modifier
 import androidx.core.content.FileProvider
@@ -31,15 +32,19 @@ class MainActivity : ComponentActivity() {
         createChannel() // Notification channel 생성
         adInitialize()
 
+        enableEdgeToEdge()
         setContent {
             val scaffoldState = rememberScaffoldState()
 
             NeedTalkTheme {
                 val navController = rememberNavController()
 
-                Scaffold(scaffoldState = scaffoldState) {
+                Scaffold(
+                    scaffoldState = scaffoldState,
+                    contentWindowInsets = ScaffoldDefaults.contentWindowInsets
+                ) { innerPadding ->
                     AppNavHost(
-                        modifier = Modifier.padding(it),
+                        modifier = Modifier.padding(innerPadding),
                         gViewModel = gViewModel,
                         navController = navController,
                         showSnackBar = { message ->
