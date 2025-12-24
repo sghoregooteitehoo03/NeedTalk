@@ -36,7 +36,7 @@ interface TalkDao {
     suspend fun deleteTalkHistoryParticipantEntities(id: String)
 
     @Query("SELECT * FROM TalkHighlightEntity WHERE talkHistoryId == :talkHistoryId ORDER BY timestamp DESC")
-    fun getTalkHighlightEntities(talkHistoryId: String): Flow<List<TalkHighlightEntity?>>
+    fun getTalkHighlightEntities(talkHistoryId: String): Flow<List<TalkHighlightEntity>>
 
     @Insert
     suspend fun insertTalkHighlightEntity(talkHighlightEntity: TalkHighlightEntity)
