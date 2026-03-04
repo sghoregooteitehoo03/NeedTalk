@@ -22,30 +22,27 @@
 - ### Domain Layer ###
   앱의 핵심 비즈니스 로직을 담당하는 영역입니다. UseCase를 통해 데이터를 UI에서 사용 가능한 형태로 정제하며, 공통 Result 클래스를 정의하여 성공/실패 상태를 명확히 처리하도록 구현하였습니다.
 - ### Data Layer ###
-  Repository 패턴을 적용하여 Firebase 및 DataStore에 접근합니다. 외부 데이터 소스로부터 데이터를 가져온 뒤 상위 계층에 전달합니다.
+  Repository 패턴을 적용하여 Firebase 및 Room DB에 접근합니다. 외부 데이터 소스로부터 데이터를 가져온 뒤 상위 계층에 전달합니다.
 
 ## 외부 라이브러리
 - Jetpack
   - Compose: 기존 XML 레이아웃을 선언형 UI로 리팩토링하여 직관적이고 유연한 화면을 구현했습니다.
   - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
-  - Paging3: 로컬 데이터베이스나 네트워크에서 가져온 데이터를 페이징하여 데이터를 처리합니다.
-  - Navigation: 화면 구성 및 화면전환에 관련된 다양한 기능을 제공합니다.
-  - Room: SQL 기능을 이용하여 앱 내 데이터베이스를 이용합니다.
-  
-  - [Hilt](https://dagger.dev/hilt/): 의존성 주입을 통해 보일러플레이트 코드를 줄여줍니다.
+  - Room: 사용자의 개인적인 대화 기록과 하이라이트 내역을 오프라인 상태에서도 확인할 수 있도록 로컬에 저장합니다.
+  - Paging3: 다른 유저들이 만든 수많은 '대화 주제' 리스트와 과거 대화 기록을 무한 스크롤로 부드럽게 페이징 처리합니다.
+  - Navigation: 단일 액티비티 구조에서 Compose 기반의 화면 구성 및 원활한 전환을 담당합니다.
+  - [Hilt](https://dagger.dev/hilt/): 의존성 주입(DI)을 통해 객체 간의 결합도를 낮추고 유연한 아키텍처를 설계했습니다.
 
 - Firebase
-  - Firestore: NoSql 기반의 클라우드 데이터베이스를 이용할 수 있는 기능을 제공합니다.
+  - Firestore: 유저들이 직접 생성하고 공유하는 '대화 주제' 데이터를 클라우드에 실시간으로 저장하고 동기화합니다.
 
-- [Retrofit](https://github.com/square/retrofit): Android 및 Java를 위한 HTTP 클라이언트입니다.
+- [Retrofit](https://github.com/square/retrofit): 외부 API와의 안정적인 HTTP 통신을 수행합니다.
 
-- [Coil](https://github.com/coil-kt/coil): 네트워크로부터 이미지를 로드합니다.
+- [Nearby](https://developers.google.com/nearby?hl=ko): 블루투스, Wi-Fi, IP, 등을 통해 근처 기기와 통신을 담당합니다.
 
-- [Nearby](https://developers.google.com/nearby?hl=ko): 블루투스, Wi-Fi, IP, 등을 통해 근처 기기와 통신하는것을 도와줍니다.
+- [ffmpeg-kti](https://github.com/arthenica/ffmpeg-kit): 녹음된 대화 오디오 파일에서 특정 구간을 잘라내어 '하이라이트'를 추출하고 편집하는 핵심 미디어 처리를 담당합니다.
 
-- [ffmpeg-kti](https://github.com/arthenica/ffmpeg-kit): Android에서 ffmpeg 라이브러리를 이용할 수 있도록합니다.
-
-- kotlinx.serialization: JSON 인코딩 디코딩을 도와주는 라이브러리입니다.
+- kotlinx.serialization: JSON 인코딩 디코딩을 도와줍니다.
 
 - Custom Views
   - [bottomsheetdialog-compose](https://github.com/workspace/bottomsheetdialog-compose): Jetpack Compose용 Bottom Sheet Dialog를 제공합니다.
