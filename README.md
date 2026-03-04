@@ -15,6 +15,41 @@
 ## 다운로드
 <a href='https://play.google.com/store/apps/details?id=com.sghore.needtalk'><img alt='다운로드하기 Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' height="80"/></a>
 
+## 아키텍쳐 라이브러리
+![아키텍쳐](https://github.com/sghoregooteitehoo03/NeedTalk/blob/main/image/architecture.png)
+- ### UI Layer ###
+  사용자에게 화면을 그리는 역할을 담당합니다 ViewModel을 통해 전달받은 UI State를 렌더링합니다.  사용자 입력은 Event 형태로 받아 ViewModel에 적절한 함수를 호출합니다.
+- ### Domain Layer ###
+  앱의 핵심 비즈니스 로직을 담당하는 영역입니다. UseCase를 통해 데이터를 UI에서 사용 가능한 형태로 정제하며, 공통 Result 클래스를 정의하여 성공/실패 상태를 명확히 처리하도록 구현하였습니다.
+- ### Data Layer ###
+  Repository 패턴을 적용하여 Firebase 및 DataStore에 접근합니다. 외부 데이터 소스로부터 데이터를 가져온 뒤 상위 계층에 전달합니다.
+
+## 외부 라이브러리
+- Jetpack
+  - Compose: 기존 XML 레이아웃을 선언형 UI로 리팩토링하여 직관적이고 유연한 화면을 구현했습니다.
+  - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
+  - Paging3: 로컬 데이터베이스나 네트워크에서 가져온 데이터를 페이징하여 데이터를 처리합니다.
+  - Navigation: 화면 구성 및 화면전환에 관련된 다양한 기능을 제공합니다.
+  - Room: SQL 기능을 이용하여 앱 내 데이터베이스를 이용합니다.
+  
+  - [Hilt](https://dagger.dev/hilt/): 의존성 주입을 통해 보일러플레이트 코드를 줄여줍니다.
+
+- Firebase
+  - Firestore: NoSql 기반의 클라우드 데이터베이스를 이용할 수 있는 기능을 제공합니다.
+
+- [Retrofit](https://github.com/square/retrofit): Android 및 Java를 위한 HTTP 클라이언트입니다.
+
+- [Coil](https://github.com/coil-kt/coil): 네트워크로부터 이미지를 로드합니다.
+
+- [Nearby](https://developers.google.com/nearby?hl=ko): 블루투스, Wi-Fi, IP, 등을 통해 근처 기기와 통신하는것을 도와줍니다.
+
+- [ffmpeg-kti](https://github.com/arthenica/ffmpeg-kit): Android에서 ffmpeg 라이브러리를 이용할 수 있도록합니다.
+
+- kotlinx.serialization: JSON 인코딩 디코딩을 도와주는 라이브러리입니다.
+
+- Custom Views
+  - [bottomsheetdialog-compose](https://github.com/workspace/bottomsheetdialog-compose): Jetpack Compose용 Bottom Sheet Dialog를 제공합니다.
+
 ## 기능
 - **대화 기록**  
 기록된 대화내역을 통해 다른 이들과 얼마나 대화에 집중하였는지,  
@@ -35,32 +70,3 @@
 
 ## 스크린샷
 ![스크린샷](https://github.com/sghoregooteitehoo03/NeedTalk/blob/main/image/screenshot.png)
-
-## 아키텍쳐 및 라이브러리
-- 아키텍처
-   - MVVM 패턴: (View - ViewModel - Model)
-   - [App Architecture 패턴](https://developer.android.com/topic/architecture/intro): (UI Layer - Domain Layer - Data Layer)
-     
-- Jetpack
-  - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
-  - Paging3: 로컬 데이터베이스나 네트워크에서 가져온 데이터를 페이징하여 데이터를 처리합니다.
-  - Navigation: 화면 구성 및 화면전환에 관련된 다양한 기능을 제공합니다.
-  - Room: SQL 기능을 이용하여 앱 내 데이터베이스를 이용합니다.
-  - Compose: 기존의 XML레이아웃을 이용하지 않고, Kotlin 코드를 통해 UI 화면을 제작합니다.
-  - [Hilt](https://dagger.dev/hilt/): 의존성 주입을 통해 보일러플레이트 코드를 줄여줍니다.
-
-- Firebase
-  - Firestore: NoSql 기반의 클라우드 데이터베이스를 이용할 수 있는 기능을 제공합니다.
-
-- [Retrofit](https://github.com/square/retrofit): Android 및 Java를 위한 HTTP 클라이언트입니다.
-
-- [Coil](https://github.com/coil-kt/coil): 네트워크로부터 이미지를 로드합니다.
-
-- [Nearby](https://developers.google.com/nearby?hl=ko): 블루투스, Wi-Fi, IP, 등을 통해 근처 기기와 통신하는것을 도와줍니다.
-
-- [ffmpeg-kti](https://github.com/arthenica/ffmpeg-kit): Android에서 ffmpeg 라이브러리를 이용할 수 있도록합니다.
-
-- kotlinx.serialization: JSON 인코딩 디코딩을 도와주는 라이브러리입니다.
-
-- Custom Views
-  - [bottomsheetdialog-compose](https://github.com/workspace/bottomsheetdialog-compose): Jetpack Compose용 Bottom Sheet Dialog를 제공합니다.
