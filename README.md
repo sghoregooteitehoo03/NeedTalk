@@ -15,7 +15,7 @@
 ## 다운로드
 <a href='https://play.google.com/store/apps/details?id=com.sghore.needtalk'><img alt='다운로드하기 Google Play' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' height="80"/></a>
 
-## 아키텍쳐 라이브러리
+## 아키텍쳐
 ![아키텍쳐](https://github.com/sghoregooteitehoo03/NeedTalk/blob/main/image/architecture.png)
 - ### UI Layer ###
   사용자에게 화면을 그리는 역할을 담당합니다 ViewModel을 통해 전달받은 UI State를 렌더링합니다.  사용자 입력은 Event 형태로 받아 ViewModel에 적절한 함수를 호출합니다.
@@ -27,11 +27,11 @@
 ## 외부 라이브러리
 - Jetpack
   - Compose: 기존 XML 레이아웃을 선언형 UI로 리팩토링하여 직관적이고 유연한 화면을 구현했습니다.
-  - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
-  - Room: 사용자의 개인적인 대화 기록과 하이라이트 내역을 오프라인 상태에서도 확인할 수 있도록 로컬에 저장합니다.
-  - Paging3: 다른 유저들이 만든 수많은 '대화 주제' 리스트와 과거 대화 기록을 무한 스크롤로 부드럽게 페이징 처리합니다.
-  - Navigation: 단일 액티비티 구조에서 Compose 기반의 화면 구성 및 원활한 전환을 담당합니다.
   - [Hilt](https://dagger.dev/hilt/): 의존성 주입(DI)을 통해 객체 간의 결합도를 낮추고 유연한 아키텍처를 설계했습니다.
+  - Navigation: 단일 액티비티 구조에서 Compose 기반의 화면 구성 및 원활한 전환을 담당합니다.
+  - Paging3: 다른 유저들이 만든 수많은 '대화 주제' 리스트와 과거 대화 기록을 무한 스크롤로 부드럽게 페이징 처리합니다.
+  - Room: 사용자의 개인적인 대화 기록과 하이라이트 내역을 오프라인 상태에서도 확인할 수 있도록 로컬에 저장합니다.
+  - ViewModel: UI의 상태값을 관리하며 UI의 이벤트들을 처리합니다.
 
 - Firebase
   - Firestore: 유저들이 직접 생성하고 공유하는 '대화 주제' 데이터를 클라우드에 실시간으로 저장하고 동기화합니다.
